@@ -1,6 +1,6 @@
 use std::fmt;
 
-struct Move {
+pub struct Move {
   family: String,
   amount: i32
 }
