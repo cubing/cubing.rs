@@ -3,5 +3,12 @@ name = "cubing"
 version = "0.1.0"
 authors = ["Lucas Garron <code@garron.net"]
 edition = "2018"
+description = "Features from `cubing.js` in Rust."
+homepage = "https://github.com/cubing/cubing.rs"
+repository = "https://github.com/cubing/cubing.rs"
+documentation = "https://github.com/cubing/cubing.rs"
+keywords = ["cubing", "puzzle", "rubik", "solving", "WCA"]
+license = "GPL-3.0-or-later"
+readme = "README.md"
 
 [dependencies]
