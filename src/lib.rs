@@ -1,5 +1,6 @@
 use std::{convert::TryFrom, fmt};
 
+#[derive(Debug, Clone)]
 pub struct QuantumMove {
     pub family: String,
     pub outer_layer: Option<usize>,
@@ -98,6 +99,8 @@ mod tests {
             )
         );
         let mv: Move = "UR43".try_into()?;
+        println!("Display: {}", mv);
+        println!("Debug: {:?}", mv);
         Ok(())
     }
 }
