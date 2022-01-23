@@ -31,11 +31,9 @@ pub struct Move {
     pub amount: isize,
 }
 
-impl TryFrom<String> for Move {
-    type Error = String;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.split_once(|c: char| c.is_digit(10)) {
+impl Move {
+    pub fn parse(value: impl AsRef<str>) -> Result<Self, String> {
+        match value.as_ref().split_once(|c: char| c.is_digit(10)) {
             Some((family, amount_string)) => {
                 let amount = amount_string
                     .parse()
@@ -47,19 +45,22 @@ impl TryFrom<String> for Move {
             }
             None => Err("could not parse! 😱".into()),
         }
+    }
+}
 
-        // let amount_index = value.find(char::is_digit);
-        // match amount_index {
-        //     Some(index) => {
-        //         let bla = 4;
+impl TryFrom<String> for Move {
+    type Error = String;
 
-        //     }
-        //     None => Err("could not parse! 😱".into()),
-        // }
-        // if (match(None)) {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::parse(value)
+    }
+}
 
-        // }
-        // "mrkrhjewkhrwekrj4234"
+impl TryFrom<&str> for Move {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::parse(value)
     }
 }
 
@@ -79,8 +80,12 @@ impl fmt::Display for Move {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryInto;
+
+    use crate::Move;
+
     #[test]
-    fn it_works() {
+    fn it_works() -> Result<(), String> {
         assert_eq!(
             "R",
             format!(
@@ -91,56 +96,7 @@ mod tests {
                 }
             )
         );
-        // "UR43".to_string
-        // assert_eq!(
-        //     "U2",
-        //     format!(
-        //         "{}",
-        //         crate::Move {
-        //             family: "U".to_string(),
-        //             amount: 2
-        //         }
-        //     )
-        // );
-        // assert_eq!(
-        //     "R'",
-        //     format!(
-        //         "{}",
-        //         crate::Move {
-        //             family: "R".to_string(),
-        //             amount: -1
-        //         }
-        //     )
-        // );
-        // assert_eq!(
-        //     "R0",
-        //     format!(
-        //         "{}",
-        //         crate::Move {
-        //             family: "R".to_string(),
-        //             amount: 0
-        //         }
-        //     )
-        // );
-        // assert_eq!(
-        //     "R5",
-        //     format!(
-        //         "{}",
-        //         crate::Move {
-        //             family: "R".to_string(),
-        //             amount: 5
-        //         }
-        //     )
-        // );
-        // assert_eq!(
-        //     "R12'",
-        //     format!(
-        //         "{}",
-        //         crate::Move {
-        //             family: "R".to_string(),
-        //             amount: -12
-        //         }
-        //     )
-        // );
+        let mv: Move = "UR43".try_into()?;
+        Ok(())
     }
 }
