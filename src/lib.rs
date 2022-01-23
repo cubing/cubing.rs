@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{convert::TryFrom, fmt};
 
 pub struct QuantumMove {
     pub family: String,
@@ -31,6 +31,38 @@ pub struct Move {
     pub amount: isize,
 }
 
+impl TryFrom<String> for Move {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.split_once(|c: char| c.is_digit(10)) {
+            Some((family, amount_string)) => {
+                let amount = amount_string
+                    .parse()
+                    .map_err(|err| format!("Invalid amount {amount_string}, error: {}", err))?;
+                Ok(Move {
+                    quantum: QuantumMove::new(family, None, None),
+                    amount,
+                })
+            }
+            None => Err("could not parse! 😱".into()),
+        }
+
+        // let amount_index = value.find(char::is_digit);
+        // match amount_index {
+        //     Some(index) => {
+        //         let bla = 4;
+
+        //     }
+        //     None => Err("could not parse! 😱".into()),
+        // }
+        // if (match(None)) {
+
+        // }
+        // "mrkrhjewkhrwekrj4234"
+    }
+}
+
 impl fmt::Display for Move {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.amount == 1 {
@@ -59,6 +91,7 @@ mod tests {
                 }
             )
         );
+        // "UR43".to_string
         // assert_eq!(
         //     "U2",
         //     format!(
