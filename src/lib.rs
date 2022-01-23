@@ -26,6 +26,7 @@ impl QuantumMove {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Move {
     pub quantum: QuantumMove,
     pub amount: isize,
