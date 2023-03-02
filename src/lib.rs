@@ -5,13 +5,24 @@ use std::{convert::TryFrom, fmt};
 #[derive(Debug, Clone)]
 pub struct QuantumMove {
     pub family: String,
+    // TODO: prevent setting outer layer without inner layer
     pub outer_layer: Option<usize>,
     pub inner_layer: Option<usize>,
 }
 
 impl fmt::Display for QuantumMove {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.family)
+        let layer_string = match self.inner_layer {
+            Some(inner_layer) => {
+                let inner_layer_str = inner_layer.to_string();
+                match self.outer_layer {
+                    Some(outer_layer) => outer_layer.to_string() + "-" + &inner_layer_str,
+                    None => inner_layer_str,
+                }
+            }
+            None => "".into(),
+        };
+        write!(f, "{}{}", layer_string, self.family)
     }
 }
 
@@ -38,25 +49,46 @@ pub struct Move {
 impl Move {
     pub fn parse(value: impl AsRef<str>) -> Result<Self, String> {
         lazy_static! {
-            static ref RE: Regex = Regex::new(r"^([a-zA-Z_]+)(\d+)?(')?$").unwrap();
+            static ref RE: Regex =
+                Regex::new(r"^(?:(?:(?P<outer_layer>[1-9]\d*)-)?(?P<inner_layer>[1-9]\d*))?(?P<family>[a-zA-Z_]+)(?P<amount>\d+)?(?P<prime>')?$").unwrap();
         }
         let captures = match RE.captures(value.as_ref()) {
             Some(captures) => captures,
             None => return Err("could not parse! 😱".into()),
         };
-        let mut amount = match captures.get(2) {
+
+        let outer_layer = match captures.name("outer_layer") {
+            Some(outer_layer_match) => match outer_layer_match.as_str().parse::<usize>() {
+                Ok(outer_layer) => Some(outer_layer),
+                Err(_) => return Err("Could not parse outer layer".into()),
+            },
+            None => None,
+        };
+
+        let inner_layer = match captures.name("inner_layer") {
+            Some(inner_layer_match) => match inner_layer_match.as_str().parse::<usize>() {
+                Ok(inner_layer) => Some(inner_layer),
+                Err(_) => return Err("Could not parse inner layer".into()),
+            },
+            None => None,
+        };
+
+        let family = captures.name("family").unwrap().as_str();
+
+        let mut amount = match captures.name("amount") {
             Some(amount_match) => match amount_match.as_str().parse::<isize>() {
                 Ok(amount) => amount,
                 Err(_) => return Err("Could not parse move amount".into()),
             },
             None => 1,
         };
-        match captures.get(3) {
+        match captures.name("prime") {
             Some(_) => amount *= -1,
             None => {}
         };
+
         Ok(Move {
-            quantum: QuantumMove::new(&captures[1], None, None),
+            quantum: QuantumMove::new(family, outer_layer, inner_layer),
             amount: amount,
         })
     }
@@ -114,8 +146,50 @@ mod tests {
         assert_eq!("F", format!("{}", crate::Move::parse("F1").unwrap()));
         assert_eq!("F", format!("{}", crate::Move::parse("F").unwrap()));
         assert_eq!("F'", format!("{}", crate::Move::parse("F1'").unwrap()));
+        assert_eq!("F0", format!("{}", crate::Move::parse("F0").unwrap()));
         assert_eq!("F2'", format!("{}", crate::Move::parse("F2'").unwrap()));
         assert_eq!("U_R", format!("{}", crate::Move::parse("U_R").unwrap()));
+        assert_eq!("4R2'", format!("{}", crate::Move::parse("4R2'").unwrap()));
+        assert_eq!(
+            "3-7R2'",
+            format!("{}", crate::Move::parse("3-7R2'").unwrap())
+        );
+
+        assert_eq!(
+            "3-7R2'",
+            format!(
+                "{}",
+                crate::Move {
+                    quantum: crate::QuantumMove::new("R", Some(3), Some(7)),
+                    amount: -2
+                }
+            )
+        );
+
+        let single_move = crate::Move::parse("R2'").unwrap();
+        assert_eq!(single_move.quantum.outer_layer, None);
+        assert_eq!(single_move.quantum.inner_layer, None);
+        assert_eq!(single_move.quantum.family, "R");
+        assert_eq!(single_move.amount, -2);
+
+        let face_move = crate::Move::parse("R2'").unwrap();
+        assert_eq!(face_move.quantum.outer_layer, None);
+        assert_eq!(face_move.quantum.inner_layer, None);
+        assert_eq!(face_move.quantum.family, "R");
+        assert_eq!(face_move.amount, -2);
+
+        let block_move = crate::Move::parse("7R2'").unwrap();
+        assert_eq!(block_move.quantum.outer_layer, None);
+        assert_eq!(block_move.quantum.inner_layer, Some(7));
+        assert_eq!(block_move.quantum.family, "R");
+        assert_eq!(block_move.amount, -2);
+
+        let range_move = crate::Move::parse("3-7R2'").unwrap();
+        assert_eq!(range_move.quantum.outer_layer, Some(3));
+        assert_eq!(range_move.quantum.inner_layer, Some(7));
+        assert_eq!(range_move.quantum.family, "R");
+        assert_eq!(range_move.amount, -2);
+
         assert!(crate::Move::parse("2").is_err());
         assert!(crate::Move::parse("U-R").is_err());
         let mv: Move = "UR43".try_into()?;
