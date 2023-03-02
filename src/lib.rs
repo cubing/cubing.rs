@@ -6,8 +6,8 @@ use std::{convert::TryFrom, fmt};
 pub struct QuantumMove {
     pub family: String,
     // TODO: prevent setting outer layer without inner layer
-    pub outer_layer: Option<usize>,
-    pub inner_layer: Option<usize>,
+    pub outer_layer: Option<u32>,
+    pub inner_layer: Option<u32>,
 }
 
 impl fmt::Display for QuantumMove {
@@ -29,8 +29,8 @@ impl fmt::Display for QuantumMove {
 impl QuantumMove {
     pub fn new(
         family: impl Into<String>,
-        outer_layer: Option<usize>,
-        inner_layer: Option<usize>,
+        outer_layer: Option<u32>,
+        inner_layer: Option<u32>,
     ) -> Self {
         Self {
             family: family.into(),
@@ -43,7 +43,7 @@ impl QuantumMove {
 #[derive(Debug, Clone)]
 pub struct Move {
     pub quantum: QuantumMove,
-    pub amount: isize,
+    pub amount: i32,
 }
 
 impl Move {
@@ -58,7 +58,7 @@ impl Move {
         };
 
         let outer_layer = match captures.name("outer_layer") {
-            Some(outer_layer_match) => match outer_layer_match.as_str().parse::<usize>() {
+            Some(outer_layer_match) => match outer_layer_match.as_str().parse::<u32>() {
                 Ok(outer_layer) => Some(outer_layer),
                 Err(_) => return Err("Could not parse outer layer".into()),
             },
@@ -66,7 +66,7 @@ impl Move {
         };
 
         let inner_layer = match captures.name("inner_layer") {
-            Some(inner_layer_match) => match inner_layer_match.as_str().parse::<usize>() {
+            Some(inner_layer_match) => match inner_layer_match.as_str().parse::<u32>() {
                 Ok(inner_layer) => Some(inner_layer),
                 Err(_) => return Err("Could not parse inner layer".into()),
             },
@@ -76,7 +76,7 @@ impl Move {
         let family = captures.name("family").unwrap().as_str();
 
         let mut amount = match captures.name("amount") {
-            Some(amount_match) => match amount_match.as_str().parse::<isize>() {
+            Some(amount_match) => match amount_match.as_str().parse::<i32>() {
                 Ok(amount) => amount,
                 Err(_) => return Err("Could not parse move amount".into()),
             },
