@@ -92,6 +92,13 @@ impl Move {
             amount: amount,
         })
     }
+
+    pub fn invert(&self) -> Move {
+        Self {
+            quantum: self.quantum.clone(),
+            amount: -self.amount,
+        }
+    }
 }
 
 impl TryFrom<String> for Move {
@@ -189,6 +196,11 @@ mod tests {
         assert_eq!(range_move.quantum.inner_layer, Some(7));
         assert_eq!(range_move.quantum.family, "R");
         assert_eq!(range_move.amount, -2);
+
+        assert_eq!(
+            "F2'",
+            format!("{}", crate::Move::parse("F2").unwrap().invert())
+        );
 
         assert!(crate::Move::parse("2").is_err());
         assert!(crate::Move::parse("U-R").is_err());
