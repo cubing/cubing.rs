@@ -1,3 +1,5 @@
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::{convert::TryFrom, fmt};
 
 #[derive(Debug, Clone)]
@@ -35,18 +37,29 @@ pub struct Move {
 
 impl Move {
     pub fn parse(value: impl AsRef<str>) -> Result<Self, String> {
-        match value.as_ref().split_once(|c: char| c.is_digit(10)) {
-            Some((family, amount_string)) => {
-                let amount = amount_string
-                    .parse()
-                    .map_err(|err| format!("Invalid amount {amount_string}, error: {}", err))?;
-                Ok(Move {
-                    quantum: QuantumMove::new(family, None, None),
-                    amount,
-                })
-            }
+        lazy_static! {
+            static ref RE: Regex = Regex::new(r"^([a-zA-Z_]+)(\d+)$").unwrap();
+        }
+        match RE.captures(value.as_ref()) {
+            Some(captures) => Ok(Move {
+                quantum: QuantumMove::new(&captures[1], None, None),
+                amount: captures[2].parse::<isize>().unwrap(),
+            }),
             None => Err("could not parse! 😱".into()),
         }
+
+        // match value.as_ref().split_once(|c: char| c.is_digit(10)) {
+        //     Some((family, amount_string)) => {
+        //         let amount = amount_string
+        //             .parse()
+        //             .map_err(|err| format!("Invalid amount {amount_string}, error: {}", err))?;
+        //         Ok(Move {
+        //             quantum: QuantumMove::new(family, None, None),
+        //             amount,
+        //         })
+        //     }
+        //     None => Err("could not parse! 😱".into()),
+        // }
     }
 }
 
@@ -98,6 +111,8 @@ mod tests {
                 }
             )
         );
+        assert_eq!("F2", format!("{}", crate::Move::parse("F2").unwrap()));
+        assert!(crate::Move::parse("2").is_err());
         let mv: Move = "UR43".try_into()?;
         println!("Display: {}", mv);
         println!("Debug: {:?}", mv);

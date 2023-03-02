@@ -12,3 +12,5 @@ license = "GPL-3.0-or-later"
 readme = "README.md"
 
 [dependencies]
+lazy_static = "1.4.0"
+regex = "1.7.1"
