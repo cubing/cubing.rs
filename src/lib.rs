@@ -1,8 +1,10 @@
+use std::rc::Rc;
+
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{convert::TryFrom, fmt};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct QuantumMove {
     pub family: String,
     // TODO: prevent setting outer layer without inner layer
@@ -40,9 +42,9 @@ impl QuantumMove {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Move {
-    pub quantum: QuantumMove,
+    pub quantum: Rc<QuantumMove>,
     pub amount: i32,
 }
 
@@ -88,14 +90,14 @@ impl Move {
         };
 
         Ok(Move {
-            quantum: QuantumMove::new(family, outer_layer, inner_layer),
+            quantum: QuantumMove::new(family, outer_layer, inner_layer).into(),
             amount: amount,
         })
     }
 
     pub fn invert(&self) -> Move {
         Self {
-            quantum: self.quantum.clone(),
+            quantum: Rc::clone(&self.quantum),
             amount: -self.amount,
         }
     }
@@ -144,7 +146,7 @@ mod tests {
             format!(
                 "{}",
                 crate::Move {
-                    quantum: crate::QuantumMove::new("R", None, None),
+                    quantum: crate::QuantumMove::new("R", None, None).into(),
                     amount: 1
                 }
             )
@@ -167,7 +169,7 @@ mod tests {
             format!(
                 "{}",
                 crate::Move {
-                    quantum: crate::QuantumMove::new("R", Some(3), Some(7)),
+                    quantum: crate::QuantumMove::new("R", Some(3), Some(7)).into(),
                     amount: -2
                 }
             )
@@ -196,6 +198,19 @@ mod tests {
         assert_eq!(range_move.quantum.inner_layer, Some(7));
         assert_eq!(range_move.quantum.family, "R");
         assert_eq!(range_move.amount, -2);
+
+        assert_eq!(
+            crate::Move::parse("R2").unwrap(),
+            crate::Move {
+                quantum: crate::QuantumMove {
+                    family: "R".into(),
+                    outer_layer: None,
+                    inner_layer: None
+                }
+                .into(),
+                amount: 2
+            }
+        );
 
         assert_eq!(
             "F2'",
