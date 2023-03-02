@@ -115,7 +115,9 @@ mod tests {
         assert_eq!("F", format!("{}", crate::Move::parse("F").unwrap()));
         assert_eq!("F'", format!("{}", crate::Move::parse("F1'").unwrap()));
         assert_eq!("F2'", format!("{}", crate::Move::parse("F2'").unwrap()));
+        assert_eq!("U_R", format!("{}", crate::Move::parse("U_R").unwrap()));
         assert!(crate::Move::parse("2").is_err());
+        assert!(crate::Move::parse("U-R").is_err());
         let mv: Move = "UR43".try_into()?;
         println!("Display: {}", mv);
         println!("Debug: {:?}", mv);
