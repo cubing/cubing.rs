@@ -1,4 +1,6 @@
-use cubing::kpuzzle::KTransformationOrbitData;
+use std::rc::Rc;
+
+use cubing::{alg::Move, kpuzzle::KTransformationOrbitData};
 
 #[test]
 fn it_works() -> Result<(), String> {
@@ -25,23 +27,23 @@ fn it_works() -> Result<(), String> {
         moves: HashMap::from([
             (
                 "L".into(),
-                HashMap::from([(
+                Rc::new(HashMap::from([(
                     "items".into(),
                     KTransformationOrbitData {
                         permutation: vec![10, 8, 6, 4, 2, 0, 1, 3, 5, 7, 9, 11], // TODO: is this actually L'?
                         orientation: vec![0; 12],
                     },
-                )]),
+                )])),
             ),
             (
                 "R".into(),
-                HashMap::from([(
+                Rc::new(HashMap::from([(
                     "items".into(),
                     KTransformationOrbitData {
                         permutation: vec![1, 3, 5, 7, 9, 11, 10, 8, 6, 4, 2, 0], // TODO: is this actually R'?
                         orientation: vec![0; 12],
                     },
-                )]),
+                )])),
             ),
         ]),
     };
@@ -61,6 +63,14 @@ fn it_works() -> Result<(), String> {
     assert_eq!(
         kpuzzle.definition.start_state_data["items"].orientation[4],
         0
+    );
+
+    assert_eq!(
+        kpuzzle
+            .transformation_from_move(Move::parse("L")?)?
+            .transformation_data["items"]
+            .permutation[0],
+        10
     );
 
     Ok(())

@@ -1,7 +1,8 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 pub struct KTransformation {
-    pub transformation_data: KTransformationData, // TODO: check that this is immutable
+    // TODO: store the orbits directly?
+    pub transformation_data: Rc<KTransformationData>, // TODO: check that this is immutable
 }
 pub type KTransformationData = HashMap<String, KTransformationOrbitData>;
 pub struct KTransformationOrbitData {
