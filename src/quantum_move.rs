@@ -1,8 +1,4 @@
-use std::rc::Rc;
-
-use lazy_static::lazy_static;
-use regex::Regex;
-use std::{convert::TryFrom, fmt};
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct QuantumMove {

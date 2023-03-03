@@ -49,14 +49,13 @@ impl Move {
             },
             None => 1,
         };
-        match captures.name("prime") {
-            Some(_) => amount *= -1,
-            None => {}
+        if captures.name("prime").is_some() {
+            amount *= -1
         };
 
         Ok(Move {
             quantum: QuantumMove::new(family, outer_layer, inner_layer).into(),
-            amount: amount,
+            amount,
         })
     }
 
