@@ -1,6 +1,3 @@
-#[cfg(test)]
-use std::convert::TryInto;
-
 #[test]
 fn it_works() -> Result<(), String> {
     assert_eq!(

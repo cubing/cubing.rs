@@ -1,4 +1,3 @@
-#[cfg(test)]
 #[test]
 fn it_works() -> Result<(), String> {
     use std::collections::HashMap;
@@ -17,7 +16,7 @@ fn it_works() -> Result<(), String> {
         start_state_data: HashMap::from([(
             "items".into(),
             KStateOrbitData {
-                pieces: (1..12).collect(),
+                pieces: (0..11).collect(),
                 orientation: vec![0; 12],
             },
         )]),
@@ -34,6 +33,11 @@ fn it_works() -> Result<(), String> {
             .orientation
             .len(),
         12
+    );
+    assert_eq!(kpuzzle.definition.start_state_data["items"].pieces[4], 4);
+    assert_eq!(
+        kpuzzle.definition.start_state_data["items"].orientation[4],
+        0
     );
 
     Ok(())
