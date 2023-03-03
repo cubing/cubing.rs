@@ -73,5 +73,13 @@ fn it_works() -> Result<(), String> {
         10
     );
 
+    let t = kpuzzle.transformation_from_move(Move::parse("R")?)?;
+    let mut current = t.clone(); // TODO: start with solved.
+    for _ in 1..10 {
+        assert_ne!(current.transformation_data["items"].permutation[0], 0);
+        current = current.apply_transformation(&t);
+    }
+    assert_eq!(current.transformation_data["items"].permutation[0], 0);
+
     Ok(())
 }
