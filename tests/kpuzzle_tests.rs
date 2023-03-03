@@ -8,14 +8,14 @@ fn it_works() -> Result<(), String> {
     let def = cubing::kpuzzle::KPuzzleDefinition {
         name: "test".into(),
         orbits: HashMap::from([(
-            "pieces".into(),
+            "items".into(),
             KPuzzleOrbitDefinition {
                 num_pieces: 12,
                 num_orientations: 1,
             },
         )]),
         start_state_data: HashMap::from([(
-            "pieces".into(),
+            "items".into(),
             KStateOrbitData {
                 pieces: (1..12).collect(),
                 orientation: vec![0; 12],
@@ -29,6 +29,12 @@ fn it_works() -> Result<(), String> {
     };
 
     assert_eq!(kpuzzle.definition.name, "test");
+    assert_eq!(
+        kpuzzle.definition.start_state_data["items"]
+            .orientation
+            .len(),
+        12
+    );
 
     Ok(())
 }
