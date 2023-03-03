@@ -1,3 +1,5 @@
+use cubing::kpuzzle::KTransformationOrbitData;
+
 #[test]
 fn it_works() -> Result<(), String> {
     use std::collections::HashMap;
@@ -5,7 +7,7 @@ fn it_works() -> Result<(), String> {
     use cubing::kpuzzle::{KPuzzleOrbitDefinition, KStateOrbitData};
 
     let def = cubing::kpuzzle::KPuzzleDefinition {
-        name: "test".into(),
+        name: "topsy_turvy".into(),
         orbits: HashMap::from([(
             "items".into(),
             KPuzzleOrbitDefinition {
@@ -20,14 +22,35 @@ fn it_works() -> Result<(), String> {
                 orientation: vec![0; 12],
             },
         )]),
-        moves: HashMap::new(),
+        moves: HashMap::from([
+            (
+                "L".into(),
+                HashMap::from([(
+                    "items".into(),
+                    KTransformationOrbitData {
+                        permutation: vec![10, 8, 6, 4, 2, 0, 1, 3, 5, 7, 9, 11], // TODO: is this actually L'?
+                        orientation: vec![0; 12],
+                    },
+                )]),
+            ),
+            (
+                "R".into(),
+                HashMap::from([(
+                    "items".into(),
+                    KTransformationOrbitData {
+                        permutation: vec![1, 3, 5, 7, 9, 11, 10, 8, 6, 4, 2, 0], // TODO: is this actually R'?
+                        orientation: vec![0; 12],
+                    },
+                )]),
+            ),
+        ]),
     };
 
     let kpuzzle = cubing::kpuzzle::KPuzzle {
         definition: def.into(),
     };
 
-    assert_eq!(kpuzzle.definition.name, "test");
+    assert_eq!(kpuzzle.definition.name, "topsy_turvy");
     assert_eq!(
         kpuzzle.definition.start_state_data["items"]
             .orientation

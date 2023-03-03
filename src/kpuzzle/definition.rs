@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use crate::alg::Move;
-
 use super::{state::KStateData, transformation::KTransformationData};
 
 // use super::super::{state::KStateData, transformation::KTransformationData};
@@ -14,6 +12,7 @@ pub struct KPuzzleDefinition {
     pub name: String,
     pub orbits: HashMap<String, KPuzzleOrbitDefinition>,
     pub start_state_data: KStateData,
-    pub moves: HashMap<Move, KTransformationData>,
+    // TODO: Use `Move` as the key?
+    pub moves: HashMap<String, KTransformationData>,
     // experimentalDerivedMoves?: Record<string, string>;
 }
