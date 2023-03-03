@@ -65,6 +65,7 @@ impl Move {
             amount: -self.amount,
         }
     }
+    // from_str?
 }
 
 impl TryFrom<String> for Move {
@@ -97,6 +98,13 @@ impl fmt::Display for Move {
     }
 }
 
+#[macro_export]
+macro_rules! alg_move {
+    ($s:expr) => {
+        $crate::Move::parse($s).unwrap()
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use std::convert::TryInto;
@@ -115,6 +123,9 @@ mod tests {
                 }
             )
         );
+
+        assert_eq!("F2", format!("{}", crate::Move::try_from("F2").unwrap()));
+        assert_eq!("F2", format!("{}", alg_move!("F2")));
         assert_eq!("F2", format!("{}", crate::Move::parse("F2").unwrap()));
         assert_eq!("F", format!("{}", crate::Move::parse("F1").unwrap()));
         assert_eq!("F", format!("{}", crate::Move::parse("F").unwrap()));
