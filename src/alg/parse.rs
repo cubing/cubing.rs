@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use nom::{
     bytes::complete::take_while,
     combinator::{all_consuming, map_res},
@@ -20,9 +22,14 @@ fn parse_decimal(input: &str) -> IResult<&str, u32> {
 
 impl TryFrom<&str> for MoveLayer {
     type Error = String;
-
     fn try_from(input: &str) -> Result<Self, Self::Error> {
-        match all_consuming(parse_decimal)(input) {
+        input.parse()
+    }
+}
+impl FromStr for MoveLayer {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match all_consuming(parse_decimal)(s) {
             Ok((_, move_layer)) => Ok(move_layer.into()),
             Err(_) => Err("Invalid move layer".into()),
         }

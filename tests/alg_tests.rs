@@ -35,7 +35,9 @@ fn it_works() -> Result<(), String> {
         )
     );
 
-    assert_eq!(MoveLayer::try_from("7")?, MoveLayer { layer: 7 });
+    assert_eq!(MoveLayer { layer: 7 }, MoveLayer::try_from("7")?);
+    assert_eq!(Ok(MoveLayer { layer: 7 }), "7".try_into());
+    assert_eq!(MoveLayer { layer: 7 }, "7".parse()?);
     assert_eq!(MoveLayer::from(7), MoveLayer { layer: 7 });
 
     let single_move = Move::parse("R2'").unwrap();
