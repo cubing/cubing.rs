@@ -10,6 +10,7 @@ pub struct KTransformation {
     pub definition: Rc<KPuzzleDefinition>,
     pub transformation_data: Rc<KTransformationData>, // TODO: check that this is immutable
 }
+// TODO: Use `Move` as the key?
 pub type KTransformationData = HashMap<String, KTransformationOrbitData>;
 
 impl PartialEq<KTransformation> for KTransformation {

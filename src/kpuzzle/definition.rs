@@ -11,6 +11,7 @@ pub struct KPuzzleOrbitDefinition {
 #[derive(Debug)]
 pub struct KPuzzleDefinition {
     pub name: String,
+    // TODO: Use `Move` as the key?
     pub orbits: HashMap<String, KPuzzleOrbitDefinition>,
     pub start_state_data: KStateData,
     // TODO: Use `Move` as the key?
