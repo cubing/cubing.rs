@@ -81,6 +81,17 @@ fn it_works() -> Result<(), String> {
 
     assert_eq!(t.apply_transformation(&t), (&kpuzzle, "R2").try_into()?);
     assert_ne!(t.apply_transformation(&t), (&kpuzzle, "L R").try_into()?);
-
+    assert_eq!(
+        t.apply_transformation(&t).apply_transformation(&t),
+        (&kpuzzle, "R3").try_into()?
+    );
+    assert_eq!(
+        kpuzzle.identity_transformation(),
+        (&kpuzzle, "R10").try_into()?
+    );
+    assert_ne!(
+        kpuzzle.identity_transformation(),
+        (&kpuzzle, "R5").try_into()?
+    );
     Ok(())
 }

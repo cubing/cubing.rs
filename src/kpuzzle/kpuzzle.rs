@@ -48,7 +48,7 @@ impl KPuzzle {
     }
 }
 
-fn identity_transformation(definition: &Rc<KPuzzleDefinition>) -> KTransformation {
+pub fn identity_transformation(definition: &Rc<KPuzzleDefinition>) -> KTransformation {
     let mut transformation_data: KTransformationData = HashMap::new();
     for (orbit_name, orbit_definition) in &definition.orbits {
         let num_pieces = orbit_definition.num_pieces;
