@@ -1,4 +1,4 @@
-use cubing::alg::{Alg, Move, MoveLayer, MoveRange, QuantumMove};
+use cubing::alg::{Alg, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
 
 #[test]
 fn it_works() -> Result<(), String> {
@@ -45,6 +45,13 @@ fn it_works() -> Result<(), String> {
             outer_layer: 2,
             inner_layer: 4
         },
+        "2-4".parse()?
+    );
+    assert_eq!(
+        MovePrefix::Range(MoveRange {
+            outer_layer: 2,
+            inner_layer: 4
+        }),
         "2-4".parse()?
     );
 
