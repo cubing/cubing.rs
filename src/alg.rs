@@ -14,4 +14,10 @@ pub use alg::Alg;
 mod grouping;
 pub use grouping::Grouping;
 
+mod commutator;
+pub use commutator::Commutator;
+
+mod conjugate;
+pub use conjugate::Conjugate;
+
 mod parse;

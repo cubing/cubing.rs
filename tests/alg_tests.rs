@@ -103,6 +103,14 @@ fn it_works() -> Result<(), String> {
         " R' ".parse::<Alg>()?
     );
     assert_eq!("(R U' R')", "(R   U'  R' )".parse::<Alg>()?.to_string());
+    assert_eq!(
+        "[R, U]",
+        "  [ U  , R ]  ".parse::<Alg>()?.invert().to_string()
+    );
+    assert_eq!(
+        "[R: U']",
+        "  [ R  : U ]  ".parse::<Alg>()?.invert().to_string()
+    );
 
     Ok(())
 }

@@ -3,13 +3,16 @@ use std::str::FromStr;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while1},
-    combinator::{all_consuming, map_res, opt},
+    character::complete::one_of,
+    combinator::{all_consuming, into, map_res, opt},
     multi::many0,
     sequence::preceded,
     IResult,
 };
 
-use super::{alg_node::AlgNode, Alg, Grouping, Move, MovePrefix, QuantumMove};
+use super::{
+    alg_node::AlgNode, Alg, Commutator, Conjugate, Grouping, Move, MovePrefix, QuantumMove,
+};
 
 fn from_decimal_unsinged(input: &str) -> Result<u32, std::num::ParseIntError> {
     input.parse::<u32>()
@@ -212,18 +215,34 @@ fn parse_grouping(input: &str) -> IResult<&str, Grouping> {
     ))
 }
 
-fn parse_move_alg_node(input: &str) -> IResult<&str, AlgNode> {
-    let (input, alg_node) = parse_move(input)?;
-    Ok((input, alg_node.into()))
-}
-
-fn parse_grouping_alg_node(input: &str) -> IResult<&str, AlgNode> {
-    let (input, alg_node) = parse_grouping(input)?;
-    Ok((input, alg_node.into()))
+fn parse_commutator_or_conjugate(input: &str) -> IResult<&str, AlgNode> {
+    let (input, _) = tag("[")(input)?;
+    let (input, a) = parse_alg(input)?;
+    let (input, separator) = one_of(",:")(input)?;
+    let (input, b) = parse_alg(input)?;
+    let (input, _) = tag("]")(input)?;
+    let alg_node = if separator == ',' {
+        Commutator {
+            a: a.into(),
+            b: b.into(),
+        }
+        .into()
+    } else {
+        Conjugate {
+            a: a.into(),
+            b: b.into(),
+        }
+        .into()
+    };
+    Ok((input, alg_node))
 }
 
 fn parse_node(input: &str) -> IResult<&str, AlgNode> {
-    alt((parse_move_alg_node, parse_grouping_alg_node))(input)
+    alt((
+        into(parse_move),
+        into(parse_grouping),
+        into(parse_commutator_or_conjugate),
+    ))(input)
 }
 
 // impl TryFrom<&str> for Grouping {
