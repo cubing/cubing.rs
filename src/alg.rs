@@ -5,4 +5,4 @@ mod alg;
 pub use alg::Alg;
 
 mod quantum_move;
-pub use quantum_move::QuantumMove;
+pub use quantum_move::{MoveLayer, MovePrefix, MoveRange, QuantumMove};

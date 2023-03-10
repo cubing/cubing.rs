@@ -1,4 +1,4 @@
-use cubing::alg::Alg;
+use cubing::alg::{Alg, Move, MoveLayer, MoveRange, QuantumMove};
 
 #[test]
 fn it_works() -> Result<(), String> {
@@ -6,111 +6,82 @@ fn it_works() -> Result<(), String> {
         "R",
         format!(
             "{}",
-            cubing::alg::Move {
-                quantum: cubing::alg::QuantumMove::new("R", None, None).into(),
+            Move {
+                quantum: QuantumMove::new("R", None).into(),
                 amount: 1
             }
         )
     );
 
-    assert_eq!(
-        "F2",
-        format!("{}", cubing::alg::Move::try_from("F2").unwrap())
-    );
-    assert_eq!("F2", format!("{}", cubing::alg::Move::parse("F2").unwrap()));
-    assert_eq!("F", format!("{}", cubing::alg::Move::parse("F1").unwrap()));
-    assert_eq!("F", format!("{}", cubing::alg::Move::parse("F").unwrap()));
-    assert_eq!(
-        "F'",
-        format!("{}", cubing::alg::Move::parse("F1'").unwrap())
-    );
-    assert_eq!("F0", format!("{}", cubing::alg::Move::parse("F0").unwrap()));
-    assert_eq!(
-        "F2'",
-        format!("{}", cubing::alg::Move::parse("F2'").unwrap())
-    );
-    assert_eq!(
-        "U_R",
-        format!("{}", cubing::alg::Move::parse("U_R").unwrap())
-    );
-    assert_eq!(
-        "4R2'",
-        format!("{}", cubing::alg::Move::parse("4R2'").unwrap())
-    );
-    assert_eq!(
-        "3-7R2'",
-        format!("{}", cubing::alg::Move::parse("3-7R2'").unwrap())
-    );
+    assert_eq!("F2", format!("{}", Move::try_from("F2").unwrap()));
+    assert_eq!("F2", format!("{}", Move::parse("F2").unwrap()));
+    assert_eq!("F", format!("{}", Move::parse("F1").unwrap()));
+    assert_eq!("F", format!("{}", Move::parse("F").unwrap()));
+    assert_eq!("F'", format!("{}", Move::parse("F1'").unwrap()));
+    assert_eq!("F0", format!("{}", Move::parse("F0").unwrap()));
+    assert_eq!("F2'", format!("{}", Move::parse("F2'").unwrap()));
+    assert_eq!("U_R", format!("{}", Move::parse("U_R").unwrap()));
+    assert_eq!("4R2'", format!("{}", Move::parse("4R2'").unwrap()));
+    assert_eq!("3-7R2'", format!("{}", Move::parse("3-7R2'").unwrap()));
 
     assert_eq!(
         "3-7R2'",
         format!(
             "{}",
-            cubing::alg::Move {
-                quantum: cubing::alg::QuantumMove::new("R", Some(3), Some(7)).into(),
+            Move {
+                quantum: QuantumMove::new("R", MoveRange::new(3, 7).into()).into(),
                 amount: -2
             }
         )
     );
 
-    let single_move = cubing::alg::Move::parse("R2'").unwrap();
-    assert_eq!(single_move.quantum.outer_layer, None);
-    assert_eq!(single_move.quantum.inner_layer, None);
+    let single_move = Move::parse("R2'").unwrap();
+    assert_eq!(single_move.quantum.layers, None);
     assert_eq!(single_move.quantum.family, "R");
     assert_eq!(single_move.amount, -2);
 
-    let face_move = cubing::alg::Move::parse("R2'").unwrap();
-    assert_eq!(face_move.quantum.outer_layer, None);
-    assert_eq!(face_move.quantum.inner_layer, None);
+    let face_move = Move::parse("R2'").unwrap();
+    assert_eq!(face_move.quantum.layers, None);
     assert_eq!(face_move.quantum.family, "R");
     assert_eq!(face_move.amount, -2);
 
-    let block_move = cubing::alg::Move::parse("7R2'").unwrap();
-    assert_eq!(block_move.quantum.outer_layer, None);
-    assert_eq!(block_move.quantum.inner_layer, Some(7));
+    let block_move = Move::parse("7R2'").unwrap();
+    assert_eq!(block_move.quantum.layers, MoveLayer::new(7).into());
     assert_eq!(block_move.quantum.family, "R");
     assert_eq!(block_move.amount, -2);
 
-    let range_move = cubing::alg::Move::parse("3-7R2'").unwrap();
-    assert_eq!(range_move.quantum.outer_layer, Some(3));
-    assert_eq!(range_move.quantum.inner_layer, Some(7));
+    let range_move = Move::parse("3-7R2'").unwrap();
+    assert_eq!(range_move.quantum.layers, MoveRange::new(3, 7).into());
     assert_eq!(range_move.quantum.family, "R");
     assert_eq!(range_move.amount, -2);
 
     assert_eq!(
-        cubing::alg::Move::parse("R2").unwrap(),
-        cubing::alg::Move {
-            quantum: cubing::alg::QuantumMove {
+        Move::parse("R2").unwrap(),
+        Move {
+            quantum: QuantumMove {
                 family: "R".into(),
-                outer_layer: None,
-                inner_layer: None
+                layers: None
             }
             .into(),
             amount: 2
         }
     );
 
-    assert_eq!(
-        "F2'",
-        format!("{}", cubing::alg::Move::parse("F2").unwrap().invert())
-    );
+    assert_eq!("F2'", format!("{}", Move::parse("F2").unwrap().invert()));
 
-    assert!(cubing::alg::Move::parse("2").is_err());
-    assert!(cubing::alg::Move::parse("U-R").is_err());
-    let mv: cubing::alg::Move = "UR43".try_into()?;
+    assert!(Move::parse("2").is_err());
+    assert!(Move::parse("U-R").is_err());
+    let mv: Move = "UR43".try_into()?;
     println!("Display: {}", mv);
     println!("Debug: {:?}", mv);
 
     let a1 = Alg {
-        nodes: vec![
-            cubing::alg::Move::try_from("F2").unwrap(),
-            cubing::alg::Move::try_from("R").unwrap(),
-        ],
+        nodes: vec![Move::try_from("F2").unwrap(), Move::try_from("R").unwrap()],
     };
     let a2 = Alg {
         nodes: vec![
-            cubing::alg::Move::try_from("R'").unwrap(),
-            cubing::alg::Move::try_from("F2'").unwrap(),
+            Move::try_from("R'").unwrap(),
+            Move::try_from("F2'").unwrap(),
         ],
     };
     assert!(a1 == a2.invert());
