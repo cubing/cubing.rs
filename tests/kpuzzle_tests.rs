@@ -48,9 +48,7 @@ fn it_works() -> Result<(), String> {
         ]),
     };
 
-    let kpuzzle = cubing::kpuzzle::KPuzzle {
-        definition: def.into(),
-    };
+    let kpuzzle = cubing::kpuzzle::KPuzzle::new(def.into());
 
     assert_eq!(kpuzzle.definition.name, "topsy_turvy");
     assert_eq!(
@@ -67,19 +65,22 @@ fn it_works() -> Result<(), String> {
 
     assert_eq!(
         kpuzzle
-            .transformation_from_move(("L").parse::<Move>()?)?
+            .transformation_from_move(&("L").parse::<Move>()?)?
             .transformation_data["items"]
             .permutation[0],
         10
     );
 
-    let t = kpuzzle.transformation_from_move(("R").parse::<Move>()?)?;
+    let t = kpuzzle.transformation_from_move(&("R").parse::<Move>()?)?;
     let mut current = t.clone(); // TODO: start with solved.
     for _ in 1..10 {
         assert_ne!(current.transformation_data["items"].permutation[0], 0);
         current = current.apply_transformation(&t);
     }
     assert_eq!(current.transformation_data["items"].permutation[0], 0);
+
+    assert_eq!(t.apply_transformation(&t), (&kpuzzle, "R R").try_into()?);
+    assert_ne!(t.apply_transformation(&t), (&kpuzzle, "L R").try_into()?);
 
     Ok(())
 }

@@ -1,6 +1,8 @@
 use std::{collections::HashMap, rc::Rc};
 
-use super::KPuzzleDefinition;
+use crate::alg::{Alg, Amount};
+
+use super::{KPuzzle, KPuzzleDefinition};
 
 #[derive(Debug, Clone)]
 pub struct KTransformation {
@@ -9,7 +11,16 @@ pub struct KTransformation {
     pub transformation_data: Rc<KTransformationData>, // TODO: check that this is immutable
 }
 pub type KTransformationData = HashMap<String, KTransformationOrbitData>;
-#[derive(Debug, Clone)]
+
+impl PartialEq<KTransformation> for KTransformation {
+    fn eq(&self, other: &Self) -> bool {
+        // TODO: is this ref comparison safe?
+        std::ptr::eq(self.definition.as_ref(), other.definition.as_ref())
+            && self.transformation_data == other.transformation_data
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct KTransformationOrbitData {
     pub permutation: Vec<usize>,
     pub orientation: Vec<usize>,
@@ -45,5 +56,34 @@ impl KTransformation {
             definition: self.definition.clone(),
             transformation_data: Rc::new(transformation_data),
         }
+    }
+
+    pub fn self_multiply(&self, amount: Amount) -> Self {
+        // Hardcode some easy cases for basic testing.
+        if amount == 1 {
+            return self.clone();
+        }
+        if amount == 2 {
+            return self.apply_transformation(self);
+        }
+        todo!();
+    }
+}
+
+impl TryFrom<(&KPuzzle, &Alg)> for KTransformation {
+    type Error = String;
+
+    fn try_from(input: (&KPuzzle, &Alg)) -> Result<Self, Self::Error> {
+        let (kpuzzle, alg) = input;
+        kpuzzle.transformation_from_alg(alg)
+    }
+}
+
+impl TryFrom<(&KPuzzle, &str)> for KTransformation {
+    type Error = String;
+
+    fn try_from(input: (&KPuzzle, &str)) -> Result<Self, Self::Error> {
+        let (kpuzzle, s) = input;
+        KTransformation::try_from((kpuzzle, &s.parse::<Alg>()?))
     }
 }

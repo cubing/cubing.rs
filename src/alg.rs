@@ -1,5 +1,8 @@
 mod alg_node;
+pub use alg_node::AlgNode;
+
 mod amount;
+pub use amount::Amount;
 
 mod quantum_move;
 pub use quantum_move::{MoveLayer, MovePrefix, MoveRange, QuantumMove};
