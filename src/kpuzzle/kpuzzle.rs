@@ -26,12 +26,13 @@ impl KPuzzle {
         &self, // TODO: Any issues with not using `&self`?
         r#move: &crate::alg::Move,
     ) -> Result<KTransformation, String> {
-        let s = r#move.to_string();
+        let s = r#move.quantum.to_string();
         let data = self.definition.moves.get(&s).ok_or("Unknown move name.")?;
         Ok(KTransformation {
             definition: self.definition.clone(),
             transformation_data: data.clone(),
-        })
+        }
+        .self_multiply(r#move.amount))
     }
 
     // TODO: implement this as a `TryFrom`?
