@@ -3,10 +3,11 @@ use std::str::FromStr;
 use nom::{
     bytes::complete::{tag, take_while1},
     combinator::{all_consuming, map_res, opt},
+    multi::many0,
     IResult,
 };
 
-use super::{Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
+use super::{Alg, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
 
 fn from_decimal_unsinged(input: &str) -> Result<u32, std::num::ParseIntError> {
     input.parse::<u32>()
@@ -164,6 +165,38 @@ impl FromStr for Move {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match all_consuming(parse_move)(s) {
             Ok((_, q)) => Ok(q),
+            Err(_) => Err("Invalid move string".into()),
+        }
+    }
+}
+
+fn drop_spaces(input: &str) -> IResult<&str, ()> {
+    let (input, _) = many0(tag(" "))(input)?;
+    Ok((input, ()))
+}
+
+// TODO Make this reusable for other nodes.
+fn parse_move_with_optional_prefix_whitespace(input: &str) -> IResult<&str, Move> {
+    let (input, _) = drop_spaces(input)?;
+    parse_move(input)
+}
+
+fn parse_alg(input: &str) -> IResult<&str, Alg> {
+    let (input, nodes) = many0(parse_move_with_optional_prefix_whitespace)(input)?;
+    let (input, _) = drop_spaces(input)?;
+    Ok((input, Alg { nodes }))
+}
+impl TryFrom<&str> for Alg {
+    type Error = String;
+    fn try_from(input: &str) -> Result<Self, Self::Error> {
+        input.parse()
+    }
+}
+impl FromStr for Alg {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match all_consuming(parse_alg)(s) {
+            Ok((_, alg)) => Ok(alg),
             Err(_) => Err("Invalid move string".into()),
         }
     }
