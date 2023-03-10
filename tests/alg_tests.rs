@@ -40,6 +40,14 @@ fn it_works() -> Result<(), String> {
     assert_eq!(MoveLayer { layer: 7 }, "7".parse()?);
     assert_eq!(MoveLayer::from(7), MoveLayer { layer: 7 });
 
+    assert_eq!(
+        MoveRange {
+            outer_layer: 2,
+            inner_layer: 4
+        },
+        "2-4".parse()?
+    );
+
     let single_move = Move::parse("R2'").unwrap();
     assert_eq!(single_move.quantum.layers, None);
     assert_eq!(single_move.quantum.family, "R");
