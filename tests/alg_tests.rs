@@ -1,4 +1,4 @@
-use cubing::alg::{Alg, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
+use cubing::alg::{Alg, Grouping, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
 
 #[test]
 fn it_works() -> Result<(), String> {
@@ -109,6 +109,19 @@ fn it_works() -> Result<(), String> {
     assert_eq!("R U' R'".parse::<Alg>()?, "R U R'".parse::<Alg>()?.invert());
     assert_eq!(" R   U'  R'  ".parse::<Alg>()?, "R U' R'".parse::<Alg>()?);
     assert_eq!("R U' R'", " R   U'  R'  ".parse::<Alg>()?.to_string());
+    assert_eq!(Alg { nodes: vec![] }, "".parse::<Alg>()?);
+    assert_eq!(Alg { nodes: vec![] }, "  ".parse::<Alg>()?);
+    assert_eq!(
+        Alg {
+            nodes: vec!["R'".parse::<Move>()?]
+        },
+        " R' ".parse::<Alg>()?
+    );
+    assert_eq!(
+        "(R U' R')",
+        "(R   U'  R' )".parse::<Grouping>()?.to_string()
+    );
+    assert!(" (R)".parse::<Grouping>().is_err()); // no extra whitespace
 
     Ok(())
 }

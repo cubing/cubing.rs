@@ -7,7 +7,7 @@ use nom::{
     IResult,
 };
 
-use super::{Alg, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
+use super::{Alg, Grouping, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
 
 fn from_decimal_unsinged(input: &str) -> Result<u32, std::num::ParseIntError> {
     input.parse::<u32>()
@@ -128,7 +128,7 @@ impl FromStr for QuantumMove {
     }
 }
 
-fn parse_suffix(input: &str) -> IResult<&str, i32> {
+fn parse_amount_suffix(input: &str) -> IResult<&str, i32> {
     let (input, opt_amount) = opt(parse_natural_number_signed)(input)?;
     let (input, prime) = opt(tag("'"))(input)?;
     let mut amount = opt_amount.unwrap_or(1);
@@ -138,14 +138,14 @@ fn parse_suffix(input: &str) -> IResult<&str, i32> {
     Ok((input, amount))
 }
 
-fn parse_optional_suffix(input: &str) -> IResult<&str, i32> {
-    let (input, amount) = opt(parse_suffix)(input)?;
+fn parse_optional_amount_suffix(input: &str) -> IResult<&str, i32> {
+    let (input, amount) = opt(parse_amount_suffix)(input)?;
     Ok((input, amount.unwrap_or(1)))
 }
 
 fn parse_move(input: &str) -> IResult<&str, Move> {
     let (input, quantum) = parse_quantum_move(input)?;
-    let (input, amount) = parse_optional_suffix(input)?;
+    let (input, amount) = parse_optional_amount_suffix(input)?;
     Ok((
         input,
         Move {
@@ -197,6 +197,35 @@ impl FromStr for Alg {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match all_consuming(parse_alg)(s) {
             Ok((_, alg)) => Ok(alg),
+            Err(_) => Err("Invalid move string".into()),
+        }
+    }
+}
+
+fn parse_grouping(input: &str) -> IResult<&str, Grouping> {
+    let (input, _) = tag("(")(input)?;
+    let (input, alg) = parse_alg(input)?;
+    let (input, _) = tag(")")(input)?;
+    let (input, amount) = parse_optional_amount_suffix(input)?;
+    Ok((
+        input,
+        Grouping {
+            alg: alg.into(),
+            amount,
+        },
+    ))
+}
+impl TryFrom<&str> for Grouping {
+    type Error = String;
+    fn try_from(input: &str) -> Result<Self, Self::Error> {
+        input.parse()
+    }
+}
+impl FromStr for Grouping {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match all_consuming(parse_grouping)(s) {
+            Ok((_, grouping)) => Ok(grouping),
             Err(_) => Err("Invalid move string".into()),
         }
     }

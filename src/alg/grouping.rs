@@ -24,7 +24,7 @@ impl fmt::Display for Grouping {
     // TODO: memoize?
     // TODO: dedup with `Move`?
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.alg)?;
+        write!(f, "({})", self.alg)?;
         fmt_amount(f, self.amount)
     }
 }
