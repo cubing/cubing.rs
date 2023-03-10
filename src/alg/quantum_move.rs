@@ -108,12 +108,12 @@ impl From<MoveRange> for Option<MovePrefix> {
 pub struct QuantumMove {
     pub family: String,
     // TODO: prevent setting outer layer without inner layer
-    pub layers: Option<MovePrefix>,
+    pub prefix: Option<MovePrefix>,
 }
 
 impl fmt::Display for QuantumMove {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.layers {
+        match &self.prefix {
             Some(layers) => layers.fmt(f)?,
             None => (),
         };
@@ -127,7 +127,7 @@ impl QuantumMove {
     pub fn new(family: impl Into<String>, layers: Option<MovePrefix>) -> Self {
         Self {
             family: family.into(),
-            layers,
+            prefix: layers,
         }
     }
 }

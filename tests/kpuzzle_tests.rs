@@ -67,13 +67,13 @@ fn it_works() -> Result<(), String> {
 
     assert_eq!(
         kpuzzle
-            .transformation_from_move(Move::parse("L")?)?
+            .transformation_from_move(("L").parse::<Move>()?)?
             .transformation_data["items"]
             .permutation[0],
         10
     );
 
-    let t = kpuzzle.transformation_from_move(Move::parse("R")?)?;
+    let t = kpuzzle.transformation_from_move(("R").parse::<Move>()?)?;
     let mut current = t.clone(); // TODO: start with solved.
     for _ in 1..10 {
         assert_ne!(current.transformation_data["items"].permutation[0], 0);
