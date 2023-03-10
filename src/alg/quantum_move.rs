@@ -1,5 +1,11 @@
 use std::fmt;
 
+use nom::{
+    bytes::complete::take_while,
+    combinator::{all_consuming, map_res},
+    IResult,
+};
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct MoveLayer {
     pub layer: u32,
@@ -14,6 +20,35 @@ impl MoveLayer {
 impl fmt::Display for MoveLayer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.layer)
+    }
+}
+
+fn from_decimal(input: &str) -> Result<u32, std::num::ParseIntError> {
+    input.parse::<u32>()
+}
+
+fn is_decimal_digit(c: char) -> bool {
+    c.is_ascii_digit()
+}
+
+fn parse_decimal(input: &str) -> IResult<&str, u32> {
+    map_res(take_while(is_decimal_digit), from_decimal)(input)
+}
+
+impl From<u32> for MoveLayer {
+    fn from(layer: u32) -> Self {
+        MoveLayer { layer }
+    }
+}
+
+impl TryFrom<&str> for MoveLayer {
+    type Error = String;
+
+    fn try_from(input: &str) -> Result<Self, Self::Error> {
+        match all_consuming(parse_decimal)(input) {
+            Ok((_, move_layer)) => Ok(move_layer.into()),
+            Err(_) => Err("Invalid move layer".into()),
+        }
     }
 }
 
@@ -35,6 +70,16 @@ impl MoveRange {
 impl fmt::Display for MoveRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}-{}", self.outer_layer, self.inner_layer)
+    }
+}
+
+impl From<(u32, u32)> for MoveRange {
+    fn from(layers: (u32, u32)) -> Self {
+        let (outer_layer, inner_layer) = layers;
+        MoveRange {
+            outer_layer,
+            inner_layer,
+        }
     }
 }
 
@@ -60,13 +105,23 @@ impl From<MoveLayer> for MovePrefix {
         MovePrefix::Layer(layer)
     }
 }
+impl From<u32> for MovePrefix {
+    fn from(layer: u32) -> Self {
+        MovePrefix::Layer(layer.into())
+    }
+}
 impl From<MoveRange> for MovePrefix {
     fn from(range: MoveRange) -> Self {
         MovePrefix::Range(range)
     }
 }
+impl From<(u32, u32)> for MovePrefix {
+    fn from(layers: (u32, u32)) -> Self {
+        MovePrefix::Range(layers.into())
+    }
+}
 
-// TODO: Can we avoid boilerplayer for these `From` implementations?
+// TODO: Use type bounds: https://github.com/rust-lang/rust/issues/52662
 impl From<MoveLayer> for Option<MovePrefix> {
     fn from(layer: MoveLayer) -> Self {
         Some(MovePrefix::Layer(layer))

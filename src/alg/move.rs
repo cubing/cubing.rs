@@ -48,13 +48,13 @@ impl Move {
 
         match (outer_layer, inner_layer) {
             (None, None) => {}
-            (None, Some(_)) => {
+            (None, Some(layer)) => layers = Some(MovePrefix::Layer(MoveLayer { layer })),
+            (Some(_), None) => {
                 return Err(
-                    "Encountered an inner layer without an outer layer. This should not happen!"
+                    "Encountered an outer layer without an inner layer. This should be impossible!"
                         .into(),
                 )
             }
-            (Some(layer), None) => layers = Some(MovePrefix::Layer(MoveLayer { layer })),
             (Some(outer_layer), Some(inner_layer)) => {
                 layers = Some(MovePrefix::Range(MoveRange {
                     outer_layer,
