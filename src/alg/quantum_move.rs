@@ -104,6 +104,7 @@ impl From<MoveRange> for Option<MovePrefix> {
     }
 }
 
+// TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq)]
 pub struct QuantumMove {
     pub family: String,

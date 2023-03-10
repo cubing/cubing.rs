@@ -106,8 +106,9 @@ fn it_works() -> Result<(), String> {
     };
     assert!(a1 == a2.invert());
 
-    assert!("R U' R'".parse::<Alg>()? == "R U R'".parse::<Alg>()?.invert());
-    assert!(" R   U'  R'  ".parse::<Alg>()? == "R U' R'".parse::<Alg>()?);
+    assert_eq!("R U' R'".parse::<Alg>()?, "R U R'".parse::<Alg>()?.invert());
+    assert_eq!(" R   U'  R'  ".parse::<Alg>()?, "R U' R'".parse::<Alg>()?);
+    assert_eq!("R U' R'", " R   U'  R'  ".parse::<Alg>()?.to_string());
 
     Ok(())
 }

@@ -65,23 +65,6 @@ impl Move {
             amount: -self.amount,
         }
     }
-    // from_str?
-}
-
-impl TryFrom<String> for Move {
-    type Error = String;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::parse(value)
-    }
-}
-
-impl TryFrom<&str> for Move {
-    type Error = String;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::parse(value)
-    }
 }
 
 impl fmt::Display for Move {

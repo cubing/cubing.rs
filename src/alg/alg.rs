@@ -1,31 +1,32 @@
+use std::fmt;
+
 use super::Move;
 
+// TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
+#[derive(Debug, Clone, PartialEq)]
 pub struct Alg {
     pub nodes: Vec<Move>,
 }
-// use nom::{bytes::complete::take_while, character::is_space, sequence::preceded};
 
 impl Alg {
     pub fn invert(&self) -> Alg {
         let nodes = self.nodes.iter().rev().map(|m| m.invert()).collect();
         Alg { nodes }
     }
-
-    // pub fn parse(s: impl AsRef<str>) -> Alg {
-    //     // fn until_eof(s: &str) -> IResult<&str, &str> {
-    //    preceded(multispace0, )
-    //     // }
-    // }
 }
 
-impl PartialEq<Alg> for Alg {
-    fn eq(&self, other: &Alg) -> bool {
-        self.nodes == other.nodes
+impl fmt::Display for Alg {
+    // TODO: memoize?
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut first = true;
+        for node in self.nodes.iter() {
+            if first {
+                first = false;
+            } else {
+                write!(f, " ")?;
+            }
+            write!(f, "{}", node)?;
+        }
+        Ok(())
     }
 }
-
-// macro_rules! alg! {
-//     ($a:expr) => {{
-//         Alg::parse($a).unwrap()
-//     }};
-// }

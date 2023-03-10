@@ -2,13 +2,16 @@ use std::rc::Rc;
 
 use std::fmt;
 
+use crate::alg::amount::fmt_amount;
 use crate::alg::QuantumMove;
 
-// TODO: figure out whether to hash the string
+use super::amount::Amount;
+
+// TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq)]
 pub struct Move {
     pub quantum: Rc<QuantumMove>,
-    pub amount: i32,
+    pub amount: Amount,
 }
 
 impl Move {
@@ -23,14 +26,7 @@ impl Move {
 impl fmt::Display for Move {
     // TODO: memoize?
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.amount == 1 {
-            write!(f, "{}", self.quantum)
-        } else if self.amount == -1 {
-            write!(f, "{}'", self.quantum)
-        } else if self.amount < 0 {
-            write!(f, "{}{}'", self.quantum, -self.amount)
-        } else {
-            write!(f, "{}{}", self.quantum, self.amount)
-        }
+        write!(f, "{}", self.quantum)?;
+        fmt_amount(f, self.amount)
     }
 }
