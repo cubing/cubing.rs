@@ -1,4 +1,4 @@
-use cubing::alg::{Alg, Grouping, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
+use cubing::alg::{Alg, Move, MoveLayer, MoveRange, QuantumMove};
 
 #[test]
 fn it_works() -> Result<(), String> {
@@ -35,25 +35,7 @@ fn it_works() -> Result<(), String> {
         )
     );
 
-    assert_eq!(MoveLayer { layer: 7 }, MoveLayer::try_from("7")?);
-    assert_eq!(Ok(MoveLayer { layer: 7 }), "7".try_into());
-    assert_eq!(MoveLayer { layer: 7 }, "7".parse()?);
     assert_eq!(MoveLayer::from(7), MoveLayer { layer: 7 });
-
-    assert_eq!(
-        MoveRange {
-            outer_layer: 2,
-            inner_layer: 4
-        },
-        "2-4".parse()?
-    );
-    assert_eq!(
-        MovePrefix::Range(MoveRange {
-            outer_layer: 2,
-            inner_layer: 4
-        }),
-        "2-4".parse()?
-    );
 
     let single_move = "R2'".parse::<Move>().unwrap();
     assert_eq!(single_move.quantum.prefix, None);
@@ -96,12 +78,15 @@ fn it_works() -> Result<(), String> {
     println!("Debug: {:?}", mv);
 
     let a1 = Alg {
-        nodes: vec![Move::try_from("F2").unwrap(), Move::try_from("R").unwrap()],
+        nodes: vec![
+            Move::try_from("F2").unwrap().into(),
+            Move::try_from("R").unwrap().into(),
+        ],
     };
     let a2 = Alg {
         nodes: vec![
-            Move::try_from("R'").unwrap(),
-            Move::try_from("F2'").unwrap(),
+            Move::try_from("R'").unwrap().into(),
+            Move::try_from("F2'").unwrap().into(),
         ],
     };
     assert!(a1 == a2.invert());
@@ -113,15 +98,11 @@ fn it_works() -> Result<(), String> {
     assert_eq!(Alg { nodes: vec![] }, "  ".parse::<Alg>()?);
     assert_eq!(
         Alg {
-            nodes: vec!["R'".parse::<Move>()?]
+            nodes: vec!["R'".parse::<Move>()?.into()]
         },
         " R' ".parse::<Alg>()?
     );
-    assert_eq!(
-        "(R U' R')",
-        "(R   U'  R' )".parse::<Grouping>()?.to_string()
-    );
-    assert!(" (R)".parse::<Grouping>().is_err()); // no extra whitespace
+    assert_eq!("(R U' R')", "(R   U'  R' )".parse::<Alg>()?.to_string());
 
     Ok(())
 }

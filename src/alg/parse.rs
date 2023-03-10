@@ -1,13 +1,15 @@
 use std::str::FromStr;
 
 use nom::{
+    branch::alt,
     bytes::complete::{tag, take_while1},
     combinator::{all_consuming, map_res, opt},
     multi::many0,
+    sequence::preceded,
     IResult,
 };
 
-use super::{Alg, Grouping, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
+use super::{alg_node::AlgNode, Alg, Grouping, Move, MovePrefix, QuantumMove};
 
 fn from_decimal_unsinged(input: &str) -> Result<u32, std::num::ParseIntError> {
     input.parse::<u32>()
@@ -29,43 +31,43 @@ fn parse_natural_number_signed(input: &str) -> IResult<&str, i32> {
     map_res(take_while1(is_decimal_digit), from_natural_number_signed)(input)
 }
 
-impl TryFrom<&str> for MoveLayer {
-    type Error = String;
-    fn try_from(input: &str) -> Result<Self, Self::Error> {
-        input.parse()
-    }
-}
-impl FromStr for MoveLayer {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match all_consuming(parse_decimal_unsigned)(s) {
-            Ok((_, move_layer)) => Ok(move_layer.into()),
-            Err(_) => Err("Invalid move layer string".into()),
-        }
-    }
-}
+// impl TryFrom<&str> for MoveLayer {
+//     type Error = String;
+//     fn try_from(input: &str) -> Result<Self, Self::Error> {
+//         input.parse()
+//     }
+// }
+// impl FromStr for MoveLayer {
+//     type Err = String;
+//     fn from_str(s: &str) -> Result<Self, Self::Err> {
+//         match all_consuming(parse_decimal_unsigned)(s) {
+//             Ok((_, move_layer)) => Ok(move_layer.into()),
+//             Err(_) => Err("Invalid move layer string".into()),
+//         }
+//     }
+// }
 
-fn parse_move_range(input: &str) -> IResult<&str, (u32, u32)> {
-    let (input, outer_layer) = parse_decimal_unsigned(input)?;
-    let (input, _) = tag("-")(input)?;
-    let (input, inner_layer) = parse_decimal_unsigned(input)?;
-    Ok((input, (outer_layer, inner_layer)))
-}
-impl TryFrom<&str> for MoveRange {
-    type Error = String;
-    fn try_from(input: &str) -> Result<Self, Self::Error> {
-        input.parse()
-    }
-}
-impl FromStr for MoveRange {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match all_consuming(parse_move_range)(s) {
-            Ok((_, layers)) => Ok(layers.into()),
-            Err(_) => Err("Invalid move range string".into()),
-        }
-    }
-}
+// fn parse_move_range(input: &str) -> IResult<&str, (u32, u32)> {
+//     let (input, outer_layer) = parse_decimal_unsigned(input)?;
+//     let (input, _) = tag("-")(input)?;
+//     let (input, inner_layer) = parse_decimal_unsigned(input)?;
+//     Ok((input, (outer_layer, inner_layer)))
+// }
+// impl TryFrom<&str> for MoveRange {
+//     type Error = String;
+//     fn try_from(input: &str) -> Result<Self, Self::Error> {
+//         input.parse()
+//     }
+// }
+// impl FromStr for MoveRange {
+//     type Err = String;
+//     fn from_str(s: &str) -> Result<Self, Self::Err> {
+//         match all_consuming(parse_move_range)(s) {
+//             Ok((_, layers)) => Ok(layers.into()),
+//             Err(_) => Err("Invalid move range string".into()),
+//         }
+//     }
+// }
 
 fn parse_move_prefix(input: &str) -> IResult<&str, MovePrefix> {
     let (input, outer_layer) = parse_decimal_unsigned(input)?;
@@ -76,21 +78,21 @@ fn parse_move_prefix(input: &str) -> IResult<&str, MovePrefix> {
     let (input, inner_layer) = parse_decimal_unsigned(input)?;
     Ok((input, (outer_layer, inner_layer).into()))
 }
-impl TryFrom<&str> for MovePrefix {
-    type Error = String;
-    fn try_from(input: &str) -> Result<Self, Self::Error> {
-        input.parse()
-    }
-}
-impl FromStr for MovePrefix {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match all_consuming(parse_move_prefix)(s) {
-            Ok((_, move_prefix)) => Ok(move_prefix),
-            Err(_) => Err("Invalid quantum move string".into()),
-        }
-    }
-}
+// impl TryFrom<&str> for MovePrefix {
+//     type Error = String;
+//     fn try_from(input: &str) -> Result<Self, Self::Error> {
+//         input.parse()
+//     }
+// }
+// impl FromStr for MovePrefix {
+//     type Err = String;
+//     fn from_str(s: &str) -> Result<Self, Self::Err> {
+//         match all_consuming(parse_move_prefix)(s) {
+//             Ok((_, move_prefix)) => Ok(move_prefix),
+//             Err(_) => Err("Invalid quantum move string".into()),
+//         }
+//     }
+// }
 
 fn is_family_char(c: char) -> bool {
     c.is_ascii_alphabetic() || c == '_'
@@ -175,14 +177,8 @@ fn drop_spaces(input: &str) -> IResult<&str, ()> {
     Ok((input, ()))
 }
 
-// TODO Make this reusable for other nodes.
-fn parse_move_with_optional_prefix_whitespace(input: &str) -> IResult<&str, Move> {
-    let (input, _) = drop_spaces(input)?;
-    parse_move(input)
-}
-
 fn parse_alg(input: &str) -> IResult<&str, Alg> {
-    let (input, nodes) = many0(parse_move_with_optional_prefix_whitespace)(input)?;
+    let (input, nodes) = many0(preceded(drop_spaces, parse_node))(input)?;
     let (input, _) = drop_spaces(input)?;
     Ok((input, Alg { nodes }))
 }
@@ -215,18 +211,33 @@ fn parse_grouping(input: &str) -> IResult<&str, Grouping> {
         },
     ))
 }
-impl TryFrom<&str> for Grouping {
-    type Error = String;
-    fn try_from(input: &str) -> Result<Self, Self::Error> {
-        input.parse()
-    }
+
+fn parse_move_alg_node(input: &str) -> IResult<&str, AlgNode> {
+    let (input, alg_node) = parse_move(input)?;
+    Ok((input, alg_node.into()))
 }
-impl FromStr for Grouping {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match all_consuming(parse_grouping)(s) {
-            Ok((_, grouping)) => Ok(grouping),
-            Err(_) => Err("Invalid move string".into()),
-        }
-    }
+
+fn parse_grouping_alg_node(input: &str) -> IResult<&str, AlgNode> {
+    let (input, alg_node) = parse_grouping(input)?;
+    Ok((input, alg_node.into()))
 }
+
+fn parse_node(input: &str) -> IResult<&str, AlgNode> {
+    alt((parse_move_alg_node, parse_grouping_alg_node))(input)
+}
+
+// impl TryFrom<&str> for Grouping {
+//     type Error = String;
+//     fn try_from(input: &str) -> Result<Self, Self::Error> {
+//         input.parse()
+//     }
+// }
+// impl FromStr for Grouping {
+//     type Err = String;
+//     fn from_str(s: &str) -> Result<Self, Self::Err> {
+//         match all_consuming(parse_grouping)(s) {
+//             Ok((_, grouping)) => Ok(grouping),
+//             Err(_) => Err("Invalid move string".into()),
+//         }
+//     }
+// }

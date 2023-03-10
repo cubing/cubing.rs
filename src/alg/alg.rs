@@ -1,11 +1,11 @@
 use std::fmt;
 
-use super::Move;
+use super::alg_node::AlgNode;
 
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq)]
 pub struct Alg {
-    pub nodes: Vec<Move>,
+    pub nodes: Vec<AlgNode>,
 }
 
 impl Alg {
