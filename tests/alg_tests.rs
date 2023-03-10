@@ -1,3 +1,5 @@
+use cubing::alg::Alg;
+
 #[test]
 fn it_works() -> Result<(), String> {
     assert_eq!(
@@ -98,5 +100,19 @@ fn it_works() -> Result<(), String> {
     let mv: cubing::alg::Move = "UR43".try_into()?;
     println!("Display: {}", mv);
     println!("Debug: {:?}", mv);
+
+    let a1 = Alg {
+        nodes: vec![
+            cubing::alg::Move::try_from("F2").unwrap(),
+            cubing::alg::Move::try_from("R").unwrap(),
+        ],
+    };
+    let a2 = Alg {
+        nodes: vec![
+            cubing::alg::Move::try_from("R'").unwrap(),
+            cubing::alg::Move::try_from("F2'").unwrap(),
+        ],
+    };
+    assert!(a1 == a2.invert());
     Ok(())
 }
