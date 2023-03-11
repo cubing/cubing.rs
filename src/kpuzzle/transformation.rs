@@ -1,10 +1,12 @@
 use std::{collections::HashMap, rc::Rc};
 
+use serde::{Deserialize, Serialize};
+
 use crate::alg::{Alg, Amount};
 
 use super::{identity_transformation, KPuzzle, KPuzzleDefinition};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KTransformation {
     // TODO: store the orbits directly?
     pub definition: Rc<KPuzzleDefinition>,
@@ -21,7 +23,7 @@ impl PartialEq<KTransformation> for KTransformation {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct KTransformationOrbitData {
     pub permutation: Vec<usize>,
     pub orientation: Vec<usize>,

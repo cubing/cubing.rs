@@ -46,6 +46,7 @@ fn it_works() -> Result<(), String> {
                 )])),
             ),
         ]),
+        experimental_derived_moves: None,
     };
 
     let kpuzzle = cubing::kpuzzle::KPuzzle::new(def.into());

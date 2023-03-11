@@ -1,14 +1,19 @@
+use serde::{Deserialize, Serialize};
+
 use std::{collections::HashMap, rc::Rc};
 
 use super::{state::KStateData, transformation::KTransformationData};
 
 // use super::super::{state::KStateData, transformation::KTransformationData};
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct KPuzzleOrbitDefinition {
     pub num_pieces: usize,       // TODO
     pub num_orientations: usize, // TODO
 }
-#[derive(Debug)]
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct KPuzzleDefinition {
     pub name: String,
     // TODO: Use `Move` as the key?
@@ -16,5 +21,5 @@ pub struct KPuzzleDefinition {
     pub start_state_data: KStateData,
     // TODO: Use `Move` as the key?
     pub moves: HashMap<String, Rc<KTransformationData>>,
-    // experimentalDerivedMoves?: Record<string, string>;
+    pub experimental_derived_moves: Option<HashMap<String, String>>,
 }
