@@ -54,16 +54,16 @@ fn it_works() -> Result<(), String> {
 
     let kpuzzle: KPuzzle = def.into();
 
-    assert_eq!(kpuzzle.definition.name, "topsy_turvy");
+    assert_eq!(kpuzzle.definition().name, "topsy_turvy");
     assert_eq!(
-        kpuzzle.definition.start_state_data["items"]
+        kpuzzle.definition().start_state_data["items"]
             .orientation
             .len(),
         12
     );
-    assert_eq!(kpuzzle.definition.start_state_data["items"].pieces[4], 4);
+    assert_eq!(kpuzzle.definition().start_state_data["items"].pieces[4], 4);
     assert_eq!(
-        kpuzzle.definition.start_state_data["items"].orientation[4],
+        kpuzzle.definition().start_state_data["items"].orientation[4],
         0
     );
 

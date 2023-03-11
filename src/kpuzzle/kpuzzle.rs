@@ -5,22 +5,33 @@ use crate::alg::{Alg, AlgNode};
 use super::{KPuzzleDefinition, KTransformation, KTransformationData, KTransformationOrbitData};
 
 #[derive(Debug)]
-pub struct KPuzzle {
+pub struct KPuzzleData {
     pub definition: Rc<KPuzzleDefinition>,
 
     // TODO: compute lazily while being thread-safe?
-    cached_identity_transformation: KTransformation,
+    cached_identity_transformation_data: Rc<KTransformationData>,
+}
+
+#[derive(Debug, Clone)]
+pub struct KPuzzle {
+    data: Rc<KPuzzleData>,
 }
 
 // TODO: Get rid of this in favor of purely `KTransformation` and `KState`?
 impl KPuzzle {
     pub fn new(definition: impl Into<Rc<KPuzzleDefinition>>) -> Self {
         let definition = definition.into();
-        let cached_identity_transformation = identity_transformation(&definition);
-        KPuzzle {
+        let cached_identity_transformation_data = identity_transformation_data(&definition).into();
+        let data = KPuzzleData {
             definition,
-            cached_identity_transformation,
+            cached_identity_transformation_data,
         }
+        .into();
+        KPuzzle { data }
+    }
+
+    pub fn definition(&self) -> &KPuzzleDefinition {
+        &self.data.as_ref().definition
     }
 
     // TODO: implement this as a `TryFrom`?
@@ -29,10 +40,16 @@ impl KPuzzle {
         r#move: &crate::alg::Move,
     ) -> Result<KTransformation, String> {
         let s = r#move.quantum.to_string();
-        let data = self.definition.moves.get(&s).ok_or("Unknown move name.")?;
+        let transformation_data = self
+            .data
+            .definition
+            .moves
+            .get(&s)
+            .ok_or("Unknown move name.")?
+            .clone();
         Ok(KTransformation {
-            definition: self.definition.clone(),
-            transformation_data: data.clone(),
+            kpuzzle: self.clone(),
+            transformation_data,
         }
         .self_multiply(r#move.amount))
     }
@@ -54,7 +71,17 @@ impl KPuzzle {
     }
 
     pub fn identity_transformation(&self) -> KTransformation {
-        self.cached_identity_transformation.clone()
+        KTransformation {
+            kpuzzle: self.clone(),
+            transformation_data: self.data.cached_identity_transformation_data.clone(),
+        }
+    }
+}
+
+impl PartialEq<KPuzzle> for KPuzzle {
+    fn eq(&self, other: &Self) -> bool {
+        // TODO: is this ref comparison safe?
+        std::ptr::eq(self.data.as_ref(), other.data.as_ref())
     }
 }
 
@@ -63,7 +90,8 @@ impl From<KPuzzleDefinition> for KPuzzle {
         KPuzzle::new(input)
     }
 }
-pub fn identity_transformation(definition: &Rc<KPuzzleDefinition>) -> KTransformation {
+
+fn identity_transformation_data(definition: &KPuzzleDefinition) -> KTransformationData {
     let mut transformation_data: KTransformationData = HashMap::new();
     for (orbit_name, orbit_definition) in &definition.orbits {
         let num_pieces = orbit_definition.num_pieces;
@@ -77,10 +105,7 @@ pub fn identity_transformation(definition: &Rc<KPuzzleDefinition>) -> KTransform
         };
         transformation_data.insert(orbit_name.into(), orbit_data);
     }
-    KTransformation {
-        definition: definition.clone(),
-        transformation_data: Rc::new(transformation_data),
-    }
+    transformation_data
 }
 
 fn transformation_from_alg(kpuzzle: &KPuzzle, alg: &Alg) -> Result<KTransformation, String> {

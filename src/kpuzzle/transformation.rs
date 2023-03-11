@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::alg::{Alg, Amount};
 
-use super::{identity_transformation, KPuzzle, KPuzzleDefinition};
+use super::KPuzzle;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct KTransformation {
     // TODO: store the orbits directly?
-    pub definition: Rc<KPuzzleDefinition>,
+    pub kpuzzle: KPuzzle,
     pub transformation_data: Rc<KTransformationData>, // TODO: check that this is immutable
 }
 // TODO: Use `Move` as the key?
@@ -17,9 +17,8 @@ pub type KTransformationData = HashMap<String, KTransformationOrbitData>;
 
 impl PartialEq<KTransformation> for KTransformation {
     fn eq(&self, other: &Self) -> bool {
-        // TODO: is this ref comparison safe?
-        std::ptr::eq(self.definition.as_ref(), other.definition.as_ref())
-            && self.transformation_data == other.transformation_data
+        // TODO: check if the KPuzzle comparison is correct and performant.
+        self.kpuzzle == other.kpuzzle && self.transformation_data == other.transformation_data
     }
 }
 
@@ -32,7 +31,7 @@ pub struct KTransformationOrbitData {
 impl KTransformation {
     pub fn apply_transformation(&self, other: &Self) -> Self {
         let mut transformation_data: KTransformationData = HashMap::new();
-        for (orbit_name, orbit_definition) in &self.definition.orbits {
+        for (orbit_name, orbit_definition) in &self.kpuzzle.definition().orbits {
             let num_pieces = orbit_definition.num_pieces;
 
             let mut permutation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
@@ -56,14 +55,14 @@ impl KTransformation {
             transformation_data.insert(orbit_name.into(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
         }
         KTransformation {
-            definition: self.definition.clone(),
+            kpuzzle: self.kpuzzle.clone(),
             transformation_data: Rc::new(transformation_data),
         }
     }
 
     pub fn invert(&self) -> Self {
         let mut transformation_data: KTransformationData = HashMap::new();
-        for (orbit_name, orbit_definition) in &self.definition.orbits {
+        for (orbit_name, orbit_definition) in &self.kpuzzle.definition().orbits {
             let num_pieces = orbit_definition.num_pieces;
 
             let mut permutation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
@@ -87,7 +86,7 @@ impl KTransformation {
             transformation_data.insert(orbit_name.into(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
         }
         KTransformation {
-            definition: self.definition.clone(),
+            kpuzzle: self.kpuzzle.clone(),
             transformation_data: Rc::new(transformation_data),
         }
     }
@@ -101,7 +100,7 @@ impl KTransformation {
         }
         if amount == 0 {
             // TODO: use cached identity transformations from `KPuzzle`???
-            return identity_transformation(&self.definition);
+            return self.kpuzzle.identity_transformation();
         }
         let twice_halfish = if amount == 2 {
             // We'd share this `apply_transformation` with the other branch, but that triggers a bug in the borrow checker(!)
