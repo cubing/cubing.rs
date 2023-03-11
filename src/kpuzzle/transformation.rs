@@ -137,3 +137,12 @@ impl TryFrom<(&KPuzzle, &str)> for KTransformation {
         KTransformation::try_from((kpuzzle, &s.parse::<Alg>()?))
     }
 }
+
+impl TryFrom<(KPuzzle, &str)> for KTransformation {
+    type Error = String;
+
+    fn try_from(input: (KPuzzle, &str)) -> Result<Self, Self::Error> {
+        let (kpuzzle, s) = input;
+        KTransformation::try_from((&kpuzzle, &s.parse::<Alg>()?))
+    }
+}

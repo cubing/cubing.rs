@@ -7,6 +7,10 @@ fn it_works() -> Result<(), String> {
         kpuzzle.transformation_from_alg(&parse_alg!("R U R' F' U2")?)?,
         kpuzzle.transformation_from_str("(L' U' L F U2')'")?,
     );
+    assert_eq!(
+        kpuzzle.transformation_from_alg(&parse_alg!("R U R' F' U2")?)?,
+        (kpuzzle, "(L' U' L F U2')'").try_into()?,
+    );
 
     Ok(())
 }
