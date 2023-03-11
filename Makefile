@@ -13,3 +13,7 @@ lint:
 .PHONY: format
 format:
 	cargo fmt
+
+.PHONY: clean
+clean:
+	rm -rf ./target
