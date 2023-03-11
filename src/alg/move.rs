@@ -2,10 +2,8 @@ use std::rc::Rc;
 
 use std::fmt;
 
-use crate::alg::amount::fmt_amount;
-use crate::alg::QuantumMove;
-
-use super::amount::Amount;
+use super::amount::{fmt_amount, Amount};
+use super::QuantumMove;
 
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq)]
