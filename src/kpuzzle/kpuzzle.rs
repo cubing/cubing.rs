@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
-use crate::alg::{Alg, AlgNode};
+use crate::alg::{Alg, AlgNode, Move};
 
 use super::{KPuzzleDefinition, KTransformation, KTransformationData, KTransformationOrbitData};
 
@@ -37,7 +37,7 @@ impl KPuzzle {
     // TODO: implement this as a `TryFrom`?
     pub fn transformation_from_move(
         &self, // TODO: Any issues with not using `&self`?
-        r#move: &crate::alg::Move,
+        r#move: &Move,
     ) -> Result<KTransformation, String> {
         let s = r#move.quantum.to_string();
         let transformation_data = self
