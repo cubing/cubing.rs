@@ -1,4 +1,7 @@
-use cubing::alg::{Alg, Move, MoveLayer, MoveRange, QuantumMove};
+use cubing::{
+    alg::{Alg, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove},
+    parse_alg, parse_move,
+};
 
 #[test]
 fn it_works() -> Result<(), String> {
@@ -71,6 +74,15 @@ fn it_works() -> Result<(), String> {
 
     assert_eq!("F2'", format!("{}", "F2".parse::<Move>().unwrap().invert()));
 
+    assert_eq!(
+        parse_move!("2R3'")?.quantum.as_ref(),
+        &QuantumMove {
+            prefix: Some(MovePrefix::Layer(MoveLayer { layer: 2 },)),
+            family: "R".into()
+        }
+    );
+    assert_eq!(parse_move!("2R3'")?.amount, -3);
+
     assert!("2".parse::<Move>().is_err());
     assert!("U-R".parse::<Move>().is_err());
     let mv: Move = "UR43".try_into()?;
@@ -111,6 +123,9 @@ fn it_works() -> Result<(), String> {
         "[R: U']",
         "  [ R  : U ]  ".parse::<Alg>()?.invert().to_string()
     );
+
+    assert_eq!("R'".parse::<Move>()?, parse_move!("R'")?);
+    assert_eq!("R U R'".parse::<Alg>()?, parse_alg!("R U R'")?);
 
     Ok(())
 }
