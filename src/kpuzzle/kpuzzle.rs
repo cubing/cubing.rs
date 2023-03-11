@@ -4,6 +4,7 @@ use crate::alg::{Alg, AlgNode};
 
 use super::{KPuzzleDefinition, KTransformation, KTransformationData, KTransformationOrbitData};
 
+#[derive(Debug)]
 pub struct KPuzzle {
     pub definition: Rc<KPuzzleDefinition>,
 
@@ -49,6 +50,11 @@ impl KPuzzle {
     }
 }
 
+impl From<KPuzzleDefinition> for KPuzzle {
+    fn from(input: KPuzzleDefinition) -> KPuzzle {
+        KPuzzle::new(input)
+    }
+}
 pub fn identity_transformation(definition: &Rc<KPuzzleDefinition>) -> KTransformation {
     let mut transformation_data: KTransformationData = HashMap::new();
     for (orbit_name, orbit_definition) in &definition.orbits {
@@ -84,7 +90,9 @@ fn transformation_from_alg_node(
 ) -> Result<KTransformation, String> {
     match alg_node {
         AlgNode::MoveNode(r#move) => kpuzzle.transformation_from_move(r#move),
-        AlgNode::GroupingNode(_) => todo!(),
+        AlgNode::GroupingNode(grouping) => {
+            Ok(transformation_from_alg(kpuzzle, &grouping.alg)?.self_multiply(grouping.amount))
+        }
         AlgNode::CommutatorNode(commutator) => {
             let a = transformation_from_alg(kpuzzle, &commutator.a)?;
             let b = transformation_from_alg(kpuzzle, &commutator.b)?;

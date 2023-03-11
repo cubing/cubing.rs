@@ -1,6 +1,9 @@
 use std::rc::Rc;
 
-use cubing::{alg::Move, kpuzzle::KTransformationOrbitData};
+use cubing::{
+    alg::Move,
+    kpuzzle::{KPuzzle, KTransformationOrbitData},
+};
 
 #[test]
 fn it_works() -> Result<(), String> {
@@ -49,7 +52,7 @@ fn it_works() -> Result<(), String> {
         experimental_derived_moves: None,
     };
 
-    let kpuzzle = cubing::kpuzzle::KPuzzle::new(def.into());
+    let kpuzzle: KPuzzle = def.into();
 
     assert_eq!(kpuzzle.definition.name, "topsy_turvy");
     assert_eq!(

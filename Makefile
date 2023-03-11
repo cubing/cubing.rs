@@ -3,5 +3,13 @@ test:
 	cargo test
 
 .PHONY: publish
-publish:
+publish: lint test
 	cargo publish
+
+.PHONY: lint
+lint:
+	cargo clippy
+
+.PHONY: format
+format:
+	cargo fmt

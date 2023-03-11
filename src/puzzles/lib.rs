@@ -1,4 +1,4 @@
-use crate::kpuzzle::KPuzzleDefinition;
+use crate::kpuzzle::{KPuzzle, KPuzzleDefinition};
 
 fn cube3x3x3_definition() -> KPuzzleDefinition {
     let json_bytes = include_bytes!("3x3x3.kpuzzle.json");
@@ -10,8 +10,8 @@ pub enum PuzzleID {
     Cube3x3x3,
 }
 
-pub fn get_puzzle(puzzle_id: PuzzleID) -> KPuzzleDefinition {
+pub fn get_kpuzzle(puzzle_id: PuzzleID) -> KPuzzle {
     match puzzle_id {
-        PuzzleID::Cube3x3x3 => cube3x3x3_definition(),
+        PuzzleID::Cube3x3x3 => cube3x3x3_definition().into(),
     }
 }
