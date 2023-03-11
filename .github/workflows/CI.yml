@@ -16,5 +16,8 @@ jobs:
           command: test
       - uses: actions-rs/cargo@v1
         with:
+          command: clippy
+      - uses: actions-rs/cargo@v1
+        with:
           command: build
           args: --release --all-features
