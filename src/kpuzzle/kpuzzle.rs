@@ -45,6 +45,14 @@ impl KPuzzle {
         transformation_from_alg(self, alg)
     }
 
+    // TODO: implement this as a `TryFrom`?
+    pub fn transformation_from_str(
+        &self, // TODO: Any issues with not using `&self`?
+        alg_str: &str,
+    ) -> Result<KTransformation, String> {
+        transformation_from_alg(self, &alg_str.parse::<Alg>()?)
+    }
+
     pub fn identity_transformation(&self) -> KTransformation {
         self.cached_identity_transformation.clone()
     }
