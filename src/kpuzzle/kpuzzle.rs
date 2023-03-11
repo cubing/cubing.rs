@@ -2,7 +2,9 @@ use std::{collections::HashMap, rc::Rc};
 
 use crate::alg::{Alg, AlgNode, Move};
 
-use super::{KPuzzleDefinition, KTransformation, KTransformationData, KTransformationOrbitData};
+use super::{
+    KPuzzleDefinition, KState, KTransformation, KTransformationData, KTransformationOrbitData,
+};
 
 #[derive(Debug)]
 pub struct KPuzzleData {
@@ -74,6 +76,14 @@ impl KPuzzle {
         KTransformation {
             kpuzzle: self.clone(),
             transformation_data: self.data.cached_identity_transformation_data.clone(),
+        }
+    }
+
+    pub fn start_state(&self) -> KState {
+        let state_data = self.data.definition.start_state_data.clone();
+        KState {
+            kpuzzle: self.clone(),
+            state_data,
         }
     }
 }

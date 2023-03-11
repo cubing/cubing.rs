@@ -26,7 +26,8 @@ fn it_works() -> Result<(), String> {
                 pieces: (0..11).collect(),
                 orientation: vec![0; 12],
             },
-        )]),
+        )])
+        .into(),
         moves: HashMap::from([
             (
                 "L".into(),
