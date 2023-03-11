@@ -13,7 +13,8 @@ pub struct KPuzzle {
 
 // TODO: Get rid of this in favor of purely `KTransformation` and `KState`?
 impl KPuzzle {
-    pub fn new(definition: Rc<KPuzzleDefinition>) -> Self {
+    pub fn new(definition: impl Into<Rc<KPuzzleDefinition>>) -> Self {
+        let definition = definition.into();
         let cached_identity_transformation = identity_transformation(&definition);
         KPuzzle {
             definition,
