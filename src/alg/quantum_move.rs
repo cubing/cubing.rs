@@ -122,8 +122,6 @@ impl fmt::Display for QuantumMove {
     }
 }
 
-// pub fn parseQuantumMove();
-
 impl QuantumMove {
     pub fn new(family: impl Into<String>, layers: Option<MovePrefix>) -> Self {
         Self {
