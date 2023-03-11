@@ -1,5 +1,5 @@
-use cubing::puzzles::{get_kpuzzle, PuzzleID};
+use cubing::puzzles::cube3x3x3_kpuzzle;
 
 pub fn main() {
-    println!("{:?}", get_kpuzzle(PuzzleID::Cube3x3x3))
+    println!("{:?}", cube3x3x3_kpuzzle())
 }
