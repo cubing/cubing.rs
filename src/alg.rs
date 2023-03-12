@@ -10,6 +10,9 @@ pub use quantum_move::{MoveLayer, MovePrefix, MoveRange, QuantumMove};
 mod r#move;
 pub use r#move::Move;
 
+mod pause;
+pub use pause::Pause;
+
 #[allow(clippy::module_inception)]
 mod alg;
 pub use alg::Alg;

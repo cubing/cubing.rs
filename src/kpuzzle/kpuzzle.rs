@@ -133,6 +133,7 @@ fn transformation_from_alg_node(
 ) -> Result<KTransformation, String> {
     match alg_node {
         AlgNode::MoveNode(r#move) => kpuzzle.transformation_from_move(r#move),
+        AlgNode::PauseNode(_pause) => Ok(kpuzzle.identity_transformation()),
         AlgNode::GroupingNode(grouping) => {
             Ok(transformation_from_alg(kpuzzle, &grouping.alg)?.self_multiply(grouping.amount))
         }

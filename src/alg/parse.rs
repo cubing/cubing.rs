@@ -11,7 +11,7 @@ use nom::{
 };
 
 use super::{
-    alg_node::AlgNode, Alg, Commutator, Conjugate, Grouping, Move, MovePrefix, QuantumMove,
+    alg_node::AlgNode, Alg, Commutator, Conjugate, Grouping, Move, MovePrefix, Pause, QuantumMove,
 };
 
 fn from_decimal_unsinged(input: &str) -> Result<u32, std::num::ParseIntError> {
@@ -148,6 +148,11 @@ impl FromStr for Alg {
     }
 }
 
+fn parse_pause(input: &str) -> IResult<&str, Pause> {
+    let (input, _) = tag(".")(input)?;
+    Ok((input, Pause {}))
+}
+
 fn parse_grouping(input: &str) -> IResult<&str, Grouping> {
     let (input, _) = tag("(")(input)?;
     let (input, alg) = parse_alg(input)?;
@@ -187,6 +192,7 @@ fn parse_commutator_or_conjugate(input: &str) -> IResult<&str, AlgNode> {
 fn parse_node(input: &str) -> IResult<&str, AlgNode> {
     alt((
         into(parse_move),
+        into(parse_pause),
         into(parse_grouping),
         into(parse_commutator_or_conjugate),
     ))(input)
