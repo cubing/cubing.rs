@@ -6,7 +6,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 
 use cubing::{
-    alg::{Alg, AlgBuilder},
+    alg::{Alg, AlgBuilder, AlgNode, Pause},
     kpuzzle::KState,
     puzzles::cube3x3x3_kpuzzle,
 };
@@ -89,8 +89,10 @@ struct SearchFrame {
 }
 
 struct SearchFrameRecursionInfo<'a> {
+    // TODO: store algs (or fragments) instead of
     auf: &'a TriggerInfo,
     trigger: &'a TriggerInfo,
+    solves_slot: bool,
     parent: Option<&'a SearchFrameRecursionInfo<'a>>,
 }
 
@@ -140,11 +142,15 @@ impl Search {
                 let next_state = search_frame.state.apply_transformation(&auf.transformation);
                 for trigger in &slot_trigger_info.triggers {
                     let next_state = next_state.apply_transformation(&trigger.transformation);
-                    let (next_searches, remaining_depth_for_slot) =
+                    let (next_searches, remaining_depth_for_slot, solves_slot) =
                         if is_slot_solved(&next_state, &slot_trigger_info.f2l_slot) {
-                            (&mut next_frames_preferred, 0)
+                            (&mut next_frames_preferred, 0, true)
                         } else {
-                            (&mut next_frames_non_preferred, search_frame.slot_depth + 1)
+                            (
+                                &mut next_frames_non_preferred,
+                                search_frame.slot_depth + 1,
+                                false,
+                            )
                         };
                     next_searches.push((
                         SearchFrame {
@@ -155,6 +161,7 @@ impl Search {
                         SearchFrameRecursionInfo {
                             auf,
                             trigger,
+                            solves_slot,
                             parent: recursion_info,
                         },
                     ))
@@ -219,6 +226,11 @@ impl Search {
             short_alg_builder.push(&child_info.trigger.short_alg);
             long_alg_builder.push(&child_info.auf.long_alg);
             long_alg_builder.push(&child_info.trigger.long_alg);
+            if child_info.solves_slot {
+                let pause: AlgNode = Pause {}.into();
+                short_alg_builder.push(&pause);
+                long_alg_builder.push(&pause);
+            }
         }
     }
 }

@@ -89,7 +89,7 @@ pub fn get_triggers_by_slot(kpuzzle: &KPuzzle) -> Vec<SlotTriggerInfo> {
 
 pub fn get_auf_triggers(kpuzzle: &KPuzzle) -> Vec<TriggerInfo> {
     vec![
-        TriggerInfo::new(kpuzzle, ".", ""),
+        TriggerInfo::new(kpuzzle, "", ""),
         TriggerInfo::new(kpuzzle, "U", "U"),
         TriggerInfo::new(kpuzzle, "U2", "U2"),
         TriggerInfo::new(kpuzzle, "U'", "U'"),
