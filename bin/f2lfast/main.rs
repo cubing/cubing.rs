@@ -22,10 +22,15 @@ struct Args {
     scramble: String,
     #[clap(long)]
     debug: bool,
-    #[clap(long)]
-    max_depth: Option<usize>,
+    #[clap(long, default_value = "9")]
+    max_depth: usize,
+    /// Defaults to the max depth if not specified.
     #[clap(long)]
     start_depth: Option<usize>,
+    #[clap(long, default_value = "3")]
+    max_depth_per_slot: usize,
+    #[clap(long, default_value = "100")]
+    max_num_solutions: usize,
 }
 
 pub fn main() {
@@ -56,10 +61,10 @@ pub fn main() {
         }
     }
 
-    let max_total_depth = args.max_depth.unwrap_or(9);
-    let start_depth = args.start_depth.unwrap_or(max_total_depth);
+    let max_depth_limit = args.max_depth;
+    let start_depth_limit = args.start_depth.unwrap_or(max_depth_limit);
 
-    if start_depth > max_total_depth {
+    if start_depth_limit > max_depth_limit {
         eprintln!("Warning: start depth is greater than max depth.")
     }
 
@@ -67,9 +72,9 @@ pub fn main() {
         triggers_by_slot,
         auf_triggers: get_auf_triggers(&kpuzzle),
         debug: args.debug,
-        start_depth,
-        max_total_depth,
-        max_depth_per_slot: 3,
+        start_depth_limit,
+        max_depth_limit,
+        depth_limit_per_slot: 3,
         max_num_solutions: 10,
     };
 
@@ -83,14 +88,15 @@ struct Search {
     triggers_by_slot: Vec<SlotTriggerInfo>,
     auf_triggers: Vec<TriggerInfo>,
     debug: bool,
-    start_depth: usize,
-    max_total_depth: usize,
-    max_depth_per_slot: usize,
+    start_depth_limit: usize,
+    max_depth_limit: usize,
+    depth_limit_per_slot: usize,
     max_num_solutions: usize,
 }
 
 struct SearchStatus {
     num_solutions: usize,
+    depth_limit: usize,
 }
 
 struct SearchFrame {
@@ -109,9 +115,12 @@ struct SearchFrameRecursionInfo<'a> {
 
 impl Search {
     fn search(&self, state: KState) {
-        for remaining_depth in self.start_depth..(self.max_total_depth + 1) {
-            println!("Search depth: {}", remaining_depth);
-            let search_status = &mut SearchStatus { num_solutions: 0 };
+        for depth_limit in self.start_depth_limit..(self.max_depth_limit + 1) {
+            println!("Search depth: {}", depth_limit);
+            let search_status = &mut SearchStatus {
+                depth_limit,
+                num_solutions: 0,
+            };
             let search_frame = &SearchFrame {
                 state: state.clone(),
                 total_depth: 0,
@@ -131,7 +140,6 @@ impl Search {
         if self.debug {
             // print!("{}", remaining_depth)
         };
-        // print!("{}{} ", remaining_depth, num_slots_solved);
         if is_f2l_solved(&search_frame.state) {
             let (short_solution, long_solution) =
                 self.build_solutions(recursion_info, &Alg::default());
@@ -156,8 +164,8 @@ impl Search {
             return; // TODO: Do we want to do this?
         }
 
-        if search_frame.total_depth == self.max_total_depth
-            || search_frame.slot_depth == self.max_depth_per_slot
+        if search_frame.total_depth == search_status.depth_limit
+            || search_frame.slot_depth == self.depth_limit_per_slot
         {
             return;
         }
