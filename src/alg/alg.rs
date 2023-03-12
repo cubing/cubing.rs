@@ -3,7 +3,7 @@ use std::fmt;
 use super::alg_node::AlgNode;
 
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Alg {
     pub nodes: Vec<AlgNode>,
 }

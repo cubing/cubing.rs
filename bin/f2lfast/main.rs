@@ -56,8 +56,8 @@ pub fn main() {
         triggers_by_slot,
         auf_triggers: get_auf_triggers(&kpuzzle),
         debug: args.debug,
-        start_depth: 8,
-        max_total_depth: 8,
+        start_depth: 7,
+        max_total_depth: 7,
         max_depth_per_slot: 3,
         max_num_solutions: 10,
     };
@@ -120,22 +120,42 @@ impl Search {
         if self.debug {
             // print!("{}", remaining_depth)
         };
+        // print!("{}{} ", remaining_depth, num_slots_solved);
+        if is_f2l_solved(&search_frame.state) {
+            let (short_solution, long_solution) =
+                self.build_solutions(recursion_info, &Alg::default());
+            println!("F2L Solution!");
+            println!("Short: {}", short_solution);
+            println!("Long: {}", long_solution);
+
+            for auf in &self.auf_triggers {
+                let with_auf = search_frame.state.apply_transformation(&auf.transformation);
+                if is_3x3x3_solved(&with_auf) {
+                    let (short_solution, long_solution) =
+                        self.build_solutions(recursion_info, &auf.short_alg);
+                    println!("Full Solution!");
+                    println!("Short: {}", short_solution);
+                    println!("Long: {}", long_solution);
+                    search_status.num_solutions += 1;
+                    if search_status.num_solutions == self.max_num_solutions {
+                        return; // TODO: halt the search
+                    }
+                }
+            }
+            return; // TODO: Do we want to do this?
+        }
+
         if search_frame.total_depth == self.max_total_depth
             || search_frame.slot_depth == self.max_depth_per_slot
         {
-            if is_f2l_solved(&search_frame.state) {
-                return;
-            }
             return;
         }
 
-        let mut num_slots_solved = 0;
         let mut next_frames_preferred = Vec::<(SearchFrame, SearchFrameRecursionInfo)>::new();
         let mut next_frames_non_preferred = Vec::<(SearchFrame, SearchFrameRecursionInfo)>::new();
         for slot_trigger_info in &self.triggers_by_slot {
             // TODO: pass this down instead of checking every time.
             if is_slot_solved(&search_frame.state, &slot_trigger_info.f2l_slot) {
-                num_slots_solved += 1;
                 continue;
             }
             for auf in &self.auf_triggers {
@@ -169,18 +189,6 @@ impl Search {
             }
         }
 
-        // print!("{}{} ", remaining_depth, num_slots_solved);
-        if num_slots_solved == 4 {
-            let (short_solution, long_solution) = self.build_solutions(recursion_info);
-            println!("Solution!");
-            println!("Short: {}", short_solution);
-            println!("Long: {}", long_solution);
-            search_status.num_solutions += 1;
-            if search_status.num_solutions == self.max_num_solutions {
-                return;
-            }
-        }
-
         next_frames_preferred.shuffle(&mut thread_rng());
         next_frames_non_preferred.shuffle(&mut thread_rng());
         for next_frames in vec![next_frames_preferred, next_frames_non_preferred] {
@@ -201,7 +209,11 @@ impl Search {
         }
     }
     // TODO: output via iterator
-    fn build_solutions(&self, recursion_info: Option<&SearchFrameRecursionInfo>) -> (Alg, Alg) {
+    fn build_solutions(
+        &self,
+        recursion_info: Option<&SearchFrameRecursionInfo>,
+        suffix: &Alg,
+    ) -> (Alg, Alg) {
         let mut short_alg_builder = AlgBuilder::default();
         let mut long_alg_builder = AlgBuilder::default();
         self.build_solutions_recursive(
@@ -209,6 +221,8 @@ impl Search {
             &mut long_alg_builder,
             recursion_info,
         );
+        short_alg_builder.push(suffix);
+        long_alg_builder.push(suffix);
         (short_alg_builder.to_alg(), long_alg_builder.to_alg())
     }
 
@@ -283,4 +297,22 @@ fn is_f2l_solved(state: &KState) -> bool {
 fn is_3x3x3_cross_solved(state: &KState) -> bool {
     let edges = state.state_data.get("EDGES").expect("Invalid 3x3x3 state");
     edges.pieces[4..8] == [4, 5, 6, 7] && edges.orientation[4..8] == [0, 0, 0, 0]
+}
+
+// TODO: allow comparing to state
+fn is_3x3x3_solved(state: &KState) -> bool {
+    let edges = state.state_data.get("EDGES").expect("Invalid 3x3x3 state");
+    let corners = state
+        .state_data
+        .get("CORNERS")
+        .expect("Invalid 3x3x3 state");
+    let centers = state
+        .state_data
+        .get("CENTERS")
+        .expect("Invalid 3x3x3 state");
+    edges.pieces == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        && edges.orientation == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        && corners.pieces[0..8] == [0, 1, 2, 3, 4, 5, 6, 7]
+        && corners.orientation[0..8] == [0, 0, 0, 0, 0, 0, 0, 0]
+        && centers.pieces[0..2] == [0, 1] // We can get away with testing just two faces, and don't test orientation
 }
