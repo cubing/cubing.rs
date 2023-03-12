@@ -23,4 +23,7 @@ pub use commutator::Commutator;
 mod conjugate;
 pub use conjugate::Conjugate;
 
+mod alg_builder;
+pub use alg_builder::AlgBuilder;
+
 mod parse;
