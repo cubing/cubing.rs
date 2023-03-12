@@ -58,6 +58,7 @@ pub fn main() {
         debug: args.debug,
         start_depth: 12,
         max_depth: 12,
+        depth_per_slot: 3,
     };
 
     let start = Instant::now();
@@ -79,19 +80,23 @@ struct Search {
     debug: bool,
     start_depth: usize,
     max_depth: usize,
+    depth_per_slot: usize,
 }
 
 struct NextSearch<'a> {
     next_state: KState,
     auf: &'a TriggerInfo,
     trigger: &'a TriggerInfo,
+    remaining_depth_for_slot: usize,
 }
 
 impl Search {
     fn search(&self, state: &KState) -> Option<(Alg, Alg)> {
         for remaining_depth in self.start_depth..(self.max_depth + 1) {
             println!("Search depth: {}", remaining_depth);
-            if let Some(result) = self.search_recursive_inverse(state, remaining_depth) {
+            if let Some(result) =
+                self.search_recursive_inverse(state, remaining_depth, self.depth_per_slot)
+            {
                 let (short, long) = result;
                 return Some((short.to_alg().invert(), long.to_alg().invert()));
             }
@@ -104,11 +109,12 @@ impl Search {
         &self,
         state: &KState,
         remaining_depth: usize,
+        remaining_depth_for_slot: usize,
     ) -> Option<(AlgBuilder, AlgBuilder)> {
         if self.debug {
             // print!("{}", remaining_depth)
         };
-        if remaining_depth == 0 {
+        if remaining_depth == 0 || remaining_depth_for_slot == 0 {
             if is_f2l_solved(state) {
                 return Some((AlgBuilder::default(), AlgBuilder::default()));
             }
@@ -128,17 +134,21 @@ impl Search {
                 let new_state = state.apply_transformation(&auf.transformation);
                 for trigger in &slot_trigger_info.triggers {
                     let next_state = new_state.apply_transformation(&trigger.transformation);
-                    let next_searches = if is_slot_solved(&next_state, &slot_trigger_info.f2l_slot)
-                    {
-                        // if self.debug {
-                        //     println!("Preferred! {} {}", auf.short_alg, trigger.short_alg)
-                        // };
-                        &mut next_searches_preferred
-                    } else {
-                        &mut next_searches_non_preferred
-                    };
+                    let (next_searches, remaining_depth_for_slot) =
+                        if is_slot_solved(&next_state, &slot_trigger_info.f2l_slot) {
+                            // if self.debug {
+                            //     println!("Preferred! {} {}", auf.short_alg, trigger.short_alg)
+                            // };
+                            (&mut next_searches_preferred, 3)
+                        } else {
+                            (
+                                &mut next_searches_non_preferred,
+                                remaining_depth_for_slot - 1,
+                            )
+                        };
                     next_searches.push(NextSearch {
                         next_state,
+                        remaining_depth_for_slot,
                         auf,
                         trigger,
                     })
@@ -148,22 +158,27 @@ impl Search {
 
         next_searches_preferred.shuffle(&mut thread_rng());
         next_searches_non_preferred.shuffle(&mut thread_rng());
-        for searches in vec![next_searches_preferred, next_searches_non_preferred] {
-            for search in searches {
+        for next_searches in vec![next_searches_preferred, next_searches_non_preferred] {
+            for next_search in next_searches {
                 if self.debug {
                     for _ in remaining_depth..self.max_depth {
                         print!(" ")
                     }
-                    println!("↳ {} {}", search.auf.short_alg, search.trigger.short_alg);
+                    println!(
+                        "↳ {} {}",
+                        next_search.auf.short_alg, next_search.trigger.short_alg
+                    );
                 }
-                if let Some(solution) =
-                    self.search_recursive_inverse(&search.next_state, remaining_depth - 1)
-                {
+                if let Some(solution) = self.search_recursive_inverse(
+                    &next_search.next_state,
+                    remaining_depth - 1,
+                    next_search.remaining_depth_for_slot,
+                ) {
                     let (mut short, mut long) = solution;
-                    short.push(&search.trigger.short_alg.invert());
-                    short.push(&search.auf.short_alg.invert());
-                    long.push(&search.trigger.long_alg.invert());
-                    long.push(&search.auf.long_alg.invert());
+                    short.push(&next_search.trigger.short_alg.invert());
+                    short.push(&next_search.auf.short_alg.invert());
+                    long.push(&next_search.trigger.long_alg.invert());
+                    long.push(&next_search.auf.long_alg.invert());
                     return Some((short, long));
                 }
             }
