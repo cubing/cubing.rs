@@ -1,10 +1,6 @@
 mod triggers;
 
-use std::{
-    io::{stdout, Write},
-    process::exit,
-    time::Instant,
-};
+use std::{process::exit, time::Instant};
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
