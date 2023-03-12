@@ -22,6 +22,10 @@ struct Args {
     scramble: String,
     #[clap(long)]
     debug: bool,
+    #[clap(long)]
+    max_depth: Option<usize>,
+    #[clap(long)]
+    start_depth: Option<usize>,
 }
 
 pub fn main() {
@@ -52,12 +56,15 @@ pub fn main() {
         }
     }
 
+    let max_total_depth = args.max_depth.unwrap_or(9);
+    let start_depth = args.start_depth.unwrap_or(max_total_depth);
+
     let search = Search {
         triggers_by_slot,
         auf_triggers: get_auf_triggers(&kpuzzle),
         debug: args.debug,
-        start_depth: 7,
-        max_total_depth: 7,
+        start_depth,
+        max_total_depth,
         max_depth_per_slot: 3,
         max_num_solutions: 10,
     };
