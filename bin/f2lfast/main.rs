@@ -59,6 +59,10 @@ pub fn main() {
     let max_total_depth = args.max_depth.unwrap_or(9);
     let start_depth = args.start_depth.unwrap_or(max_total_depth);
 
+    if start_depth > max_total_depth {
+        eprintln!("Warning: start depth is greater than max depth.")
+    }
+
     let search = Search {
         triggers_by_slot,
         auf_triggers: get_auf_triggers(&kpuzzle),
