@@ -56,20 +56,14 @@ pub fn main() {
         triggers_by_slot,
         auf_triggers: get_auf_triggers(&kpuzzle),
         debug: args.debug,
-        start_depth: 12,
-        max_depth: 12,
-        depth_per_slot: 3,
+        start_depth: 8,
+        max_total_depth: 8,
+        max_depth_per_slot: 3,
+        max_num_solutions: 10,
     };
 
     let start = Instant::now();
-    match search.search(&state) {
-        Some(result) => {
-            let (short, long) = result;
-            println!("Solution (HIJK): {}", short);
-            println!("Solution (Singmaster): {}", long);
-        }
-        None => eprintln!("No solution found!"),
-    }
+    search.search(state);
     let duration = start.elapsed();
     println!("Time elapsed: {:?}", duration);
 }
@@ -79,117 +73,153 @@ struct Search {
     auf_triggers: Vec<TriggerInfo>,
     debug: bool,
     start_depth: usize,
-    max_depth: usize,
-    depth_per_slot: usize,
+    max_total_depth: usize,
+    max_depth_per_slot: usize,
+    max_num_solutions: usize,
 }
 
-struct NextSearch<'a> {
-    next_state: KState,
+struct SearchStatus {
+    num_solutions: usize,
+}
+
+struct SearchFrame {
+    state: KState,
+    total_depth: usize,
+    slot_depth: usize,
+}
+
+struct SearchFrameRecursionInfo<'a> {
     auf: &'a TriggerInfo,
     trigger: &'a TriggerInfo,
-    remaining_depth_for_slot: usize,
+    parent: Option<&'a SearchFrameRecursionInfo<'a>>,
 }
 
 impl Search {
-    fn search(&self, state: &KState) -> Option<(Alg, Alg)> {
-        for remaining_depth in self.start_depth..(self.max_depth + 1) {
+    fn search(&self, state: KState) {
+        for remaining_depth in self.start_depth..(self.max_total_depth + 1) {
             println!("Search depth: {}", remaining_depth);
-            if let Some(result) =
-                self.search_recursive_inverse(state, remaining_depth, self.depth_per_slot)
-            {
-                let (short, long) = result;
-                return Some((short.to_alg().invert(), long.to_alg().invert()));
-            }
+            let search_status = &mut SearchStatus { num_solutions: 0 };
+            let search_frame = &SearchFrame {
+                state: state.clone(),
+                total_depth: 0,
+                slot_depth: 0,
+            };
+            self.search_recursive(search_status, search_frame, None)
         }
-        None
     }
 
     // TODO: wrap in error?
-    fn search_recursive_inverse(
+    fn search_recursive(
         &self,
-        state: &KState,
-        remaining_depth: usize,
-        remaining_depth_for_slot: usize,
-    ) -> Option<(AlgBuilder, AlgBuilder)> {
+        search_status: &mut SearchStatus,
+        search_frame: &SearchFrame,
+        recursion_info: Option<&SearchFrameRecursionInfo>,
+    ) {
         if self.debug {
             // print!("{}", remaining_depth)
         };
-        if remaining_depth == 0 || remaining_depth_for_slot == 0 {
-            if is_f2l_solved(state) {
-                return Some((AlgBuilder::default(), AlgBuilder::default()));
+        if search_frame.total_depth == self.max_total_depth
+            || search_frame.slot_depth == self.max_depth_per_slot
+        {
+            if is_f2l_solved(&search_frame.state) {
+                return;
             }
-            return None;
+            return;
         }
 
         let mut num_slots_solved = 0;
-        let mut next_searches_preferred = Vec::<NextSearch>::new();
-        let mut next_searches_non_preferred = Vec::<NextSearch>::new();
+        let mut next_frames_preferred = Vec::<(SearchFrame, SearchFrameRecursionInfo)>::new();
+        let mut next_frames_non_preferred = Vec::<(SearchFrame, SearchFrameRecursionInfo)>::new();
         for slot_trigger_info in &self.triggers_by_slot {
             // TODO: pass this down instead of checking every time.
-            if is_slot_solved(state, &slot_trigger_info.f2l_slot) {
+            if is_slot_solved(&search_frame.state, &slot_trigger_info.f2l_slot) {
                 num_slots_solved += 1;
                 continue;
             }
             for auf in &self.auf_triggers {
-                let new_state = state.apply_transformation(&auf.transformation);
+                let next_state = search_frame.state.apply_transformation(&auf.transformation);
                 for trigger in &slot_trigger_info.triggers {
-                    let next_state = new_state.apply_transformation(&trigger.transformation);
+                    let next_state = next_state.apply_transformation(&trigger.transformation);
                     let (next_searches, remaining_depth_for_slot) =
                         if is_slot_solved(&next_state, &slot_trigger_info.f2l_slot) {
-                            // if self.debug {
-                            //     println!("Preferred! {} {}", auf.short_alg, trigger.short_alg)
-                            // };
-                            (&mut next_searches_preferred, 3)
+                            (&mut next_frames_preferred, 0)
                         } else {
-                            (
-                                &mut next_searches_non_preferred,
-                                remaining_depth_for_slot - 1,
-                            )
+                            (&mut next_frames_non_preferred, search_frame.slot_depth + 1)
                         };
-                    next_searches.push(NextSearch {
-                        next_state,
-                        remaining_depth_for_slot,
-                        auf,
-                        trigger,
-                    })
-                }
-            }
-        }
-
-        next_searches_preferred.shuffle(&mut thread_rng());
-        next_searches_non_preferred.shuffle(&mut thread_rng());
-        for next_searches in vec![next_searches_preferred, next_searches_non_preferred] {
-            for next_search in next_searches {
-                if self.debug {
-                    for _ in remaining_depth..self.max_depth {
-                        print!(" ")
-                    }
-                    println!(
-                        "↳ {} {}",
-                        next_search.auf.short_alg, next_search.trigger.short_alg
-                    );
-                }
-                if let Some(solution) = self.search_recursive_inverse(
-                    &next_search.next_state,
-                    remaining_depth - 1,
-                    next_search.remaining_depth_for_slot,
-                ) {
-                    let (mut short, mut long) = solution;
-                    short.push(&next_search.trigger.short_alg.invert());
-                    short.push(&next_search.auf.short_alg.invert());
-                    long.push(&next_search.trigger.long_alg.invert());
-                    long.push(&next_search.auf.long_alg.invert());
-                    return Some((short, long));
+                    next_searches.push((
+                        SearchFrame {
+                            state: next_state,
+                            total_depth: search_frame.total_depth + 1,
+                            slot_depth: remaining_depth_for_slot,
+                        },
+                        SearchFrameRecursionInfo {
+                            auf,
+                            trigger,
+                            parent: recursion_info,
+                        },
+                    ))
                 }
             }
         }
 
         // print!("{}{} ", remaining_depth, num_slots_solved);
         if num_slots_solved == 4 {
-            return Some((AlgBuilder::default(), AlgBuilder::default()));
+            let (short_solution, long_solution) = self.build_solutions(recursion_info);
+            println!("Solution!");
+            println!("Short: {}", short_solution);
+            println!("Long: {}", long_solution);
+            search_status.num_solutions += 1;
+            if search_status.num_solutions == self.max_num_solutions {
+                return;
+            }
         }
 
-        None
+        next_frames_preferred.shuffle(&mut thread_rng());
+        next_frames_non_preferred.shuffle(&mut thread_rng());
+        for next_frames in vec![next_frames_preferred, next_frames_non_preferred] {
+            for next_frame in next_frames {
+                let (next_frame, recursion_info) = next_frame;
+                if self.debug {
+                    for _ in 0..next_frame.total_depth {
+                        print!(" ")
+                    }
+                    println!(
+                        "↳ {} {}",
+                        recursion_info.auf.short_alg, recursion_info.trigger.short_alg
+                    );
+                }
+
+                self.search_recursive(search_status, &next_frame, Some(&recursion_info));
+            }
+        }
+    }
+    // TODO: output via iterator
+    fn build_solutions(&self, recursion_info: Option<&SearchFrameRecursionInfo>) -> (Alg, Alg) {
+        let mut short_alg_builder = AlgBuilder::default();
+        let mut long_alg_builder = AlgBuilder::default();
+        self.build_solutions_recursive(
+            &mut short_alg_builder,
+            &mut long_alg_builder,
+            recursion_info,
+        );
+        (short_alg_builder.to_alg(), long_alg_builder.to_alg())
+    }
+
+    // TODO: output via iterator
+    #[allow(clippy::only_used_in_recursion)] // TODO: wait wat
+    fn build_solutions_recursive(
+        &self,
+        short_alg_builder: &mut AlgBuilder,
+        long_alg_builder: &mut AlgBuilder,
+        recursion_info: Option<&SearchFrameRecursionInfo>,
+    ) {
+        if let Some(child_info) = recursion_info {
+            self.build_solutions_recursive(short_alg_builder, long_alg_builder, child_info.parent);
+            short_alg_builder.push(&child_info.auf.short_alg);
+            short_alg_builder.push(&child_info.trigger.short_alg);
+            long_alg_builder.push(&child_info.auf.long_alg);
+            long_alg_builder.push(&child_info.trigger.long_alg);
+        }
     }
 }
 
