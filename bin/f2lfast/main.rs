@@ -1,6 +1,6 @@
 mod triggers;
 
-use std::process::exit;
+use std::{process::exit, time::Instant};
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -59,6 +59,8 @@ pub fn main() {
         start_depth: 12,
         max_depth: 12,
     };
+
+    let start = Instant::now();
     match search.search(&state) {
         Some(result) => {
             let (short, long) = result;
@@ -67,6 +69,8 @@ pub fn main() {
         }
         None => eprintln!("No solution found!"),
     }
+    let duration = start.elapsed();
+    println!("Time elapsed: {:?}", duration);
 }
 
 struct Search {
