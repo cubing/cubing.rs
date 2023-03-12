@@ -2,6 +2,9 @@ mod triggers;
 
 use std::process::exit;
 
+use rand::seq::SliceRandom;
+use rand::thread_rng;
+
 use cubing::{
     alg::{Alg, AlgBuilder},
     kpuzzle::KState,
@@ -139,6 +142,8 @@ impl Search {
             }
         }
 
+        next_searches_preferred.shuffle(&mut thread_rng());
+        next_searches_non_preferred.shuffle(&mut thread_rng());
         for searches in vec![next_searches_preferred, next_searches_non_preferred] {
             for search in searches {
                 if self.debug {
