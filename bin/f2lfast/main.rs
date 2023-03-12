@@ -1,6 +1,10 @@
 mod triggers;
 
-use std::{process::exit, time::Instant};
+use std::{
+    io::{stdout, Write},
+    process::exit,
+    time::Instant,
+};
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -141,17 +145,20 @@ impl Search {
             // print!("{}", remaining_depth)
         };
         if is_f2l_solved(&search_frame.state) {
-            let (short_solution, long_solution) =
-                self.build_solutions(recursion_info, &Alg::default());
-            println!("F2L Solution!");
-            println!("Short: {}", short_solution);
-            println!("Long: {}", long_solution);
+            // let (short_solution, long_solution) =
+            //     self.build_solutions(recursion_info, &Alg::default());
+            // println!("F2L Solution!");
+            // println!("Short: {}", short_solution);
+            // println!("Long: {}", long_solution);
+            print!(".");
+            stdout().flush().unwrap();
 
             for auf in &self.auf_triggers {
                 let with_auf = search_frame.state.apply_transformation(&auf.transformation);
                 if is_3x3x3_solved(&with_auf) {
                     let (short_solution, long_solution) =
                         self.build_solutions(recursion_info, &auf.short_alg);
+                    println!();
                     println!("Full Solution!");
                     println!("Short: {}", short_solution);
                     println!("Long: {}", long_solution);
