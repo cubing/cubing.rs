@@ -26,6 +26,10 @@ struct Args {
     scramble: String,
     #[clap(long)]
     debug: bool,
+    #[clap(long)]
+    no_randomize: bool,
+    #[clap(long)]
+    no_prefer_immediate_slots: bool,
     #[clap(long, default_value = "9")]
     max_depth: usize,
     /// Defaults to the max depth if not specified.
@@ -76,6 +80,8 @@ pub fn main() {
         triggers_by_slot,
         auf_triggers: get_auf_triggers(&kpuzzle),
         debug: args.debug,
+        randomize: !args.no_randomize,
+        prefer_immediate_slots: !args.no_prefer_immediate_slots,
         start_depth_limit,
         max_depth_limit,
         depth_limit_per_slot: 3,
@@ -92,6 +98,8 @@ struct Search {
     triggers_by_slot: Vec<SlotTriggerInfo>,
     auf_triggers: Vec<TriggerInfo>,
     debug: bool,
+    randomize: bool,
+    prefer_immediate_slots: bool,
     start_depth_limit: usize,
     max_depth_limit: usize,
     depth_limit_per_slot: usize,
@@ -150,8 +158,8 @@ impl Search {
             // println!("F2L Solution!");
             // println!("Short: {}", short_solution);
             // println!("Long: {}", long_solution);
-            print!(".");
-            stdout().flush().unwrap();
+            // print!(".");
+            // stdout().flush().unwrap();
 
             for auf in &self.auf_triggers {
                 let with_auf = search_frame.state.apply_transformation(&auf.transformation);
@@ -190,7 +198,15 @@ impl Search {
                     let next_state = next_state.apply_transformation(&trigger.transformation);
                     let (next_searches, remaining_depth_for_slot, solves_slot) =
                         if is_slot_solved(&next_state, &slot_trigger_info.f2l_slot) {
-                            (&mut next_frames_preferred, 0, true)
+                            (
+                                if self.prefer_immediate_slots {
+                                    &mut next_frames_preferred
+                                } else {
+                                    &mut next_frames_non_preferred
+                                },
+                                0,
+                                true,
+                            )
                         } else {
                             (
                                 &mut next_frames_non_preferred,
@@ -215,8 +231,10 @@ impl Search {
             }
         }
 
-        next_frames_preferred.shuffle(&mut thread_rng());
-        next_frames_non_preferred.shuffle(&mut thread_rng());
+        if self.randomize {
+            next_frames_preferred.shuffle(&mut thread_rng());
+            next_frames_non_preferred.shuffle(&mut thread_rng());
+        }
         for next_frames in vec![next_frames_preferred, next_frames_non_preferred] {
             for next_frame in next_frames {
                 let (next_frame, recursion_info) = next_frame;
