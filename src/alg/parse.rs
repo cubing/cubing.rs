@@ -5,8 +5,8 @@ use nom::{
     bytes::complete::{tag, take_till, take_while1},
     character::complete::one_of,
     combinator::{all_consuming, eof, into, map_res, opt},
-    multi::many0,
-    sequence::preceded,
+    multi::{many0, many1},
+    sequence::pair,
     IResult,
 };
 
@@ -123,16 +123,41 @@ impl FromStr for Move {
     }
 }
 
-fn drop_spaces(input: &str) -> IResult<&str, ()> {
-    let (input, _) = many0(tag(" "))(input)?;
-    Ok((input, ()))
+fn parse_potential_spaces(input: &str) -> IResult<&str, bool> {
+    let (input, spaces) = opt(many1(tag(" ")))(input)?;
+    Ok((input, spaces.is_some()))
 }
 
 fn parse_alg(input: &str) -> IResult<&str, Alg> {
-    let (input, nodes) = many0(preceded(drop_spaces, parse_node))(input)?;
-    let (input, _) = drop_spaces(input)?;
+    let (input, spaces_and_nodes) = many0(pair(parse_potential_spaces, parse_node))(input)?;
+    let (input, _) = parse_potential_spaces(input)?;
+
+    let mut previous_node: Option<&AlgNode> = None;
+    for spaces_and_node in &spaces_and_nodes {
+        let (preceded_by_spaces, node) = spaces_and_node;
+
+        if !matches!(node, AlgNode::NewlineNode(_)) {
+            let is_crowded = !*preceded_by_spaces
+                && match previous_node {
+                    Some(AlgNode::NewlineNode(_)) => false,
+                    Some(AlgNode::LineCommentNode(_)) => false,
+                    None => false,
+                    Some(_) => true,
+                };
+
+            if is_crowded {
+                // TODO issue a useful error message
+                one_of(" \n")(input)?; // TODO: is there a way to do this without re-parsing?
+            }
+        }
+
+        previous_node = Some(node);
+    }
+
+    let nodes: Vec<AlgNode> = spaces_and_nodes.into_iter().map(|(_, node)| node).collect();
     Ok((input, Alg { nodes }))
 }
+
 impl TryFrom<&str> for Alg {
     type Error = String;
     fn try_from(input: &str) -> Result<Self, Self::Error> {
@@ -144,7 +169,10 @@ impl FromStr for Alg {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match all_consuming(parse_alg)(s) {
             Ok((_, alg)) => Ok(alg),
-            Err(_) => Err("Invalid move string".into()),
+            Err(s) => {
+                eprintln!("Alg parsing error: {}", s);
+                Err("Invalid alg string".into()) // TODO: pass on error
+            }
         }
     }
 }

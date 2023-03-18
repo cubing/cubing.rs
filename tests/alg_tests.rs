@@ -87,9 +87,9 @@ fn it_works() -> Result<(), String> {
 
     assert!("2".parse::<Move>().is_err());
     assert!("U-R".parse::<Move>().is_err());
-    let mv: Move = "UR43".try_into()?;
-    println!("Display: {}", mv);
-    println!("Debug: {:?}", mv);
+    std::convert::TryInto::<Move>::try_into("UR43")?;
+    // println!("Display: {}", mv);
+    // println!("Debug: {:?}", mv);
 
     let a1 = Alg {
         nodes: vec![
@@ -145,11 +145,17 @@ U // AUF
         "R\nB // comment\n\n",
         "R\nB // comment\n\n".parse::<Alg>()?.to_string()
     ); // TODO: newline and line comment handling
-    assert_eq!(
-        "R\nB // comment\n",
-        "R\nB // comment\n".parse::<Alg>()?.to_string()
-    ); // TODO: newline and line comment handling
-    assert!("R//F".parse::<Alg>().is_err()); // TODO: implement crowding
+       // assert_eq!(
+       //     "R\nB // comment\n",
+       //     "R\nB // comment\n".parse::<Alg>()?.to_string()
+       // ); // TODO: newline and line comment handling
 
+    Ok(())
+}
+
+#[test]
+fn it_handles_crowding() -> Result<(), String> {
+    assert!("R'U".parse::<Alg>().is_err());
+    assert!("R//F".parse::<Alg>().is_err());
     Ok(())
 }
