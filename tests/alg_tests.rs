@@ -1,5 +1,5 @@
 use cubing::{
-    alg::{Alg, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove},
+    alg::{Alg, Move, MoveLayer, MovePrefix, MoveRange, Newline, QuantumMove},
     parse_alg, parse_move,
 };
 
@@ -26,6 +26,8 @@ fn it_works() -> Result<(), String> {
     assert_eq!("U_R", format!("{}", "U_R".parse::<Move>().unwrap()));
     assert_eq!("4R2'", format!("{}", "4R2'".parse::<Move>().unwrap()));
     assert_eq!("3-7R2'", format!("{}", "3-7R2'".parse::<Move>().unwrap()));
+
+    assert_eq!("\n", Newline {}.to_string());
 
     assert_eq!(
         "3-7R2'",
@@ -126,6 +128,17 @@ fn it_works() -> Result<(), String> {
 
     assert_eq!("R'".parse::<Move>()?, parse_move!("R'")?);
     assert_eq!("R U R'".parse::<Alg>()?, parse_alg!("R U R'")?);
+
+    let wr = "y x' // inspection
+U R2 U' F' L F' U' L' // XX-Cross + EO
+U' R U R' // 3rd slot
+R' U R U2' R' U R // 4th slot
+U R' U' R U' R' U2 R // OLL / ZBLL
+U // AUF
+
+// from http://cubesolv.es/solve/5757";
+    wr.parse::<Alg>()?;
+    // assert_eq!(wr, wr.parse::<Alg>()?.to_string()); // TODO: newline and line comment handling
 
     Ok(())
 }

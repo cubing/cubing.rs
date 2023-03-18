@@ -2,16 +2,17 @@ use std::str::FromStr;
 
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_while1},
+    bytes::complete::{tag, take_till, take_while1},
     character::complete::one_of,
-    combinator::{all_consuming, into, map_res, opt},
+    combinator::{all_consuming, eof, into, map_res, opt},
     multi::many0,
     sequence::preceded,
     IResult,
 };
 
 use super::{
-    alg_node::AlgNode, Alg, Commutator, Conjugate, Grouping, Move, MovePrefix, Pause, QuantumMove,
+    alg_node::AlgNode, Alg, Commutator, Conjugate, Grouping, LineComment, Move, MovePrefix,
+    Newline, Pause, QuantumMove,
 };
 
 fn from_decimal_unsinged(input: &str) -> Result<u32, std::num::ParseIntError> {
@@ -153,6 +154,28 @@ fn parse_pause(input: &str) -> IResult<&str, Pause> {
     Ok((input, Pause {}))
 }
 
+// TODO: support `\r`?
+fn parse_newline(input: &str) -> IResult<&str, Newline> {
+    let (input, _) = tag("\n")(input)?;
+    Ok((input, Newline {}))
+}
+
+fn parse_newline_or_eof(input: &str) -> IResult<&str, ()> {
+    if let Ok((input, _)) = parse_newline(input) {
+        return Ok((input, ()));
+    };
+    let (input, _) = eof(input)?;
+    Ok((input, ()))
+}
+
+fn parse_line_comment(input: &str) -> IResult<&str, LineComment> {
+    let (input, _) = tag("//")(input)?;
+    let (input, text) = take_till(|c| c == '\n')(input)?;
+    let (input, _) = parse_newline_or_eof(input)?;
+    let line_comment = LineComment::try_new(text).unwrap(); // TODO: is there an idiomatic way to avoid the need to unwrap?
+    Ok((input, line_comment))
+}
+
 fn parse_grouping(input: &str) -> IResult<&str, Grouping> {
     let (input, _) = tag("(")(input)?;
     let (input, alg) = parse_alg(input)?;
@@ -193,6 +216,8 @@ fn parse_node(input: &str) -> IResult<&str, AlgNode> {
     alt((
         into(parse_move),
         into(parse_pause),
+        into(parse_newline),
+        into(parse_line_comment),
         into(parse_grouping),
         into(parse_commutator_or_conjugate),
     ))(input)

@@ -13,6 +13,12 @@ pub use r#move::Move;
 mod pause;
 pub use pause::Pause;
 
+mod newline;
+pub use newline::Newline;
+
+mod line_comment;
+pub use line_comment::LineComment;
+
 #[allow(clippy::module_inception)]
 mod alg;
 pub use alg::Alg;
