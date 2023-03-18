@@ -27,7 +27,7 @@ impl LineComment {
 
 impl fmt::Display for LineComment {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // `writeln!` adds `\n` (no `\r`) on all platforms, so it is safe to use.
-        writeln!(f, "//{}", self.text)
+        // Note: does NOT include newline, in case it's the final node in an alg.
+        write!(f, "//{}", self.text)
     }
 }

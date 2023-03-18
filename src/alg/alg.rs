@@ -18,15 +18,23 @@ impl Alg {
 impl fmt::Display for Alg {
     // TODO: memoize?
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut first = true;
-        for node in self.nodes.iter() {
-            if first {
-                first = false;
-            } else {
-                write!(f, " ")?;
+        let mut previous: Option<&AlgNode> = None;
+        for current in self.nodes.iter() {
+            if let Some(previous) = previous {
+                write!(f, "{}", space_between(previous, current))?;
             }
-            write!(f, "{}", node)?;
+            write!(f, "{}", current)?;
+            previous = Some(current);
         }
         Ok(())
+    }
+}
+
+fn space_between(u1: &AlgNode, u2: &AlgNode) -> &'static str {
+    match (u1, u2) {
+        (AlgNode::LineCommentNode(_), _) => "\n",
+        (AlgNode::NewlineNode(_), _) => "",
+        (_, AlgNode::NewlineNode(_)) => "",
+        (_, _) => " ",
     }
 }

@@ -138,7 +138,18 @@ U // AUF
 
 // from http://cubesolv.es/solve/5757";
     wr.parse::<Alg>()?;
-    // assert_eq!(wr, wr.parse::<Alg>()?.to_string()); // TODO: newline and line comment handling
+    assert_eq!(wr, wr.parse::<Alg>()?.to_string()); // TODO: newline and line comment handling
+    assert_eq!("\n\n", "\n\n".parse::<Alg>()?.to_string()); // TODO: newline and line comment handling
+    assert_eq!("\n", "\n".parse::<Alg>()?.to_string()); // TODO: newline and line comment handling
+    assert_eq!(
+        "R\nB // comment\n\n",
+        "R\nB // comment\n\n".parse::<Alg>()?.to_string()
+    ); // TODO: newline and line comment handling
+    assert_eq!(
+        "R\nB // comment\n",
+        "R\nB // comment\n".parse::<Alg>()?.to_string()
+    ); // TODO: newline and line comment handling
+    assert!("R//F".parse::<Alg>().is_err()); // TODO: implement crowding
 
     Ok(())
 }
