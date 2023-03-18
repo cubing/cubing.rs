@@ -15,7 +15,7 @@ use super::{
     Newline, Pause, QuantumMove,
 };
 
-fn from_decimal_unsinged(input: &str) -> Result<u32, std::num::ParseIntError> {
+fn from_decimal_unsigned(input: &str) -> Result<u32, std::num::ParseIntError> {
     input.parse::<u32>()
 }
 
@@ -28,7 +28,7 @@ fn is_decimal_digit(c: char) -> bool {
 }
 
 fn parse_decimal_unsigned(input: &str) -> IResult<&str, u32> {
-    map_res(take_while1(is_decimal_digit), from_decimal_unsinged)(input)
+    map_res(take_while1(is_decimal_digit), from_decimal_unsigned)(input)
 }
 
 fn parse_natural_number_signed(input: &str) -> IResult<&str, i32> {
