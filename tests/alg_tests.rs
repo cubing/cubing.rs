@@ -1,5 +1,7 @@
+use std::rc::Rc;
+
 use cubing::{
-    alg::{Alg, Move, MoveLayer, MovePrefix, MoveRange, Newline, QuantumMove},
+    alg::{Alg, AlgBuilder, AlgNode, Move, MoveLayer, MovePrefix, MoveRange, Newline, QuantumMove},
     parse_alg, parse_move,
 };
 
@@ -149,6 +151,29 @@ U // AUF
     //     "R\nB // comment\n",
     //     "R\nB // comment\n".parse::<Alg>()?.to_string()
     // ); // TODO: newline and line comment handling
+
+    Ok(())
+}
+
+#[test]
+fn it_can_build_and_parse_long_strings() -> Result<(), String> {
+    let mut builder = AlgBuilder::default();
+    let quantum = Rc::new(QuantumMove {
+        family: "R".into(),
+        prefix: None,
+    });
+    for amount in 1..1000 {
+        let r#move = Move {
+            quantum: quantum.clone(),
+            amount,
+        };
+        let alg_node: AlgNode = r#move.into();
+        builder.push(&alg_node);
+    }
+    let alg = builder.to_alg();
+    let s = alg.to_string();
+    let re_parsed = s.parse::<Alg>()?;
+    assert_eq!(alg, re_parsed);
 
     Ok(())
 }
