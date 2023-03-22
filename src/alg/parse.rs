@@ -4,7 +4,7 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, take_till, take_while1},
     character::complete::one_of,
-    combinator::{all_consuming, eof, into, map_res, opt},
+    combinator::{all_consuming, into, map_res, opt},
     multi::{many0, many1},
     sequence::pair,
     IResult,
@@ -188,18 +188,17 @@ fn parse_newline(input: &str) -> IResult<&str, Newline> {
     Ok((input, Newline {}))
 }
 
-fn parse_newline_or_eof(input: &str) -> IResult<&str, ()> {
-    if let Ok((input, _)) = parse_newline(input) {
-        return Ok((input, ()));
-    };
-    let (input, _) = eof(input)?;
-    Ok((input, ()))
-}
+// fn parse_newline_or_eof(input: &str) -> IResult<&str, ()> {
+//     if let Ok((input, _)) = parse_newline(input) {
+//         return Ok((input, ()));
+//     };
+//     let (input, _) = eof(input)?;
+//     Ok((input, ()))
+// }
 
 fn parse_line_comment(input: &str) -> IResult<&str, LineComment> {
     let (input, _) = tag("//")(input)?;
     let (input, text) = take_till(|c| c == '\n')(input)?;
-    let (input, _) = parse_newline_or_eof(input)?;
     let line_comment = LineComment::try_new(text).unwrap(); // TODO: is there an idiomatic way to avoid the need to unwrap?
     Ok((input, line_comment))
 }

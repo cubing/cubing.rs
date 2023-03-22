@@ -147,10 +147,10 @@ U // AUF
         "R\nB // comment\n\n",
         "R\nB // comment\n\n".parse::<Alg>()?.to_string()
     );
-    // assert_eq!(
-    //     "R\nB // comment\n",
-    //     "R\nB // comment\n".parse::<Alg>()?.to_string()
-    // ); // TODO: newline and line comment handling
+    assert_eq!(
+        "R\nB // comment\n",
+        "R\nB // comment\n".parse::<Alg>()?.to_string()
+    ); // TODO: newline and line comment handling
 
     Ok(())
 }

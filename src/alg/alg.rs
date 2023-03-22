@@ -32,6 +32,7 @@ impl fmt::Display for Alg {
 
 fn space_between(u1: &AlgNode, u2: &AlgNode) -> &'static str {
     match (u1, u2) {
+        (AlgNode::LineCommentNode(_), AlgNode::NewlineNode(_)) => "",
         (AlgNode::LineCommentNode(_), _) => "\n",
         (AlgNode::NewlineNode(_), _) => "",
         (_, AlgNode::NewlineNode(_)) => "",
