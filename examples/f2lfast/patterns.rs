@@ -12,7 +12,10 @@ pub struct SlotMask {
 }
 
 impl SlotMask {
-    pub fn is_solved(&self, f2l_slot: &F2LSlot) -> bool {
+    pub fn is_f2l_solved(&self) -> bool {
+        self.H && self.I && self.J && self.K
+    }
+    pub fn is_slot_solved(&self, f2l_slot: &F2LSlot) -> bool {
         match f2l_slot {
             F2LSlot::H => self.H,
             F2LSlot::I => self.I,
@@ -29,6 +32,16 @@ impl SlotMask {
             F2LSlot::K => new_mask.K = solved,
         };
         new_mask
+    }
+
+    // Does *not* check if cross is solved.
+    pub fn from_state(state: &KState) -> Self {
+        Self {
+            H: is_slot_solved(state, &F2LSlot::H),
+            I: is_slot_solved(state, &F2LSlot::I),
+            J: is_slot_solved(state, &F2LSlot::J),
+            K: is_slot_solved(state, &F2LSlot::K),
+        }
     }
 }
 
@@ -59,23 +72,23 @@ fn is_piece_solved(state: &KState, orbit_name: &str, idx: usize) -> bool {
     orbit.pieces[idx] == idx && orbit.orientation[idx] == 0
 }
 
-// TODO: allow comparing to state
-pub fn is_f2l_solved(state: &KState) -> bool {
-    let edges = state.state_data.get("EDGES").expect("Invalid 3x3x3 state");
-    let corners = state
-        .state_data
-        .get("CORNERS")
-        .expect("Invalid 3x3x3 state");
-    let centers = state
-        .state_data
-        .get("CENTERS")
-        .expect("Invalid 3x3x3 state");
-    edges.pieces[4..12] == [4, 5, 6, 7, 8, 9, 10, 11]
-        && edges.orientation[4..12] == [0, 0, 0, 0, 0, 0, 0, 0]
-        && corners.pieces[4..8] == [4, 5, 6, 7]
-        && corners.orientation[4..8] == [0, 0, 0, 0]
-        && centers.pieces[0..2] == [0, 1] // We can get away with testing just two faces, and don't test orientation
-}
+// // TODO: allow comparing to state
+// pub fn is_f2l_solved(state: &KState) -> bool {
+//     let edges = state.state_data.get("EDGES").expect("Invalid 3x3x3 state");
+//     let corners = state
+//         .state_data
+//         .get("CORNERS")
+//         .expect("Invalid 3x3x3 state");
+//     let centers = state
+//         .state_data
+//         .get("CENTERS")
+//         .expect("Invalid 3x3x3 state");
+//     edges.pieces[4..12] == [4, 5, 6, 7, 8, 9, 10, 11]
+//         && edges.orientation[4..12] == [0, 0, 0, 0, 0, 0, 0, 0]
+//         && corners.pieces[4..8] == [4, 5, 6, 7]
+//         && corners.orientation[4..8] == [0, 0, 0, 0]
+//         && centers.pieces[0..2] == [0, 1] // We can get away with testing just two faces, and don't test orientation
+// }
 
 pub fn is_3x3x3_cross_solved(state: &KState) -> bool {
     let edges = state.state_data.get("EDGES").expect("Invalid 3x3x3 state");

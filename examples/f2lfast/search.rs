@@ -1,6 +1,9 @@
+// use std::io::{stdout, Write};
+
 use crate::{
-    patterns::{is_3x3x3_solved, is_f2l_solved, is_slot_solved},
+    patterns::{is_3x3x3_solved, is_slot_solved, SlotMask},
     triggers::{SlotTriggerInfo, TriggerInfo},
+    twizzle_link::twizzle_link,
 };
 
 use rand::seq::SliceRandom;
@@ -18,6 +21,7 @@ struct SearchStatus {
 
 struct SearchFrame {
     state: KState,
+    solved_slots: SlotMask, // TODO: see if `&SlotMask` is faster?
     total_depth: usize,
     slot_depth: usize,
 }
@@ -31,6 +35,7 @@ struct SearchFrameRecursionInfo<'a> {
 }
 
 pub struct Search {
+    pub scramble: Alg,
     pub triggers_by_slot: Vec<SlotTriggerInfo>,
     pub auf_triggers: Vec<TriggerInfo>,
     pub debug: bool,
@@ -52,6 +57,7 @@ impl Search {
             };
             let search_frame = &SearchFrame {
                 state: state.clone(),
+                solved_slots: SlotMask::from_state(&state),
                 total_depth: 0,
                 slot_depth: 0,
             };
@@ -69,13 +75,13 @@ impl Search {
         if self.debug {
             // print!("{}", remaining_depth)
         };
-        if is_f2l_solved(&search_frame.state) {
+        if search_frame.solved_slots.is_f2l_solved() {
             // let (short_solution, long_solution) =
             //     self.build_solutions(recursion_info, &Alg::default());
             // println!("F2L Solution!");
             // println!("Short: {}", short_solution);
             // println!("Long: {}", long_solution);
-            // print!(".");
+            // println!("{}", twizzle_link(&self.scramble, &long_solution));
             // stdout().flush().unwrap();
 
             for auf in &self.auf_triggers {
@@ -87,6 +93,7 @@ impl Search {
                     println!("Full Solution!");
                     println!("Short: {}", short_solution);
                     println!("Long: {}", long_solution);
+                    println!("{}", twizzle_link(&self.scramble, &long_solution));
                     search_status.num_solutions += 1;
                     if search_status.num_solutions == self.max_num_solutions {
                         return; // TODO: halt the search
@@ -105,15 +112,17 @@ impl Search {
         let mut next_frames_preferred = Vec::<(SearchFrame, SearchFrameRecursionInfo)>::new();
         let mut next_frames_non_preferred = Vec::<(SearchFrame, SearchFrameRecursionInfo)>::new();
         for slot_trigger_info in &self.triggers_by_slot {
-            // TODO: pass this down instead of checking every time.
-            if is_slot_solved(&search_frame.state, &slot_trigger_info.f2l_slot) {
+            if search_frame
+                .solved_slots
+                .is_slot_solved(&slot_trigger_info.f2l_slot)
+            {
                 continue;
             }
             for auf in &self.auf_triggers {
                 let next_state = search_frame.state.apply_transformation(&auf.transformation);
                 for trigger in &slot_trigger_info.triggers {
                     let next_state = next_state.apply_transformation(&trigger.transformation);
-                    let (next_searches, remaining_depth_for_slot, solves_slot) =
+                    let (next_searches, remaining_depth_for_slot, solves_slot, solved_slots) =
                         if is_slot_solved(&next_state, &slot_trigger_info.f2l_slot) {
                             (
                                 if self.prefer_immediate_slots {
@@ -123,17 +132,22 @@ impl Search {
                                 },
                                 0,
                                 true,
+                                search_frame
+                                    .solved_slots
+                                    .set(&slot_trigger_info.f2l_slot, true),
                             )
                         } else {
                             (
                                 &mut next_frames_non_preferred,
                                 search_frame.slot_depth + 1,
                                 false,
+                                search_frame.solved_slots.clone(),
                             )
                         };
                     next_searches.push((
                         SearchFrame {
                             state: next_state,
+                            solved_slots,
                             total_depth: search_frame.total_depth + 1,
                             slot_depth: remaining_depth_for_slot,
                         },

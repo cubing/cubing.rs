@@ -1,3 +1,5 @@
+pub mod twizzle_link;
+
 mod patterns;
 
 mod search;
@@ -43,13 +45,13 @@ pub fn main() {
     let args = Args::parse();
     let kpuzzle = cube3x3x3_kpuzzle();
 
-    let alg = args
+    let scramble = args
         .scramble
         .parse::<Alg>()
         .expect("Invalid input alg syntax.");
     let state = kpuzzle
         .start_state()
-        .apply_alg(&alg)
+        .apply_alg(&scramble)
         .expect("Input alg is not valid for puzzle.");
 
     if !is_3x3x3_cross_solved(&state) {
@@ -75,6 +77,7 @@ pub fn main() {
     }
 
     let search = Search {
+        scramble,
         triggers_by_slot,
         auf_triggers: get_auf_triggers(&kpuzzle),
         debug: args.debug,

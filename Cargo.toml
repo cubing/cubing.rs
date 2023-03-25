@@ -19,6 +19,7 @@ serde_json = "1.0.94"
 [dev-dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
 rand = "0.8.5"
+url = "2.3.1"
 
 [[example]]
 name = "f2lfast"
