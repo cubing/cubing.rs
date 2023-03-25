@@ -11,7 +11,6 @@ pub enum F2LSlot {
     K,
 }
 
-// We'd place this `allow` directly about `HIJK_alg`, but that doesn't work. See https://github.com/divviup/libprio-rs/pull/445/files
 #[allow(non_snake_case)]
 pub struct TriggerInfo {
     pub short_alg: Alg,

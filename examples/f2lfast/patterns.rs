@@ -2,6 +2,36 @@ use cubing::kpuzzle::KState;
 
 use crate::triggers::F2LSlot;
 
+#[derive(Clone, Default)]
+#[allow(non_snake_case)]
+pub struct SlotMask {
+    pub H: bool,
+    pub I: bool,
+    pub J: bool,
+    pub K: bool,
+}
+
+impl SlotMask {
+    pub fn is_solved(&self, f2l_slot: &F2LSlot) -> bool {
+        match f2l_slot {
+            F2LSlot::H => self.H,
+            F2LSlot::I => self.I,
+            F2LSlot::J => self.J,
+            F2LSlot::K => self.K,
+        }
+    }
+    pub fn set(&self, f2l_slot: &F2LSlot, solved: bool) -> SlotMask {
+        let mut new_mask = self.clone();
+        match f2l_slot {
+            F2LSlot::H => new_mask.H = solved,
+            F2LSlot::I => new_mask.I = solved,
+            F2LSlot::J => new_mask.J = solved,
+            F2LSlot::K => new_mask.K = solved,
+        };
+        new_mask
+    }
+}
+
 // TODO: is it more efficient not to borrow `F2LSlot`?
 pub fn is_slot_solved(state: &KState, f2l_slot: &F2LSlot) -> bool {
     // Reid order:
