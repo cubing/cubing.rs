@@ -4,6 +4,7 @@ use cubing::{
     parse_alg,
 };
 
+#[derive(Clone)]
 pub enum F2LSlot {
     H,
     I,
@@ -11,6 +12,7 @@ pub enum F2LSlot {
     K,
 }
 
+#[derive(Clone)]
 #[allow(non_snake_case)]
 pub struct TriggerInfo {
     pub short_alg: Alg,
@@ -32,6 +34,7 @@ impl TriggerInfo {
     }
 }
 
+#[derive(Clone)]
 pub struct SlotTriggerInfo {
     pub f2l_slot: F2LSlot,
     pub triggers: Vec<TriggerInfo>,

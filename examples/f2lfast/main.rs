@@ -6,7 +6,7 @@ mod search;
 
 mod triggers;
 
-use std::{process::exit, time::Instant};
+use std::{process::exit, thread, time::Instant};
 
 use cubing::{alg::Alg, puzzles::cube3x3x3_kpuzzle};
 
@@ -76,7 +76,9 @@ pub fn main() {
         eprintln!("Warning: start depth is greater than max depth.")
     }
 
-    let search = Search {
+    let mut searches = Vec::<Search>::new();
+
+    let main_search = Search {
         scramble,
         triggers_by_slot,
         auf_triggers: get_auf_triggers(&kpuzzle),
@@ -89,8 +91,17 @@ pub fn main() {
         max_num_solutions: 10,
     };
 
+    searches.push(main_search);
+
+    let handle = thread::spawn(move || {
+        for search in searches.into_iter() {
+            search.search(&state);
+        }
+    });
+
+    handle.join().unwrap();
+
     let start = Instant::now();
-    search.search(state);
     let duration = start.elapsed();
     println!("Time elapsed: {:?}", duration);
 }
