@@ -41,13 +41,13 @@ impl KPuzzle {
         &self, // TODO: Any issues with not using `&self`?
         r#move: &Move,
     ) -> Result<KTransformation, String> {
-        let s = r#move.quantum.to_string();
+        let q = r#move.quantum.to_string();
         let transformation_data = self
             .data
             .definition
             .moves
-            .get(&s)
-            .ok_or("Unknown move name.")?
+            .get(&q)
+            .ok_or_else(|| format!("Unknown move quantum: {}", q))?
             .clone();
         Ok(KTransformation {
             kpuzzle: self.clone(),
