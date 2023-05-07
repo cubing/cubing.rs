@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MoveLayer {
     pub layer: u32,
 }
@@ -23,7 +23,7 @@ impl From<u32> for MoveLayer {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MoveRange {
     pub outer_layer: u32,
     pub inner_layer: u32,
@@ -54,7 +54,7 @@ impl From<(u32, u32)> for MoveRange {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum MovePrefix {
     Layer(MoveLayer),
     Range(MoveRange),
@@ -105,7 +105,7 @@ impl From<MoveRange> for Option<MovePrefix> {
 }
 
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct QuantumMove {
     pub family: String,
     // TODO: prevent setting outer layer without inner layer

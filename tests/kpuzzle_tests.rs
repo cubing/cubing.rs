@@ -30,7 +30,7 @@ fn it_works() -> Result<(), String> {
         .into(),
         moves: HashMap::from([
             (
-                "L".into(),
+                "L".try_into()?,
                 Rc::new(HashMap::from([(
                     "items".into(),
                     KTransformationOrbitData {
@@ -40,7 +40,7 @@ fn it_works() -> Result<(), String> {
                 )])),
             ),
             (
-                "R".into(),
+                "R".try_into()?,
                 Rc::new(HashMap::from([(
                     "items".into(),
                     KTransformationOrbitData {
@@ -53,7 +53,7 @@ fn it_works() -> Result<(), String> {
         experimental_derived_moves: None,
     };
 
-    let kpuzzle: KPuzzle = def.into();
+    let kpuzzle: KPuzzle = def.try_into()?;
 
     assert_eq!(kpuzzle.definition().name, "topsy_turvy");
     assert_eq!(
@@ -84,7 +84,10 @@ fn it_works() -> Result<(), String> {
     }
     assert_eq!(current.transformation_data["items"].permutation[0], 0);
 
-    assert_eq!(t.apply_transformation(&t), (&kpuzzle, "R2").try_into()?);
+    assert_eq!(
+        t.apply_transformation(&t).transformation_data,
+        kpuzzle.transformation_from_str("R2")?.transformation_data
+    );
     assert_ne!(t.apply_transformation(&t), (&kpuzzle, "L R").try_into()?);
     assert_eq!(
         t.apply_transformation(&t).apply_transformation(&t),
