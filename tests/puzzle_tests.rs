@@ -25,5 +25,13 @@ fn test_2x2x2() -> Result<(), String> {
         kpuzzle.transformation_from_alg(&parse_alg!("z")?)?,
         kpuzzle.transformation_from_str("z")?,
     );
+    assert_eq!(
+        kpuzzle.transformation_from_str("z")?,
+        kpuzzle.transformation_from_str("[x: y]")?,
+    );
+    assert_eq!(
+        kpuzzle.transformation_from_str("L")?.transformation_data,
+        kpuzzle.transformation_from_str("x' R")?.transformation_data,
+    );
     Ok(())
 }

@@ -106,9 +106,9 @@
   },
   "experimentalDerivedMoves": {
     "z": "[x: y]",
-    "L": "[[x: y]: U]",
+    "L": "[z: U]",
     "F": "[x: U]",
-    "R": "[([x: y])': U]",
+    "R": "[z': U]",
     "B": "[x': U]",
     "D": "[x2: U]",
     "Uv": "y",

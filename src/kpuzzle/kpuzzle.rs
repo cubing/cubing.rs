@@ -1,6 +1,9 @@
 use std::{collections::HashMap, rc::Rc};
 
-use crate::alg::{Alg, AlgNode, Move};
+use crate::{
+    alg::{Alg, AlgNode, Move},
+    parse_alg,
+};
 
 use super::{
     KPuzzleDefinition, KState, KTransformation, KTransformationData, KTransformationOrbitData,
@@ -42,18 +45,25 @@ impl KPuzzle {
         r#move: &Move,
     ) -> Result<KTransformation, String> {
         let q = r#move.quantum.to_string();
-        let transformation_data = self
-            .data
-            .definition
-            .moves
-            .get(&q)
-            .ok_or_else(|| format!("Unknown move quantum: {}", q))?
-            .clone();
-        Ok(KTransformation {
-            kpuzzle: self.clone(),
-            transformation_data,
-        }
-        .self_multiply(r#move.amount))
+        let transformation_data1 = self.data.definition.moves.get(&q);
+        let transformation = match transformation_data1 {
+            Some(transformation_data) => Some(KTransformation {
+                kpuzzle: self.clone(),
+                transformation_data: transformation_data.clone(),
+            }),
+            None => match &self.data.definition.experimental_derived_moves {
+                Some(experimental_derived_moves) => experimental_derived_moves.get(&q).map(|alg| {
+                    self.transformation_from_alg(&parse_alg!(alg).unwrap())
+                        .unwrap()
+                }),
+                None => None,
+            },
+        };
+        let transformation = match transformation {
+            Some(transformation) => transformation,
+            None => todo!(),
+        };
+        Ok(transformation.self_multiply(r#move.amount))
     }
 
     // TODO: implement this as a `TryFrom`?
