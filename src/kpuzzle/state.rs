@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::alg::{Alg, Move};
 
-use super::{KPuzzle, KTransformation};
+use super::{KPuzzle, KPuzzleOrbitName, KTransformation};
 
-pub type KStateData = HashMap<String, KStateOrbitData>;
+pub type KStateData = HashMap<KPuzzleOrbitName, KStateOrbitData>;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct KStateOrbitData {
@@ -43,7 +43,7 @@ impl KState {
                 pieces,
                 orientation,
             };
-            state_data.insert(orbit_name.into(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
+            state_data.insert(orbit_name.clone(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
         }
 
         KState {

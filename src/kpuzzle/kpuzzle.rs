@@ -315,7 +315,7 @@ fn identity_transformation_data(definition: &KPuzzleDefinition) -> KTransformati
             permutation,
             orientation,
         };
-        transformation_data.insert(orbit_name.into(), orbit_data);
+        transformation_data.insert(orbit_name.clone(), orbit_data);
     }
     transformation_data
 }

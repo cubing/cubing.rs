@@ -1,4 +1,4 @@
-use cubing::kpuzzle::KState;
+use cubing::kpuzzle::{KPuzzleOrbitName, KState};
 
 use crate::triggers::F2LSlot;
 
@@ -60,10 +60,11 @@ pub fn is_slot_solved(state: &KState, f2l_slot: &F2LSlot) -> bool {
 }
 
 pub fn are_slot_pieces_solved(state: &KState, edge_idx: usize, corner_idx: usize) -> bool {
-    is_piece_solved(state, "EDGES", edge_idx) && is_piece_solved(state, "CORNERS", corner_idx)
+    is_piece_solved(state, &"EDGES".into(), edge_idx)
+        && is_piece_solved(state, &"CORNERS".into(), corner_idx)
 }
 
-fn is_piece_solved(state: &KState, orbit_name: &str, idx: usize) -> bool {
+fn is_piece_solved(state: &KState, orbit_name: &KPuzzleOrbitName, idx: usize) -> bool {
     let orbit = state
         .state_data
         .get(orbit_name)
@@ -91,20 +92,26 @@ fn is_piece_solved(state: &KState, orbit_name: &str, idx: usize) -> bool {
 // }
 
 pub fn is_3x3x3_cross_solved(state: &KState) -> bool {
-    let edges = state.state_data.get("EDGES").expect("Invalid 3x3x3 state");
+    let edges = state
+        .state_data
+        .get(&"EDGES".into())
+        .expect("Invalid 3x3x3 state");
     edges.pieces[4..8] == [4, 5, 6, 7] && edges.orientation[4..8] == [0, 0, 0, 0]
 }
 
 // TODO: allow comparing to state
 pub fn is_3x3x3_solved(state: &KState) -> bool {
-    let edges = state.state_data.get("EDGES").expect("Invalid 3x3x3 state");
+    let edges = state
+        .state_data
+        .get(&("EDGES").into())
+        .expect("Invalid 3x3x3 state");
     let corners = state
         .state_data
-        .get("CORNERS")
+        .get(&("CORNERS").into())
         .expect("Invalid 3x3x3 state");
     let centers = state
         .state_data
-        .get("CENTERS")
+        .get(&("CENTERS").into())
         .expect("Invalid 3x3x3 state");
     edges.pieces == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         && edges.orientation == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]

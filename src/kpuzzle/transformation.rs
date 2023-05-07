@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::alg::{Alg, Amount};
 
-use super::KPuzzle;
+use super::{KPuzzle, KPuzzleOrbitName};
 
 #[derive(Debug, Clone)]
 pub struct KTransformation {
@@ -13,7 +13,7 @@ pub struct KTransformation {
     pub transformation_data: Rc<KTransformationData>, // TODO: check that this is immutable
 }
 // TODO: Use `Move` as the key?
-pub type KTransformationData = HashMap<String, KTransformationOrbitData>;
+pub type KTransformationData = HashMap<KPuzzleOrbitName, KTransformationOrbitData>;
 
 impl PartialEq<KTransformation> for KTransformation {
     fn eq(&self, other: &Self) -> bool {
@@ -52,7 +52,7 @@ impl KTransformation {
                 permutation,
                 orientation,
             };
-            transformation_data.insert(orbit_name.into(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
+            transformation_data.insert(orbit_name.clone(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
         }
         KTransformation {
             kpuzzle: self.kpuzzle.clone(),
@@ -83,7 +83,7 @@ impl KTransformation {
                 permutation,
                 orientation,
             };
-            transformation_data.insert(orbit_name.into(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
+            transformation_data.insert(orbit_name.clone(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
         }
         KTransformation {
             kpuzzle: self.kpuzzle.clone(),
