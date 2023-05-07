@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, fmt::Display, rc::Rc};
 
 use crate::alg::{Alg, Move};
 
@@ -12,6 +12,12 @@ pub struct KPuzzleOrbitName(pub String);
 impl From<&str> for KPuzzleOrbitName {
     fn from(value: &str) -> Self {
         KPuzzleOrbitName(value.to_owned())
+    }
+}
+
+impl Display for KPuzzleOrbitName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
