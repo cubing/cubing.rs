@@ -6,3 +6,10 @@ pub fn cube3x3x3_kpuzzle() -> KPuzzle {
     let def: KPuzzleDefinition = serde_json::from_slice(json_bytes).unwrap();
     def.into()
 }
+
+// TODO: avoid re-parsing every time
+pub fn cube2x2x2_kpuzzle() -> KPuzzle {
+    let json_bytes = include_bytes!("2x2x2.kpuzzle.json");
+    let def: KPuzzleDefinition = serde_json::from_slice(json_bytes).unwrap();
+    def.into()
+}
