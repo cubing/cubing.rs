@@ -154,7 +154,6 @@ fn lookup_move<'a>(def: &'a KPuzzleDefinition, r#move: &Move) -> Option<MoveLook
         });
     };
     if let Some(derived_moves) = &def.experimental_derived_moves {
-        // Handle cases by order of commonality..
         if let Some((key_move, source)) = derived_moves.get_key_value(r#move) {
             return Some(MoveLookupResult {
                 key_move,
@@ -172,7 +171,6 @@ fn lookup_move<'a>(def: &'a KPuzzleDefinition, r#move: &Move) -> Option<MoveLook
         });
     };
     if let Some(derived_moves) = &def.experimental_derived_moves {
-        // Handle cases by order of commonality..
         if let Some((key_move, source)) = derived_moves.get_key_value(r#move) {
             return Some(MoveLookupResult {
                 key_move,
@@ -190,7 +188,6 @@ fn lookup_move<'a>(def: &'a KPuzzleDefinition, r#move: &Move) -> Option<MoveLook
         });
     };
     if let Some(derived_moves) = &def.experimental_derived_moves {
-        // Handle cases by order of commonality..
         if let Some((key_move, source)) = derived_moves.get_key_value(&r#move.invert()) {
             return Some(MoveLookupResult {
                 key_move,
