@@ -130,6 +130,10 @@ fn it_works() -> Result<(), String> {
 
     assert_eq!("R'".parse::<Move>()?, parse_move!("R'")?);
     assert_eq!("R U R'".parse::<Alg>()?, parse_alg!("R U R'")?);
+    assert_eq!(
+        "[R', F]3",
+        format!("{}", "([R', F])3".parse::<Alg>().unwrap())
+    );
 
     let wr = "y x' // inspection
 U R2 U' F' L F' U' L' // XX-Cross + EO

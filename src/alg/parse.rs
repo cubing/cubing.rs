@@ -236,7 +236,18 @@ fn parse_commutator_or_conjugate(input: &str) -> IResult<&str, AlgNode> {
         }
         .into()
     };
-    Ok((input, alg_node))
+    let (input, amount) = parse_amount_suffix(input)?;
+    if amount == 1 {
+        return Ok((input, alg_node));
+    }
+    let grouping = Grouping {
+        alg: Alg {
+            nodes: vec![alg_node],
+        }
+        .into(),
+        amount,
+    };
+    Ok((input, grouping.into()))
 }
 
 fn parse_node(input: &str) -> IResult<&str, AlgNode> {

@@ -24,7 +24,20 @@ impl fmt::Display for Grouping {
     // TODO: memoize?
     // TODO: dedup with `Move`?
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({})", self.alg)?;
+        let mut include_parentheses = true;
+        if self.alg.nodes.len() == 1 {
+            include_parentheses = !matches!(
+                self.alg.nodes[0],
+                super::AlgNode::CommutatorNode(_) | super::AlgNode::ConjugateNode(_)
+            )
+        }
+        if include_parentheses {
+            write!(f, "(")?;
+        }
+        write!(f, "{}", self.alg)?;
+        if include_parentheses {
+            write!(f, ")")?;
+        }
         fmt_amount(f, self.amount)
     }
 }
