@@ -1,13 +1,13 @@
 use std::fmt;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use super::Alg;
 
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq)]
 pub struct Commutator {
-    pub a: Rc<Alg>,
-    pub b: Rc<Alg>,
+    pub a: Arc<Alg>,
+    pub b: Arc<Alg>,
 }
 
 impl Commutator {

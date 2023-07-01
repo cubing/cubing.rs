@@ -1,6 +1,5 @@
-use std::rc::Rc;
-
 use std::fmt;
+use std::sync::Arc;
 
 use serde::de::{Unexpected, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
@@ -11,14 +10,14 @@ use super::QuantumMove;
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Move {
-    pub quantum: Rc<QuantumMove>,
+    pub quantum: Arc<QuantumMove>,
     pub amount: Amount,
 }
 
 impl Move {
     pub fn invert(&self) -> Move {
         Self {
-            quantum: Rc::clone(&self.quantum),
+            quantum: Arc::clone(&self.quantum),
             amount: -self.amount,
         }
     }

@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use cubing::{
     alg::{Alg, AlgBuilder, AlgNode, Move, MoveLayer, MovePrefix, MoveRange, Newline, QuantumMove},
@@ -162,7 +162,7 @@ U // AUF
 #[test]
 fn it_can_build_and_parse_long_strings() -> Result<(), String> {
     let mut builder = AlgBuilder::default();
-    let quantum = Rc::new(QuantumMove {
+    let quantum = Arc::new(QuantumMove {
         family: "R".into(),
         prefix: None,
     });

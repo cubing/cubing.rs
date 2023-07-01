@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use std::{collections::HashMap, fmt::Display, rc::Rc};
+pub(crate) use std::{collections::HashMap, fmt::Display, sync::Arc};
 
 use crate::alg::{Alg, Move};
 
@@ -34,7 +34,7 @@ pub struct KPuzzleOrbitDefinition {
 pub struct KPuzzleDefinition {
     pub name: String,
     pub orbits: HashMap<KPuzzleOrbitName, KPuzzleOrbitDefinition>,
-    pub start_state_data: Rc<KStateData>,
-    pub moves: HashMap<Move, Rc<KTransformationData>>,
+    pub start_state_data: Arc<KStateData>,
+    pub moves: HashMap<Move, Arc<KTransformationData>>,
     pub experimental_derived_moves: Option<HashMap<Move, Alg>>,
 }

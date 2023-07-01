@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
-    rc::Rc,
+    sync::Arc,
 };
 
 use crate::alg::{Alg, AlgNode, Move};
@@ -11,10 +11,10 @@ use super::{
 
 #[derive(Debug)]
 pub struct KPuzzleData {
-    pub definition: Rc<KPuzzleDefinition>,
+    pub definition: Arc<KPuzzleDefinition>,
 
     // TODO: compute lazily while being thread-safe?
-    cached_identity_transformation_data: Rc<KTransformationData>,
+    cached_identity_transformation_data: Arc<KTransformationData>,
 }
 
 enum DerivedMoveVisitStatus {
@@ -201,11 +201,11 @@ fn lookup_move<'a>(def: &'a KPuzzleDefinition, r#move: &Move) -> Option<MoveLook
 
 #[derive(Debug, Clone)]
 pub struct KPuzzle {
-    data: Rc<KPuzzleData>,
+    data: Arc<KPuzzleData>,
 }
 
 enum MoveLookupResultSource<'a> {
-    DirectlyDefined(&'a Rc<KTransformationData>),
+    DirectlyDefined(&'a Arc<KTransformationData>),
     DerivedFromAlg(&'a Alg), // TODO: parse and store these algs at `KPuzzle` instantiation time.
 }
 
@@ -217,7 +217,7 @@ struct MoveLookupResult<'a> {
 
 // TODO: Get rid of this in favor of purely `KTransformation` and `KState`?
 impl KPuzzle {
-    pub fn try_new(definition: impl Into<Rc<KPuzzleDefinition>>) -> Result<Self, String> {
+    pub fn try_new(definition: impl Into<Arc<KPuzzleDefinition>>) -> Result<Self, String> {
         let definition = definition.into();
         let cached_identity_transformation_data = identity_transformation_data(&definition).into();
         let data = KPuzzleData {
