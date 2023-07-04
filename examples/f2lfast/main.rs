@@ -6,7 +6,11 @@ mod search;
 
 mod triggers;
 
-use std::{process::exit, thread, time::Instant};
+use std::{
+    process::exit,
+    thread::{self, JoinHandle},
+    time::Instant,
+};
 
 use cubing::{alg::Alg, puzzles::cube3x3x3_kpuzzle};
 
@@ -93,13 +97,21 @@ pub fn main() {
 
     searches.push(main_search);
 
-    let handle = thread::spawn(move || {
-        for search in searches.into_iter() {
-            search.search(&state);
-        }
-    });
+    let mut handles = Vec::<JoinHandle<()>>::default();
 
-    handle.join().unwrap();
+    for search in searches.into_iter() {
+        let state = state.clone();
+        let handle = thread::spawn(move || {
+            search.search(&state);
+        });
+        handles.push(handle);
+    }
+
+    println!("Len: {}", handles.len());
+
+    for handle in handles {
+        handle.join().unwrap()
+    }
 
     let start = Instant::now();
     let duration = start.elapsed();
