@@ -42,6 +42,18 @@ struct Args {
 }
 
 pub fn main() {
+    let now = Instant::now();
+    let parsed = "U' F' U F . U' R' U' R U2 F U2 F' U2 B U B' . U2 L' U2 L U L' U2 L U2 L' U' L ."
+        .parse::<Alg>()
+        .unwrap();
+    println!("Parsed: {}µs", now.elapsed().as_micros());
+    let inverse = parsed.invert();
+    println!("Inverted: {}µs", now.elapsed().as_micros());
+    let kpuzzle = cube3x3x3_kpuzzle();
+    let transformation = kpuzzle.transformation_from_alg(&inverse).unwrap();
+    println!("Transformation applied: {}µs", now.elapsed().as_micros());
+    println!("Consumed value: {}", format!("{:?}", transformation).len());
+
     let args = Args::parse();
     let kpuzzle = cube3x3x3_kpuzzle();
 
