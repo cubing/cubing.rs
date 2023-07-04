@@ -34,6 +34,7 @@ struct SearchFrameRecursionInfo<'a> {
     parent: Option<&'a SearchFrameRecursionInfo<'a>>,
 }
 
+#[derive(Clone)]
 pub struct Search {
     pub scramble: Alg,
     pub triggers_by_slot: Vec<SlotTriggerInfo>,
@@ -48,7 +49,7 @@ pub struct Search {
 }
 
 impl Search {
-    pub fn search(&self, state: KState) {
+    pub fn search(&self, state: &KState) {
         for depth_limit in self.start_depth_limit..(self.max_depth_limit + 1) {
             println!("Search depth: {}", depth_limit);
             let search_status = &mut SearchStatus {
@@ -57,7 +58,7 @@ impl Search {
             };
             let search_frame = &SearchFrame {
                 state: state.clone(),
-                solved_slots: SlotMask::from_state(&state),
+                solved_slots: SlotMask::from_state(state),
                 total_depth: 0,
                 slot_depth: 0,
             };

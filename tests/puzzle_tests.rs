@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, sync::Arc};
 
 use cubing::{
     kpuzzle::{
@@ -53,7 +53,7 @@ fn avoids_recursion() -> Result<(), String> {
                 num_orientations: 1,
             },
         )]),
-        start_state_data: Rc::new(HashMap::from([(
+        start_state_data: Arc::new(HashMap::from([(
             "SOLVE_ORBIT".into(),
             KStateOrbitData {
                 pieces: vec![1, 0],
@@ -62,7 +62,7 @@ fn avoids_recursion() -> Result<(), String> {
         )])),
         moves: HashMap::from([(
             "A".try_into()?,
-            Rc::new(HashMap::from([(
+            Arc::new(HashMap::from([(
                 "SOLVE_ORBIT".into(),
                 KTransformationOrbitData {
                     permutation: vec![1, 0],

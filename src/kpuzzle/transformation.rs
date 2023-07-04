@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +10,7 @@ use super::{KPuzzle, KPuzzleOrbitName};
 pub struct KTransformation {
     // TODO: store the orbits directly?
     pub kpuzzle: KPuzzle,
-    pub transformation_data: Rc<KTransformationData>, // TODO: check that this is immutable
+    pub transformation_data: Arc<KTransformationData>, // TODO: check that this is immutable
 }
 // TODO: Use `Move` as the key?
 pub type KTransformationData = HashMap<KPuzzleOrbitName, KTransformationOrbitData>;
@@ -56,7 +56,7 @@ impl KTransformation {
         }
         KTransformation {
             kpuzzle: self.kpuzzle.clone(),
-            transformation_data: Rc::new(transformation_data),
+            transformation_data: Arc::new(transformation_data),
         }
     }
 
@@ -87,7 +87,7 @@ impl KTransformation {
         }
         KTransformation {
             kpuzzle: self.kpuzzle.clone(),
-            transformation_data: Rc::new(transformation_data),
+            transformation_data: Arc::new(transformation_data),
         }
     }
 

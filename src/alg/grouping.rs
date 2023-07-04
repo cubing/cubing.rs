@@ -1,5 +1,5 @@
 use std::fmt;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use super::amount::fmt_amount;
 use super::Alg;
@@ -7,7 +7,7 @@ use super::Alg;
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq)]
 pub struct Grouping {
-    pub alg: Rc<Alg>,
+    pub alg: Arc<Alg>,
     pub amount: i32,
 }
 

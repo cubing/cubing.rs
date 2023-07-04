@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use cubing::{
     alg::Move,
@@ -32,7 +32,7 @@ fn it_works() -> Result<(), String> {
         moves: HashMap::from([
             (
                 "L".try_into()?,
-                Rc::new(HashMap::from([(
+                Arc::new(HashMap::from([(
                     items_orbit_name.clone(),
                     KTransformationOrbitData {
                         permutation: vec![10, 8, 6, 4, 2, 0, 1, 3, 5, 7, 9, 11], // TODO: is this actually L'?
@@ -42,7 +42,7 @@ fn it_works() -> Result<(), String> {
             ),
             (
                 "R".try_into()?,
-                Rc::new(HashMap::from([(
+                Arc::new(HashMap::from([(
                     items_orbit_name.clone(),
                     KTransformationOrbitData {
                         permutation: vec![1, 3, 5, 7, 9, 11, 10, 8, 6, 4, 2, 0], // TODO: is this actually R'?

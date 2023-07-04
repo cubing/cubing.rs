@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +16,7 @@ pub struct KStateOrbitData {
 #[derive(Debug, Clone)]
 pub struct KState {
     pub kpuzzle: KPuzzle,
-    pub state_data: Rc<KStateData>,
+    pub state_data: Arc<KStateData>,
 }
 
 impl KState {
