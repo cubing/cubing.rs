@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::alg::{Alg, Move};
 
-use super::{KPuzzle, KPuzzleOrbitName, KTransformation};
+use super::{InvalidAlgError, KPuzzle, KPuzzleOrbitName, KTransformation};
 
 pub type KStateData = HashMap<KPuzzleOrbitName, KStateOrbitData>;
 
@@ -52,12 +52,12 @@ impl KState {
         }
     }
 
-    pub fn apply_alg(&self, alg: &Alg) -> Result<KState, String> {
+    pub fn apply_alg(&self, alg: &Alg) -> Result<KState, InvalidAlgError> {
         let transformation = self.kpuzzle.transformation_from_alg(alg)?;
         Ok(self.apply_transformation(&transformation))
     }
 
-    pub fn apply_move(&self, m: &Move) -> Result<KState, String> {
+    pub fn apply_move(&self, m: &Move) -> Result<KState, InvalidAlgError> {
         let transformation = self.kpuzzle.transformation_from_move(m)?;
         Ok(self.apply_transformation(&transformation))
     }

@@ -3,11 +3,60 @@ use std::{
     sync::Arc,
 };
 
-use crate::alg::{Alg, AlgNode, Move};
+use crate::alg::{Alg, AlgNode, AlgParseError, Move};
 
 use super::{
     KPuzzleDefinition, KState, KTransformation, KTransformationData, KTransformationOrbitData,
 };
+
+/// An error due to the structure of a [`KPuzzleDefinition`] (such as a recursive derived move definition).
+#[derive(Debug)]
+pub struct InvalidDefinitionError {
+    pub description: String,
+}
+
+// TODO: is Rust smart enough to optimize this using just the `From<&str>` definition?
+impl From<String> for InvalidDefinitionError {
+    fn from(description: String) -> Self {
+        Self { description }
+    }
+}
+
+impl From<&str> for InvalidDefinitionError {
+    fn from(description: &str) -> Self {
+        Self {
+            description: description.to_owned(),
+        }
+    }
+}
+
+#[derive(Debug)]
+// An operation failed due to an invalid error. This usually occurs when applying an alg to a puzzle with incompatible notation.
+pub struct InvalidMoveError {
+    pub description: String,
+}
+
+// TODO: is Rust smart enough to optimize this using just the `From<&str>` definition?
+impl From<String> for InvalidMoveError {
+    fn from(description: String) -> Self {
+        Self { description }
+    }
+}
+
+impl From<&str> for InvalidMoveError {
+    fn from(description: &str) -> Self {
+        Self {
+            description: description.to_owned(),
+        }
+    }
+}
+
+/// An error type that can indicate multiple error causes, when parsing and applying an alg at the same time.
+#[derive(derive_more::From, Debug)]
+pub enum InvalidAlgError {
+    AlgParse(AlgParseError),
+    InvalidMove(InvalidMoveError),
+}
 
 #[derive(Debug)]
 pub struct KPuzzleData {
@@ -28,7 +77,7 @@ struct DerivedMovesValidator<'a> {
 }
 
 impl DerivedMovesValidator<'_> {
-    pub fn check(def: &KPuzzleDefinition) -> Result<(), String> {
+    pub fn check(def: &KPuzzleDefinition) -> Result<(), InvalidDefinitionError> {
         if let Some(derived_moves) = &def.experimental_derived_moves {
             let mut validator = DerivedMovesValidator {
                 def,
@@ -41,13 +90,10 @@ impl DerivedMovesValidator<'_> {
         Ok(())
     }
 
-    fn visit(&mut self, key_move: &Move) -> Result<(), String> {
+    fn visit(&mut self, key_move: &Move) -> Result<(), InvalidDefinitionError> {
         match self.derived_move_visit_statuses.get(key_move) {
             Some(DerivedMoveVisitStatus::InProgress(())) => {
-                return Err(format!(
-                    "Recursive derived move definition for: {}",
-                    key_move
-                ))
+                return Err(format!("Recursive derived move definition for: {}", key_move).into());
             }
             Some(DerivedMoveVisitStatus::Done(())) => return Ok(()),
             None => (),
@@ -58,7 +104,9 @@ impl DerivedMovesValidator<'_> {
         );
         let move_lookup_result = match lookup_move(self.def, key_move) {
             Some(move_lookup_result) => move_lookup_result,
-            None => return Err("Invalid move??".to_owned()),
+            None => {
+                return Err("Invalid move??".into());
+            }
         };
         match move_lookup_result.source {
             MoveLookupResultSource::DirectlyDefined(_) => {}
@@ -217,7 +265,9 @@ struct MoveLookupResult<'a> {
 
 // TODO: Get rid of this in favor of purely `KTransformation` and `KState`?
 impl KPuzzle {
-    pub fn try_new(definition: impl Into<Arc<KPuzzleDefinition>>) -> Result<Self, String> {
+    pub fn try_new(
+        definition: impl Into<Arc<KPuzzleDefinition>>,
+    ) -> Result<Self, InvalidDefinitionError> {
         let definition = definition.into();
         let cached_identity_transformation_data = identity_transformation_data(&definition).into();
         let data = KPuzzleData {
@@ -238,10 +288,15 @@ impl KPuzzle {
     pub fn transformation_from_move(
         &self, // TODO: Any issues with not using `&self`?
         key_move: &Move,
-    ) -> Result<KTransformation, String> {
+    ) -> Result<KTransformation, InvalidAlgError> {
         let move_lookup_result = match lookup_move(self.definition(), key_move) {
             Some(move_lookup_result) => move_lookup_result,
-            None => return Err(format!("Move does not exist on this puzzle: {}", key_move)),
+            None => {
+                return Err(InvalidMoveError {
+                    description: format!("Move does not exist on this puzzle: {}", key_move),
+                }
+                .into())
+            }
         };
         let transformation = match move_lookup_result.source {
             // TODO: Avoid constructing this `KTransformation`.
@@ -258,7 +313,7 @@ impl KPuzzle {
     pub fn transformation_from_alg(
         &self, // TODO: Any issues with not using `&self`?
         alg: &crate::alg::Alg,
-    ) -> Result<KTransformation, String> {
+    ) -> Result<KTransformation, InvalidAlgError> {
         transformation_from_alg(self, alg)
     }
 
@@ -266,7 +321,7 @@ impl KPuzzle {
     pub fn transformation_from_str(
         &self, // TODO: Any issues with not using `&self`?
         alg_str: &str,
-    ) -> Result<KTransformation, String> {
+    ) -> Result<KTransformation, InvalidAlgError> {
         transformation_from_alg(self, &alg_str.parse::<Alg>()?)
     }
 
@@ -294,8 +349,8 @@ impl PartialEq<KPuzzle> for KPuzzle {
 }
 
 impl TryFrom<KPuzzleDefinition> for KPuzzle {
-    type Error = String;
-    fn try_from(input: KPuzzleDefinition) -> Result<KPuzzle, String> {
+    type Error = InvalidDefinitionError;
+    fn try_from(input: KPuzzleDefinition) -> Result<KPuzzle, InvalidDefinitionError> {
         KPuzzle::try_new(input)
     }
 }
@@ -317,7 +372,10 @@ fn identity_transformation_data(definition: &KPuzzleDefinition) -> KTransformati
     transformation_data
 }
 
-fn transformation_from_alg(kpuzzle: &KPuzzle, alg: &Alg) -> Result<KTransformation, String> {
+fn transformation_from_alg(
+    kpuzzle: &KPuzzle,
+    alg: &Alg,
+) -> Result<KTransformation, InvalidAlgError> {
     let mut t = kpuzzle.identity_transformation();
     for node in alg.nodes.iter() {
         let node_transformation = transformation_from_alg_node(kpuzzle, node)?;
@@ -329,7 +387,7 @@ fn transformation_from_alg(kpuzzle: &KPuzzle, alg: &Alg) -> Result<KTransformati
 fn transformation_from_alg_node(
     kpuzzle: &KPuzzle,
     alg_node: &AlgNode,
-) -> Result<KTransformation, String> {
+) -> Result<KTransformation, InvalidAlgError> {
     match alg_node {
         AlgNode::MoveNode(key_move) => kpuzzle.transformation_from_move(key_move),
         AlgNode::PauseNode(_pause) => Ok(kpuzzle.identity_transformation()),

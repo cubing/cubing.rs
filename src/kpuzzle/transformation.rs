@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::alg::{Alg, Amount};
 
-use super::{KPuzzle, KPuzzleOrbitName};
+use super::{InvalidAlgError, KPuzzle, KPuzzleOrbitName};
 
 #[derive(Debug, Clone)]
 pub struct KTransformation {
@@ -120,7 +120,7 @@ impl KTransformation {
 }
 
 impl TryFrom<(&KPuzzle, &Alg)> for KTransformation {
-    type Error = String;
+    type Error = InvalidAlgError;
 
     fn try_from(input: (&KPuzzle, &Alg)) -> Result<Self, Self::Error> {
         let (kpuzzle, alg) = input;
@@ -129,7 +129,7 @@ impl TryFrom<(&KPuzzle, &Alg)> for KTransformation {
 }
 
 impl TryFrom<(&KPuzzle, &str)> for KTransformation {
-    type Error = String;
+    type Error = InvalidAlgError;
 
     fn try_from(input: (&KPuzzle, &str)) -> Result<Self, Self::Error> {
         let (kpuzzle, s) = input;
@@ -138,7 +138,7 @@ impl TryFrom<(&KPuzzle, &str)> for KTransformation {
 }
 
 impl TryFrom<(KPuzzle, &str)> for KTransformation {
-    type Error = String;
+    type Error = InvalidAlgError;
 
     fn try_from(input: (KPuzzle, &str)) -> Result<Self, Self::Error> {
         let (kpuzzle, s) = input;

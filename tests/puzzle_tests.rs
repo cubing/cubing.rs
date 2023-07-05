@@ -2,15 +2,15 @@ use std::{collections::HashMap, sync::Arc};
 
 use cubing::{
     kpuzzle::{
-        KPuzzle, KPuzzleDefinition, KPuzzleOrbitDefinition, KStateOrbitData,
-        KTransformationOrbitData,
+        InvalidAlgError, InvalidDefinitionError, KPuzzle, KPuzzleDefinition,
+        KPuzzleOrbitDefinition, KStateOrbitData, KTransformationOrbitData,
     },
     parse_alg,
     puzzles::{cube2x2x2_kpuzzle, cube3x3x3_kpuzzle},
 };
 
 #[test]
-fn it_works() -> Result<(), String> {
+fn it_works() -> Result<(), InvalidAlgError> {
     let kpuzzle = cube3x3x3_kpuzzle();
     assert_eq!(
         kpuzzle.transformation_from_alg(&parse_alg!("R U R' F' U2")?)?,
@@ -25,7 +25,7 @@ fn it_works() -> Result<(), String> {
 }
 
 #[test]
-fn test_2x2x2() -> Result<(), String> {
+fn test_2x2x2() -> Result<(), InvalidAlgError> {
     let kpuzzle = cube2x2x2_kpuzzle();
     assert_eq!(
         kpuzzle.transformation_from_alg(&parse_alg!("z")?)?,
@@ -43,7 +43,7 @@ fn test_2x2x2() -> Result<(), String> {
 }
 
 #[test]
-fn avoids_recursion() -> Result<(), String> {
+fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
     let def = KPuzzleDefinition {
         name: "uh-oh".to_owned(),
         orbits: HashMap::from([(
@@ -61,7 +61,7 @@ fn avoids_recursion() -> Result<(), String> {
             },
         )])),
         moves: HashMap::from([(
-            "A".try_into()?,
+            "A".try_into().unwrap(),
             Arc::new(HashMap::from([(
                 "SOLVE_ORBIT".into(),
                 KTransformationOrbitData {
@@ -71,12 +71,13 @@ fn avoids_recursion() -> Result<(), String> {
             )])),
         )]),
         experimental_derived_moves: Some(HashMap::from([
-            ("B".try_into()?, "C".try_into()?),
-            ("C".try_into()?, "A B".try_into()?),
+            ("B".try_into().unwrap(), "C".try_into().unwrap()),
+            ("C".try_into().unwrap(), "A B".try_into().unwrap()),
         ])),
     };
     assert!(KPuzzle::try_new(def)
         .expect_err("Expected recursive KPuzzle to fail instantiation.")
+        .description
         .starts_with("Recursive derived move definition for: "));
     Ok(())
 }

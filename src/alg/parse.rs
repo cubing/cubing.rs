@@ -15,6 +15,27 @@ use super::{
     Newline, Pause, QuantumMove,
 };
 
+#[derive(Debug)]
+/// Could not parse an alg (or alg part), usually due to invalid syntax.
+pub struct AlgParseError {
+    pub description: String,
+}
+
+// TODO: is Rust smart enough to optimize this using just the `From<&str>` definition?
+impl From<String> for AlgParseError {
+    fn from(description: String) -> Self {
+        Self { description }
+    }
+}
+
+impl From<&str> for AlgParseError {
+    fn from(description: &str) -> Self {
+        Self {
+            description: description.to_owned(),
+        }
+    }
+}
+
 fn from_decimal_unsigned(input: &str) -> Result<u32, std::num::ParseIntError> {
     input.parse::<u32>()
 }
@@ -66,13 +87,13 @@ fn parse_quantum_move(input: &str) -> IResult<&str, QuantumMove> {
     ))
 }
 impl TryFrom<&str> for QuantumMove {
-    type Error = String;
+    type Error = AlgParseError;
     fn try_from(input: &str) -> Result<Self, Self::Error> {
         input.parse()
     }
 }
 impl FromStr for QuantumMove {
-    type Err = String;
+    type Err = AlgParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match all_consuming(parse_quantum_move)(s) {
             Ok((_, q)) => Ok(q),
@@ -108,13 +129,13 @@ fn parse_move(input: &str) -> IResult<&str, Move> {
     ))
 }
 impl TryFrom<&str> for Move {
-    type Error = String;
+    type Error = AlgParseError;
     fn try_from(input: &str) -> Result<Self, Self::Error> {
         input.parse()
     }
 }
 impl FromStr for Move {
-    type Err = String;
+    type Err = AlgParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match all_consuming(parse_move)(s) {
             Ok((_, q)) => Ok(q),
@@ -159,13 +180,13 @@ fn parse_alg(input: &str) -> IResult<&str, Alg> {
 }
 
 impl TryFrom<&str> for Alg {
-    type Error = String;
+    type Error = AlgParseError;
     fn try_from(input: &str) -> Result<Self, Self::Error> {
         input.parse()
     }
 }
 impl FromStr for Alg {
-    type Err = String;
+    type Err = AlgParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match all_consuming(parse_alg)(s) {
             Ok((_, alg)) => Ok(alg),

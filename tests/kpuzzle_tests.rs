@@ -2,14 +2,14 @@ use std::{sync::Arc, thread::spawn};
 
 use cubing::{
     alg::{Alg, Move},
-    kpuzzle::{KPuzzle, KPuzzleOrbitName, KTransformationOrbitData},
+    kpuzzle::{InvalidAlgError, KPuzzle, KPuzzleOrbitName, KTransformationOrbitData},
     parse_alg,
     puzzles::cube3x3x3_kpuzzle,
 };
 use once_cell::sync::Lazy;
 
 #[test]
-fn it_works() -> Result<(), String> {
+fn it_works() -> Result<(), InvalidAlgError> {
     use std::collections::HashMap;
 
     use cubing::kpuzzle::{KPuzzleOrbitDefinition, KStateOrbitData};
@@ -57,7 +57,7 @@ fn it_works() -> Result<(), String> {
         experimental_derived_moves: None,
     };
 
-    let kpuzzle: KPuzzle = def.try_into()?;
+    let kpuzzle: KPuzzle = def.try_into().unwrap();
     let items_orbit_name = &KPuzzleOrbitName("items".to_owned());
 
     assert_eq!(kpuzzle.definition().name, "topsy_turvy");
@@ -135,7 +135,7 @@ static SUPERFLIP: Lazy<Alg> = Lazy::new(|| parse_alg!("((M' U')4 x y)3").unwrap(
 static TRIGGER: Lazy<Alg> = Lazy::new(|| parse_alg!("[R: U]").unwrap());
 
 #[test]
-fn static_kstate_can_be_sent_to_and_returned_from_threads() -> Result<(), String> {
+fn static_kstate_can_be_sent_to_and_returned_from_threads() -> Result<(), InvalidAlgError> {
     let start_state = cube3x3x3_kpuzzle().start_state();
 
     let superflip_first = start_state.apply_alg(&SUPERFLIP)?;

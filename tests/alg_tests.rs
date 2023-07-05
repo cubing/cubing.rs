@@ -2,11 +2,12 @@ use std::{sync::Arc, thread::spawn};
 
 use cubing::{
     alg::{Alg, AlgBuilder, AlgNode, Move, MoveLayer, MovePrefix, MoveRange, Newline, QuantumMove},
+    kpuzzle::InvalidAlgError,
     parse_alg, parse_move,
 };
 
 #[test]
-fn it_works() -> Result<(), String> {
+fn it_works() -> Result<(), InvalidAlgError> {
     assert_eq!(
         "R",
         format!(
@@ -160,7 +161,7 @@ U // AUF
 }
 
 #[test]
-fn it_can_build_and_parse_long_strings() -> Result<(), String> {
+fn it_can_build_and_parse_long_strings() -> Result<(), InvalidAlgError> {
     let mut builder = AlgBuilder::default();
     let quantum = Arc::new(QuantumMove {
         family: "R".into(),
@@ -190,7 +191,7 @@ fn it_handles_crowding() -> Result<(), String> {
 }
 
 #[test]
-fn alg_can_be_sent_to_and_returned_from_threads() -> Result<(), String> {
+fn alg_can_be_sent_to_and_returned_from_threads() -> Result<(), InvalidAlgError> {
     let alg = "R U R'".parse::<Alg>()?;
     let inverse = alg.invert();
     let inverse_clone = alg.invert();

@@ -36,3 +36,4 @@ mod alg_builder;
 pub use alg_builder::AlgBuilder;
 
 mod parse;
+pub use parse::AlgParseError;
