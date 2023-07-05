@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, thread::spawn};
 
 use cubing::{
     alg::{Alg, AlgBuilder, AlgNode, Move, MoveLayer, MovePrefix, MoveRange, Newline, QuantumMove},
@@ -186,5 +186,14 @@ fn it_can_build_and_parse_long_strings() -> Result<(), String> {
 fn it_handles_crowding() -> Result<(), String> {
     assert!("R'U".parse::<Alg>().is_err());
     assert!("R//F".parse::<Alg>().is_err());
+    Ok(())
+}
+
+#[test]
+fn alg_can_be_sent_to_and_returned_from_threads() -> Result<(), String> {
+    let alg = "R U R'".parse::<Alg>()?;
+    let inverse = alg.invert();
+    let result = spawn(move || inverse.invert()).join().unwrap();
+    assert_eq!(alg, result);
     Ok(())
 }
