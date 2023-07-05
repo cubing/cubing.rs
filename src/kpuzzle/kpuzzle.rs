@@ -182,7 +182,7 @@ impl DerivedMovesValidator<'_> {
     }
 }
 
-pub fn move_with_amount_1(r#move: &Move) -> Move {
+fn move_with_amount_1(r#move: &Move) -> Move {
     Move {
         quantum: r#move.quantum.clone(),
         amount: 1,
