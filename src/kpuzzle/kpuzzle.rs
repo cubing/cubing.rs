@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
+    fmt::Display,
     sync::Arc,
 };
 
@@ -8,6 +9,8 @@ use crate::alg::{Alg, AlgNode, AlgParseError, Move};
 use super::{
     KPuzzleDefinition, KState, KTransformation, KTransformationData, KTransformationOrbitData,
 };
+
+use std::error::Error;
 
 /// An error due to the structure of a [`KPuzzleDefinition`] (such as a recursive derived move definition).
 #[derive(Debug)]
@@ -27,6 +30,12 @@ impl From<&str> for InvalidDefinitionError {
         Self {
             description: description.to_owned(),
         }
+    }
+}
+
+impl Display for InvalidDefinitionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.description)
     }
 }
 
@@ -51,11 +60,23 @@ impl From<&str> for InvalidMoveError {
     }
 }
 
+impl Display for InvalidMoveError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.description)
+    }
+}
+
 /// An error type that can indicate multiple error causes, when parsing and applying an alg at the same time.
-#[derive(derive_more::From, Debug)]
+#[derive(derive_more::From, Debug, derive_more::Display)]
 pub enum InvalidAlgError {
     AlgParse(AlgParseError),
     InvalidMove(InvalidMoveError),
+}
+
+impl Error for InvalidAlgError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(self)
+    }
 }
 
 #[derive(Debug)]

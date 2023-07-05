@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use nom::{
     branch::alt,
@@ -33,6 +33,12 @@ impl From<&str> for AlgParseError {
         Self {
             description: description.to_owned(),
         }
+    }
+}
+
+impl Display for AlgParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.description)
     }
 }
 
