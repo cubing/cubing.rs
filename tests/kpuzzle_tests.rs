@@ -1,9 +1,12 @@
-use std::sync::Arc;
+use std::{sync::Arc, thread::spawn};
 
 use cubing::{
-    alg::Move,
+    alg::{Alg, Move},
     kpuzzle::{KPuzzle, KPuzzleOrbitName, KTransformationOrbitData},
+    parse_alg,
+    puzzles::cube3x3x3_kpuzzle,
 };
+use once_cell::sync::Lazy;
 
 #[test]
 fn it_works() -> Result<(), String> {
@@ -112,5 +115,39 @@ fn it_works() -> Result<(), String> {
         kpuzzle.identity_transformation(),
         (&kpuzzle, "R5").try_into()?
     );
+    Ok(())
+}
+
+#[test]
+fn ktransformation_can_be_sent_to_and_returned_from_threads() -> Result<(), String> {
+    let transformation = cube3x3x3_kpuzzle()
+        .transformation_from_alg(&"R U R'".parse().unwrap())
+        .unwrap();
+    let inverse = transformation.invert();
+    let inverse_clone = inverse.clone();
+    let result = spawn(move || inverse_clone.invert()).join().unwrap();
+    assert_eq!(transformation, result);
+    assert_ne!(inverse, result);
+    Ok(())
+}
+
+static SUPERFLIP: Lazy<Alg> = Lazy::new(|| parse_alg!("((M' U')4 x y)3").unwrap());
+static TRIGGER: Lazy<Alg> = Lazy::new(|| parse_alg!("[R: U]").unwrap());
+
+#[test]
+fn static_kstate_can_be_sent_to_and_returned_from_threads() -> Result<(), String> {
+    let start_state = cube3x3x3_kpuzzle().start_state();
+
+    let superflip_first = start_state.apply_alg(&SUPERFLIP)?;
+    let trigger_second_handle = spawn(move || superflip_first.apply_alg(&TRIGGER).unwrap());
+
+    let trigger_first = start_state.apply_alg(&TRIGGER)?;
+    let superflip_second_handle = spawn(move || trigger_first.apply_alg(&SUPERFLIP).unwrap());
+
+    let trigger_second = trigger_second_handle.join().unwrap();
+    let superflip_second = superflip_second_handle.join().unwrap();
+    assert_eq!(trigger_second, superflip_second);
+    assert_ne!(start_state, trigger_second);
+    assert_ne!(start_state, superflip_second);
     Ok(())
 }

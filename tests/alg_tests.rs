@@ -193,7 +193,9 @@ fn it_handles_crowding() -> Result<(), String> {
 fn alg_can_be_sent_to_and_returned_from_threads() -> Result<(), String> {
     let alg = "R U R'".parse::<Alg>()?;
     let inverse = alg.invert();
-    let result = spawn(move || inverse.invert()).join().unwrap();
+    let inverse_clone = alg.invert();
+    let result = spawn(move || inverse_clone.invert()).join().unwrap();
     assert_eq!(alg, result);
+    assert_ne!(inverse, result);
     Ok(())
 }
