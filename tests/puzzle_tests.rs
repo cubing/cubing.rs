@@ -13,12 +13,26 @@ use cubing::{
 fn it_works() -> Result<(), InvalidAlgError> {
     let kpuzzle = cube3x3x3_kpuzzle();
     assert_eq!(
-        kpuzzle.transformation_from_alg(&parse_alg!("R U R' F' U2")?)?,
-        kpuzzle.transformation_from_str("(L' U' L F U2')'")?,
+        &kpuzzle.transformation_from_alg(&parse_alg!("R U R' F' U2")?)?,
+        &kpuzzle.transformation_from_str("(L' U' L F U2')'")?,
     );
     assert_eq!(
         kpuzzle.transformation_from_alg(&parse_alg!("R U R' F' U2")?)?,
-        (kpuzzle, "(L' U' L F U2')'").try_into()?,
+        (&kpuzzle, "(L' U' L F U2')'").try_into()?,
+    );
+    assert_ne!(
+        &kpuzzle.transformation_from_alg(&parse_alg!("(R U R' U)5")?)?,
+        &kpuzzle.transformation_from_alg(&parse_alg!("")?)?
+    );
+    assert_eq!(
+        &kpuzzle
+            .start_state()
+            .apply_alg(&parse_alg!("(R U R' U)5")?)?
+            .state_data,
+        &kpuzzle
+            .start_state()
+            .apply_alg(&parse_alg!("")?)?
+            .state_data
     );
 
     Ok(())
@@ -58,6 +72,7 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
             KStateOrbitData {
                 pieces: vec![1, 0],
                 orientation: vec![0; 2],
+                orientation_mod: None,
             },
         )])),
         moves: HashMap::from([(

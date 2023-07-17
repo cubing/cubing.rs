@@ -29,6 +29,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
             KStateOrbitData {
                 pieces: (0..11).collect(),
                 orientation: vec![0; 12],
+                orientation_mod: None,
             },
         )])
         .into(),
