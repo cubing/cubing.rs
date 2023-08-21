@@ -45,7 +45,6 @@ impl KState {
                     old: old_orientation_mod,
                     new: vec![0; num_pieces],
                 });
-                println!("{:?}", orientation_mods);
             }
 
             // TODO: optimization when either value is the identity.
