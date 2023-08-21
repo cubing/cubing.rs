@@ -36,8 +36,11 @@ impl KState {
             let self_orbit = &self.state_data[orbit_name];
             let other_orbit = &transformation.transformation_data[orbit_name];
 
-            let mut pieces = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
-            let mut orientation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
+            // TODO: figure out the fastest way to populate the vectors.
+            // So far, initializing all entries to 0 is measurably faster than using `Vec::with_capacity(…)` and `.push(…)`.
+            // However, there might be a way to avoid setting the entries to 0 (which would avoid unneeded work, since they will all be overwritten).
+            let mut pieces = vec![0; num_pieces];
+            let mut orientation = vec![0; num_pieces];
             let mut orientation_mods: Option<OrientationMods> = None;
 
             if let Some(old_orientation_mod) = &self_orbit.orientation_mod {
