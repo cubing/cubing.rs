@@ -60,6 +60,7 @@ fn test_2x2x2() -> Result<(), InvalidAlgError> {
 fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
     let def = KPuzzleDefinition {
         name: "uh-oh".to_owned(),
+        orbit_ordering: None,
         orbits: HashMap::from([(
             "SOLVE_ORBIT".into(),
             KPuzzleOrbitDefinition {

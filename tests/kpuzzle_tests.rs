@@ -17,6 +17,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
     let items_orbit_name = &KPuzzleOrbitName("items".to_owned());
     let def = cubing::kpuzzle::KPuzzleDefinition {
         name: "topsy_turvy".into(),
+        orbit_ordering: None,
         orbits: HashMap::from([(
             items_orbit_name.clone(),
             KPuzzleOrbitDefinition {

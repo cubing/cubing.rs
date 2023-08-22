@@ -33,6 +33,7 @@ pub struct KPuzzleOrbitDefinition {
 #[serde(rename_all = "camelCase")]
 pub struct KPuzzleDefinition {
     pub name: String,
+    pub orbit_ordering: Option<Vec<KPuzzleOrbitName>>,
     pub orbits: HashMap<KPuzzleOrbitName, KPuzzleOrbitDefinition>,
     pub start_state_data: Arc<KStateData>,
     pub moves: HashMap<Move, Arc<KTransformationData>>,
