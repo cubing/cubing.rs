@@ -1,6 +1,6 @@
 [package]
 name = "cubing"
-version = "0.5.3"
+version = "0.5.4"
 authors = ["Lucas Garron <code@garron.net"]
 edition = "2021"
 description = "Features from `cubing.js` in Rust."
