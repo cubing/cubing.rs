@@ -3,7 +3,8 @@ use std::{collections::HashMap, sync::Arc};
 use cubing::{
     kpuzzle::{
         InvalidAlgError, InvalidDefinitionError, KPuzzle, KPuzzleDefinition,
-        KPuzzleOrbitDefinition, KStateOrbitData, KTransformationOrbitData,
+        KPuzzleOrbitDefinition, KStateData, KStateOrbitData, KTransformationData,
+        KTransformationOrbitData,
     },
     parse_alg,
     puzzles::{cube2x2x2_kpuzzle, cube3x3x3_kpuzzle},
@@ -68,7 +69,7 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
                 num_orientations: 1,
             },
         )]),
-        start_state_data: Arc::new(HashMap::from([(
+        start_state_data: Arc::new(KStateData::from([(
             "SOLVE_ORBIT".into(),
             KStateOrbitData {
                 pieces: vec![1, 0],
@@ -78,7 +79,7 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
         )])),
         moves: HashMap::from([(
             "A".try_into().unwrap(),
-            Arc::new(HashMap::from([(
+            Arc::new(KTransformationData::from([(
                 "SOLVE_ORBIT".into(),
                 KTransformationOrbitData {
                     permutation: vec![1, 0],

@@ -2,7 +2,10 @@ use std::{sync::Arc, thread::spawn};
 
 use cubing::{
     alg::{Alg, Move},
-    kpuzzle::{InvalidAlgError, KPuzzle, KPuzzleOrbitName, KTransformationOrbitData},
+    kpuzzle::{
+        InvalidAlgError, KPuzzle, KPuzzleOrbitName, KStateData, KTransformationData,
+        KTransformationOrbitData,
+    },
     parse_alg,
     puzzles::cube3x3x3_kpuzzle,
 };
@@ -25,7 +28,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
                 num_orientations: 1,
             },
         )]),
-        start_state_data: HashMap::from([(
+        start_state_data: KStateData::from([(
             items_orbit_name.clone(),
             KStateOrbitData {
                 pieces: (0..11).collect(),
@@ -37,7 +40,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
         moves: HashMap::from([
             (
                 "L".try_into()?,
-                Arc::new(HashMap::from([(
+                Arc::new(KTransformationData::from([(
                     items_orbit_name.clone(),
                     KTransformationOrbitData {
                         permutation: vec![10, 8, 6, 4, 2, 0, 1, 3, 5, 7, 9, 11], // TODO: is this actually L'?
@@ -47,7 +50,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
             ),
             (
                 "R".try_into()?,
-                Arc::new(HashMap::from([(
+                Arc::new(KTransformationData::from([(
                     items_orbit_name.clone(),
                     KTransformationOrbitData {
                         permutation: vec![1, 3, 5, 7, 9, 11, 10, 8, 6, 4, 2, 0], // TODO: is this actually R'?
