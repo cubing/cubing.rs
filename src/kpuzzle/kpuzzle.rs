@@ -378,7 +378,7 @@ impl TryFrom<KPuzzleDefinition> for KPuzzle {
 
 fn identity_transformation_data(definition: &KPuzzleDefinition) -> KTransformationData {
     let mut transformation_data: KTransformationData = HashMap::new();
-    for (orbit_name, orbit_definition) in &definition.orbits {
+    for orbit_definition in &definition.orbits {
         let num_pieces = orbit_definition.num_pieces;
 
         let permutation = (0..num_pieces).collect();
@@ -388,7 +388,7 @@ fn identity_transformation_data(definition: &KPuzzleDefinition) -> KTransformati
             permutation,
             orientation_delta: orientation,
         };
-        transformation_data.insert(orbit_name.clone(), orbit_data);
+        transformation_data.insert(orbit_definition.orbit_name.clone(), orbit_data);
     }
     transformation_data
 }

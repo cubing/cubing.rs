@@ -61,13 +61,11 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
     let def = KPuzzleDefinition {
         name: "uh-oh".to_owned(),
         orbit_ordering: None,
-        orbits: HashMap::from([(
-            "SOLVE_ORBIT".into(),
-            KPuzzleOrbitDefinition {
-                num_pieces: 2,
-                num_orientations: 1,
-            },
-        )]),
+        orbits: vec![KPuzzleOrbitDefinition {
+            orbit_name: "SOLVE_ORBIT".into(),
+            num_pieces: 2,
+            num_orientations: 1,
+        }],
         default_pattern: Arc::new(KPatternData::from([(
             "SOLVE_ORBIT".into(),
             KPatternOrbitData {

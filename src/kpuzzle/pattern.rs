@@ -30,11 +30,11 @@ struct OrientationMods<'a> {
 impl KPattern {
     pub fn apply_transformation(&self, transformation: &KTransformation) -> KPattern {
         let mut pattern_data = KPatternData::new();
-        for (orbit_name, orbit_definition) in &self.kpuzzle.definition().orbits {
+        for orbit_definition in &self.kpuzzle.definition().orbits {
             let num_pieces = orbit_definition.num_pieces;
 
-            let self_orbit = &self.pattern_data[orbit_name];
-            let other_orbit = &transformation.transformation_data[orbit_name];
+            let self_orbit = &self.pattern_data[&orbit_definition.orbit_name];
+            let other_orbit = &transformation.transformation_data[&orbit_definition.orbit_name];
 
             // TODO: figure out the fastest way to populate the vectors.
             // So far, initializing all entries to 0 is measurably faster than using `Vec::with_capacity(…)` and `.push(…)`.
@@ -72,7 +72,8 @@ impl KPattern {
                 orientation,
                 orientation_mod: orientation_mods.map(|orientation_mods| orientation_mods.new),
             };
-            pattern_data.insert(orbit_name.clone(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
+            pattern_data.insert(orbit_definition.orbit_name.clone(), orbit_data);
+            // TODO: why do we need to coerce `orbit_name`?
         }
 
         KPattern {

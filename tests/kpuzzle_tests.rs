@@ -21,13 +21,11 @@ fn it_works() -> Result<(), InvalidAlgError> {
     let def = cubing::kpuzzle::KPuzzleDefinition {
         name: "topsy_turvy".into(),
         orbit_ordering: None,
-        orbits: HashMap::from([(
-            items_orbit_name.clone(),
-            KPuzzleOrbitDefinition {
-                num_pieces: 12,
-                num_orientations: 1,
-            },
-        )]),
+        orbits: vec![KPuzzleOrbitDefinition {
+            orbit_name: items_orbit_name.clone(),
+            num_pieces: 12,
+            num_orientations: 1,
+        }],
         default_pattern: KPatternData::from([(
             items_orbit_name.clone(),
             KPatternOrbitData {

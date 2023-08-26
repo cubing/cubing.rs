@@ -3,12 +3,13 @@
   "orbitOrdering": [
     "CORNERS"
   ],
-  "orbits": {
-    "CORNERS": {
+  "orbits": [
+    {
+      "orbitName": "CORNERS",
       "numPieces": 8,
       "numOrientations": 3
     }
-  },
+  ],
   "defaultPattern": {
     "CORNERS": {
       "pieces": [

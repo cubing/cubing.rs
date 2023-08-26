@@ -32,14 +32,14 @@ pub struct KTransformationOrbitData {
 impl KTransformation {
     pub fn apply_transformation(&self, other: &Self) -> Self {
         let mut transformation_data: KTransformationData = HashMap::new();
-        for (orbit_name, orbit_definition) in &self.kpuzzle.definition().orbits {
+        for orbit_definition in &self.kpuzzle.definition().orbits {
             let num_pieces = orbit_definition.num_pieces;
 
             let mut permutation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
             let mut orientation_delta = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
 
-            let self_orbit = &self.transformation_data[orbit_name];
-            let other_orbit = &other.transformation_data[orbit_name];
+            let self_orbit = &self.transformation_data[&orbit_definition.orbit_name];
+            let other_orbit = &other.transformation_data[&orbit_definition.orbit_name];
 
             // TODO: optimization when either value is the identity.
             for i in 0..num_pieces {
@@ -53,7 +53,8 @@ impl KTransformation {
                 permutation,
                 orientation_delta,
             };
-            transformation_data.insert(orbit_name.clone(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
+            transformation_data.insert(orbit_definition.orbit_name.clone(), orbit_data);
+            // TODO: why do we need to coerce `orbit_name`?
         }
         KTransformation {
             kpuzzle: self.kpuzzle.clone(),
@@ -63,13 +64,13 @@ impl KTransformation {
 
     pub fn invert(&self) -> Self {
         let mut transformation_data: KTransformationData = HashMap::new();
-        for (orbit_name, orbit_definition) in &self.kpuzzle.definition().orbits {
+        for orbit_definition in &self.kpuzzle.definition().orbits {
             let num_pieces = orbit_definition.num_pieces;
 
             let mut permutation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
             let mut orientation_delta = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
 
-            let self_orbit = &self.transformation_data[orbit_name];
+            let self_orbit = &self.transformation_data[&orbit_definition.orbit_name];
 
             // TODO: optimization when either value is the identity.
             for i in 0..num_pieces {
@@ -84,7 +85,8 @@ impl KTransformation {
                 permutation,
                 orientation_delta,
             };
-            transformation_data.insert(orbit_name.clone(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
+            transformation_data.insert(orbit_definition.orbit_name.clone(), orbit_data);
+            // TODO: why do we need to coerce `orbit_name`?
         }
         KTransformation {
             kpuzzle: self.kpuzzle.clone(),

@@ -1,24 +1,22 @@
 {
   "name": "3x3x3",
-  "orbitOrdering": [
-    "EDGES",
-    "CORNERS",
-    "CENTERS"
-  ],
-  "orbits": {
-    "EDGES": {
+  "orbits": [
+    {
+      "orbitName": "EDGES",
       "numPieces": 12,
       "numOrientations": 2
     },
-    "CORNERS": {
+    {
+      "orbitName": "CORNERS",
       "numPieces": 8,
       "numOrientations": 3
     },
-    "CENTERS": {
+    {
+      "orbitName": "CENTERS",
       "numPieces": 6,
       "numOrientations": 4
     }
-  },
+  ],
   "defaultPattern": {
     "EDGES": {
       "pieces": [

@@ -25,6 +25,7 @@ impl Display for KPuzzleOrbitName {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KPuzzleOrbitDefinition {
+    pub orbit_name: KPuzzleOrbitName,
     pub num_pieces: usize,       // TODO
     pub num_orientations: usize, // TODO
 }
@@ -34,7 +35,7 @@ pub struct KPuzzleOrbitDefinition {
 pub struct KPuzzleDefinition {
     pub name: String,
     pub orbit_ordering: Option<Vec<KPuzzleOrbitName>>,
-    pub orbits: HashMap<KPuzzleOrbitName, KPuzzleOrbitDefinition>,
+    pub orbits: Vec<KPuzzleOrbitDefinition>,
     pub default_pattern: Arc<KPatternData>,
     pub moves: HashMap<Move, Arc<KTransformationData>>,
     pub experimental_derived_moves: Option<HashMap<Move, Alg>>,
