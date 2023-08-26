@@ -63,7 +63,7 @@ impl KPattern {
                 }
                 pieces[i] = self_orbit.pieces[transformation_idx];
                 orientation[i] = (self_orbit.orientation[transformation_idx]
-                    + other_orbit.orientation[i])
+                    + other_orbit.orientation_delta[i])
                     % piece_orientation_mod;
             }
 

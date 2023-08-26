@@ -386,7 +386,7 @@ fn identity_transformation_data(definition: &KPuzzleDefinition) -> KTransformati
 
         let orbit_data = KTransformationOrbitData {
             permutation,
-            orientation,
+            orientation_delta: orientation,
         };
         transformation_data.insert(orbit_name.clone(), orbit_data);
     }

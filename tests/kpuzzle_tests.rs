@@ -44,7 +44,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
                     items_orbit_name.clone(),
                     KTransformationOrbitData {
                         permutation: vec![10, 8, 6, 4, 2, 0, 1, 3, 5, 7, 9, 11], // TODO: is this actually L'?
-                        orientation: vec![0; 12],
+                        orientation_delta: vec![0; 12],
                     },
                 )])),
             ),
@@ -54,7 +54,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
                     items_orbit_name.clone(),
                     KTransformationOrbitData {
                         permutation: vec![1, 3, 5, 7, 9, 11, 10, 8, 6, 4, 2, 0], // TODO: is this actually R'?
-                        orientation: vec![0; 12],
+                        orientation_delta: vec![0; 12],
                     },
                 )])),
             ),

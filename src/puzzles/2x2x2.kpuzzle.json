@@ -46,7 +46,7 @@
           6,
           7
         ],
-        "orientation": [
+        "orientationDelta": [
           0,
           0,
           0,
@@ -70,7 +70,7 @@
           2,
           1
         ],
-        "orientation": [
+        "orientationDelta": [
           2,
           1,
           2,
@@ -94,7 +94,7 @@
           5,
           6
         ],
-        "orientation": [
+        "orientationDelta": [
           0,
           0,
           0,

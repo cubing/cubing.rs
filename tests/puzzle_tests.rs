@@ -82,7 +82,7 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
                 "SOLVE_ORBIT".into(),
                 KTransformationOrbitData {
                     permutation: vec![1, 0],
-                    orientation: vec![0; 2],
+                    orientation_delta: vec![0; 2],
                 },
             )])),
         )]),

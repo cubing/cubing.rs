@@ -23,9 +23,10 @@ impl PartialEq<KTransformation> for KTransformation {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct KTransformationOrbitData {
     pub permutation: Vec<usize>,
-    pub orientation: Vec<usize>,
+    pub orientation_delta: Vec<usize>,
 }
 
 impl KTransformation {
@@ -35,7 +36,7 @@ impl KTransformation {
             let num_pieces = orbit_definition.num_pieces;
 
             let mut permutation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
-            let mut orientation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
+            let mut orientation_delta = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
 
             let self_orbit = &self.transformation_data[orbit_name];
             let other_orbit = &other.transformation_data[orbit_name];
@@ -43,14 +44,14 @@ impl KTransformation {
             // TODO: optimization when either value is the identity.
             for i in 0..num_pieces {
                 permutation[i] = self_orbit.permutation[other_orbit.permutation[i]];
-                orientation[i] = (self_orbit.orientation[other_orbit.permutation[i]]
-                    + other_orbit.orientation[i])
+                orientation_delta[i] = (self_orbit.orientation_delta[other_orbit.permutation[i]]
+                    + other_orbit.orientation_delta[i])
                     % orbit_definition.num_orientations;
             }
 
             let orbit_data = KTransformationOrbitData {
                 permutation,
-                orientation,
+                orientation_delta,
             };
             transformation_data.insert(orbit_name.clone(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
         }
@@ -66,7 +67,7 @@ impl KTransformation {
             let num_pieces = orbit_definition.num_pieces;
 
             let mut permutation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
-            let mut orientation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
+            let mut orientation_delta = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
 
             let self_orbit = &self.transformation_data[orbit_name];
 
@@ -74,14 +75,14 @@ impl KTransformation {
             for i in 0..num_pieces {
                 let from_idx = self_orbit.permutation[i];
                 permutation[from_idx] = i;
-                orientation[from_idx] = (orbit_definition.num_orientations
-                    - self_orbit.orientation[i])
+                orientation_delta[from_idx] = (orbit_definition.num_orientations
+                    - self_orbit.orientation_delta[i])
                     .rem_euclid(orbit_definition.num_orientations)
             }
 
             let orbit_data = KTransformationOrbitData {
                 permutation,
-                orientation,
+                orientation_delta,
             };
             transformation_data.insert(orbit_name.clone(), orbit_data); // TODO: why do we need to coerce `orbit_name`?
         }
