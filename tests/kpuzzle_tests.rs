@@ -82,7 +82,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
     assert_eq!(
         kpuzzle
             .transformation_from_move(&("L").parse::<Move>()?)?
-            .transformation_data[items_orbit_name]
+            .ktransformation_data[items_orbit_name]
             .permutation[0],
         10
     );
@@ -91,19 +91,19 @@ fn it_works() -> Result<(), InvalidAlgError> {
     let mut current = t.clone(); // TODO: start with solved.
     for _ in 1..10 {
         assert_ne!(
-            current.transformation_data[items_orbit_name].permutation[0],
+            current.ktransformation_data[items_orbit_name].permutation[0],
             0
         );
         current = current.apply_transformation(&t);
     }
     assert_eq!(
-        current.transformation_data[items_orbit_name].permutation[0],
+        current.ktransformation_data[items_orbit_name].permutation[0],
         0
     );
 
     assert_eq!(
-        t.apply_transformation(&t).transformation_data,
-        kpuzzle.transformation_from_str("R2")?.transformation_data
+        t.apply_transformation(&t).ktransformation_data,
+        kpuzzle.transformation_from_str("R2")?.ktransformation_data
     );
     assert_ne!(t.apply_transformation(&t), (&kpuzzle, "L R").try_into()?);
     assert_eq!(

@@ -323,7 +323,7 @@ impl KPuzzle {
             // TODO: Avoid constructing this `KTransformation`.
             MoveLookupResultSource::DirectlyDefined(transformation_data) => KTransformation {
                 kpuzzle: self.clone(),
-                transformation_data: transformation_data.clone(),
+                ktransformation_data: transformation_data.clone(),
             },
             MoveLookupResultSource::DerivedFromAlg(alg) => self.transformation_from_alg(alg)?,
         };
@@ -349,7 +349,7 @@ impl KPuzzle {
     pub fn identity_transformation(&self) -> KTransformation {
         KTransformation {
             kpuzzle: self.clone(),
-            transformation_data: self.data.cached_identity_transformation_data.clone(),
+            ktransformation_data: self.data.cached_identity_transformation_data.clone(),
         }
     }
 
@@ -357,7 +357,7 @@ impl KPuzzle {
         let pattern_data = self.data.definition.default_pattern.clone();
         KPattern {
             kpuzzle: self.clone(),
-            pattern_data,
+            kpattern_data: pattern_data,
         }
     }
 }

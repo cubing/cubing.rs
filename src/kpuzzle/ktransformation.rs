@@ -10,7 +10,7 @@ use super::{InvalidAlgError, KPuzzle, KPuzzleOrbitName};
 pub struct KTransformation {
     // TODO: store the orbits directly?
     pub kpuzzle: KPuzzle,
-    pub transformation_data: Arc<KTransformationData>, // TODO: check that this is immutable
+    pub ktransformation_data: Arc<KTransformationData>, // TODO: check that this is immutable
 }
 // TODO: Use `Move` as the key?
 pub type KTransformationData = HashMap<KPuzzleOrbitName, KTransformationOrbitData>;
@@ -18,7 +18,7 @@ pub type KTransformationData = HashMap<KPuzzleOrbitName, KTransformationOrbitDat
 impl PartialEq<KTransformation> for KTransformation {
     fn eq(&self, other: &Self) -> bool {
         // TODO: check if the KPuzzle comparison is correct and performant.
-        self.kpuzzle == other.kpuzzle && self.transformation_data == other.transformation_data
+        self.kpuzzle == other.kpuzzle && self.ktransformation_data == other.ktransformation_data
     }
 }
 
@@ -38,8 +38,8 @@ impl KTransformation {
             let mut permutation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
             let mut orientation_delta = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
 
-            let self_orbit = &self.transformation_data[&orbit_definition.orbit_name];
-            let other_orbit = &other.transformation_data[&orbit_definition.orbit_name];
+            let self_orbit = &self.ktransformation_data[&orbit_definition.orbit_name];
+            let other_orbit = &other.ktransformation_data[&orbit_definition.orbit_name];
 
             // TODO: optimization when either value is the identity.
             for i in 0..num_pieces {
@@ -58,7 +58,7 @@ impl KTransformation {
         }
         KTransformation {
             kpuzzle: self.kpuzzle.clone(),
-            transformation_data: Arc::new(transformation_data),
+            ktransformation_data: Arc::new(transformation_data),
         }
     }
 
@@ -70,7 +70,7 @@ impl KTransformation {
             let mut permutation = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
             let mut orientation_delta = vec![0; num_pieces]; // TODO: can we safely avoid initializing the entries?
 
-            let self_orbit = &self.transformation_data[&orbit_definition.orbit_name];
+            let self_orbit = &self.ktransformation_data[&orbit_definition.orbit_name];
 
             // TODO: optimization when either value is the identity.
             for i in 0..num_pieces {
@@ -90,7 +90,7 @@ impl KTransformation {
         }
         KTransformation {
             kpuzzle: self.kpuzzle.clone(),
-            transformation_data: Arc::new(transformation_data),
+            ktransformation_data: Arc::new(transformation_data),
         }
     }
 

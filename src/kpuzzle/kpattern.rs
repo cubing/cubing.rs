@@ -18,7 +18,7 @@ pub struct KPatternOrbitData {
 #[derive(Debug, Clone)]
 pub struct KPattern {
     pub kpuzzle: KPuzzle,
-    pub pattern_data: Arc<KPatternData>,
+    pub kpattern_data: Arc<KPatternData>,
 }
 
 #[derive(Debug)]
@@ -33,8 +33,8 @@ impl KPattern {
         for orbit_definition in &self.kpuzzle.definition().orbits {
             let num_pieces = orbit_definition.num_pieces;
 
-            let self_orbit = &self.pattern_data[&orbit_definition.orbit_name];
-            let other_orbit = &transformation.transformation_data[&orbit_definition.orbit_name];
+            let self_orbit = &self.kpattern_data[&orbit_definition.orbit_name];
+            let other_orbit = &transformation.ktransformation_data[&orbit_definition.orbit_name];
 
             // TODO: figure out the fastest way to populate the vectors.
             // So far, initializing all entries to 0 is measurably faster than using `Vec::with_capacity(…)` and `.push(…)`.
@@ -78,7 +78,7 @@ impl KPattern {
 
         KPattern {
             kpuzzle: self.kpuzzle.clone(),
-            pattern_data: pattern_data.into(),
+            kpattern_data: pattern_data.into(),
         }
     }
 
@@ -96,6 +96,6 @@ impl KPattern {
 impl PartialEq<KPattern> for KPattern {
     fn eq(&self, other: &Self) -> bool {
         // TODO: check if the KPuzzle comparison is correct and performant.
-        self.kpuzzle == other.kpuzzle && self.pattern_data == other.pattern_data
+        self.kpuzzle == other.kpuzzle && self.kpattern_data == other.kpattern_data
     }
 }

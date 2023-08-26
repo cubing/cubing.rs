@@ -28,11 +28,11 @@ fn it_works() -> Result<(), InvalidAlgError> {
         &kpuzzle
             .default_pattern()
             .apply_alg(&parse_alg!("(R U R' U)5")?)?
-            .pattern_data,
+            .kpattern_data,
         &kpuzzle
             .default_pattern()
             .apply_alg(&parse_alg!("")?)?
-            .pattern_data
+            .kpattern_data
     );
 
     Ok(())
@@ -50,8 +50,10 @@ fn test_2x2x2() -> Result<(), InvalidAlgError> {
         kpuzzle.transformation_from_str("[x: y]")?,
     );
     assert_eq!(
-        kpuzzle.transformation_from_str("L")?.transformation_data,
-        kpuzzle.transformation_from_str("x' R")?.transformation_data,
+        kpuzzle.transformation_from_str("L")?.ktransformation_data,
+        kpuzzle
+            .transformation_from_str("x' R")?
+            .ktransformation_data,
     );
     Ok(())
 }

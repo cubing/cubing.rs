@@ -66,7 +66,7 @@ pub fn are_slot_pieces_solved(pattern: &KPattern, edge_idx: usize, corner_idx: u
 
 fn is_piece_solved(pattern: &KPattern, orbit_name: &KPuzzleOrbitName, idx: usize) -> bool {
     let orbit = pattern
-        .pattern_data
+        .kpattern_data
         .get(orbit_name)
         .expect("Invalid 3x3x3 pattern");
     // TODO: compare against the start pattern
@@ -93,7 +93,7 @@ fn is_piece_solved(pattern: &KPattern, orbit_name: &KPuzzleOrbitName, idx: usize
 
 pub fn is_3x3x3_cross_solved(pattern: &KPattern) -> bool {
     let edges = pattern
-        .pattern_data
+        .kpattern_data
         .get(&"EDGES".into())
         .expect("Invalid 3x3x3 pattern");
     edges.pieces[4..8] == [4, 5, 6, 7] && edges.orientation[4..8] == [0, 0, 0, 0]
@@ -102,15 +102,15 @@ pub fn is_3x3x3_cross_solved(pattern: &KPattern) -> bool {
 // TODO: allow comparing to pattern
 pub fn is_3x3x3_solved(pattern: &KPattern) -> bool {
     let edges = pattern
-        .pattern_data
+        .kpattern_data
         .get(&("EDGES").into())
         .expect("Invalid 3x3x3 pattern");
     let corners = pattern
-        .pattern_data
+        .kpattern_data
         .get(&("CORNERS").into())
         .expect("Invalid 3x3x3 pattern");
     let centers = pattern
-        .pattern_data
+        .kpattern_data
         .get(&("CENTERS").into())
         .expect("Invalid 3x3x3 pattern");
     edges.pieces == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
