@@ -4,7 +4,7 @@ pub(crate) use std::{collections::HashMap, fmt::Display, sync::Arc};
 
 use crate::alg::{Alg, Move};
 
-use super::{pattern::KPatternData, transformation::KTransformationData};
+use super::{kpattern::KPatternData, ktransformation::KTransformationData};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct KPuzzleOrbitName(pub String);

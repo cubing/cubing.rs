@@ -3,15 +3,15 @@ pub use definition::KPuzzleDefinition;
 pub use definition::KPuzzleOrbitDefinition;
 pub use definition::KPuzzleOrbitName;
 
-mod pattern;
-pub use pattern::KPattern;
-pub use pattern::KPatternData;
-pub use pattern::KPatternOrbitData;
+mod kpattern;
+pub use kpattern::KPattern;
+pub use kpattern::KPatternData;
+pub use kpattern::KPatternOrbitData;
 
-mod transformation;
-pub use transformation::KTransformation;
-pub use transformation::KTransformationData;
-pub use transformation::KTransformationOrbitData;
+mod ktransformation;
+pub use ktransformation::KTransformation;
+pub use ktransformation::KTransformationData;
+pub use ktransformation::KTransformationOrbitData;
 
 #[allow(clippy::module_inception)]
 mod kpuzzle;
