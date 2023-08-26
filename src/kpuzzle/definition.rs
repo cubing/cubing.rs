@@ -37,5 +37,5 @@ pub struct KPuzzleDefinition {
     pub orbits: Vec<KPuzzleOrbitDefinition>,
     pub default_pattern: Arc<KPatternData>,
     pub moves: HashMap<Move, Arc<KTransformationData>>,
-    pub experimental_derived_moves: Option<HashMap<Move, Alg>>,
+    pub derived_moves: Option<HashMap<Move, Alg>>,
 }

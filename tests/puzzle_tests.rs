@@ -85,7 +85,7 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
                 },
             )])),
         )]),
-        experimental_derived_moves: Some(HashMap::from([
+        derived_moves: Some(HashMap::from([
             ("B".try_into().unwrap(), "C".try_into().unwrap()),
             ("C".try_into().unwrap(), "A B".try_into().unwrap()),
         ])),

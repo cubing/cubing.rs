@@ -56,7 +56,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
                 )])),
             ),
         ]),
-        experimental_derived_moves: None,
+        derived_moves: None,
     };
 
     let kpuzzle: KPuzzle = def.try_into().unwrap();

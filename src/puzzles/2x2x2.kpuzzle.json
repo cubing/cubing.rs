@@ -108,7 +108,7 @@
       }
     }
   },
-  "experimentalDerivedMoves": {
+  "derivedMoves": {
     "z": "[x: y]",
     "L": "[z: U]",
     "F": "[x: U]",

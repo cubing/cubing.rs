@@ -99,7 +99,7 @@ struct DerivedMovesValidator<'a> {
 
 impl DerivedMovesValidator<'_> {
     pub fn check(def: &KPuzzleDefinition) -> Result<(), InvalidDefinitionError> {
-        if let Some(derived_moves) = &def.experimental_derived_moves {
+        if let Some(derived_moves) = &def.derived_moves {
             let mut validator = DerivedMovesValidator {
                 def,
                 derived_move_visit_statuses: HashMap::default(),
@@ -222,7 +222,7 @@ fn lookup_move<'a>(def: &'a KPuzzleDefinition, r#move: &Move) -> Option<MoveLook
             source: MoveLookupResultSource::DirectlyDefined(source),
         });
     };
-    if let Some(derived_moves) = &def.experimental_derived_moves {
+    if let Some(derived_moves) = &def.derived_moves {
         if let Some((key_move, source)) = derived_moves.get_key_value(r#move) {
             return Some(MoveLookupResult {
                 key_move,
@@ -239,7 +239,7 @@ fn lookup_move<'a>(def: &'a KPuzzleDefinition, r#move: &Move) -> Option<MoveLook
             source: MoveLookupResultSource::DirectlyDefined(source),
         });
     };
-    if let Some(derived_moves) = &def.experimental_derived_moves {
+    if let Some(derived_moves) = &def.derived_moves {
         if let Some((key_move, source)) = derived_moves.get_key_value(r#move) {
             return Some(MoveLookupResult {
                 key_move,
@@ -256,7 +256,7 @@ fn lookup_move<'a>(def: &'a KPuzzleDefinition, r#move: &Move) -> Option<MoveLook
             source: MoveLookupResultSource::DirectlyDefined(source),
         });
     };
-    if let Some(derived_moves) = &def.experimental_derived_moves {
+    if let Some(derived_moves) = &def.derived_moves {
         if let Some((key_move, source)) = derived_moves.get_key_value(&r#move.invert()) {
             return Some(MoveLookupResult {
                 key_move,
