@@ -20,7 +20,6 @@ fn it_works() -> Result<(), InvalidAlgError> {
     let items_orbit_name = &KPuzzleOrbitName("items".to_owned());
     let def = cubing::kpuzzle::KPuzzleDefinition {
         name: "topsy_turvy".into(),
-        orbit_ordering: None,
         orbits: vec![KPuzzleOrbitDefinition {
             orbit_name: items_orbit_name.clone(),
             num_pieces: 12,
