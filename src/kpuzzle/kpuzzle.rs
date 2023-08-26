@@ -7,7 +7,7 @@ use std::{
 use crate::alg::{Alg, AlgNode, AlgParseError, Move};
 
 use super::{
-    KPuzzleDefinition, KState, KTransformation, KTransformationData, KTransformationOrbitData,
+    KPattern, KPuzzleDefinition, KTransformation, KTransformationData, KTransformationOrbitData,
 };
 
 use std::error::Error;
@@ -284,7 +284,7 @@ struct MoveLookupResult<'a> {
     source: MoveLookupResultSource<'a>,
 }
 
-// TODO: Get rid of this in favor of purely `KTransformation` and `KState`?
+// TODO: Get rid of this in favor of purely `KTransformation` and `KPattern`?
 impl KPuzzle {
     pub fn try_new(
         definition: impl Into<Arc<KPuzzleDefinition>>,
@@ -353,11 +353,11 @@ impl KPuzzle {
         }
     }
 
-    pub fn start_state(&self) -> KState {
-        let state_data = self.data.definition.start_state_data.clone();
-        KState {
+    pub fn default_pattern(&self) -> KPattern {
+        let pattern_data = self.data.definition.default_pattern.clone();
+        KPattern {
             kpuzzle: self.clone(),
-            state_data,
+            pattern_data,
         }
     }
 }

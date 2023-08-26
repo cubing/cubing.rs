@@ -3,10 +3,10 @@ pub use definition::KPuzzleDefinition;
 pub use definition::KPuzzleOrbitDefinition;
 pub use definition::KPuzzleOrbitName;
 
-mod state;
-pub use state::KState;
-pub use state::KStateData;
-pub use state::KStateOrbitData;
+mod pattern;
+pub use pattern::KPattern;
+pub use pattern::KPatternData;
+pub use pattern::KPatternOrbitData;
 
 mod transformation;
 pub use transformation::KTransformation;

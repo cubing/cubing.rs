@@ -65,19 +65,19 @@ pub fn main() {
         .scramble
         .parse::<Alg>()
         .expect("Invalid input alg syntax.");
-    let state = kpuzzle
-        .start_state()
+    let pattern = kpuzzle
+        .default_pattern()
         .apply_alg(&scramble)
         .expect("Input alg is not valid for puzzle.");
 
-    if !is_3x3x3_cross_solved(&state) {
+    if !is_3x3x3_cross_solved(&pattern) {
         eprintln!("The provided alg does not leave cross solved. This is currently unsupported.");
         exit(1)
     }
 
     let triggers_by_slot = get_triggers_by_slot(&kpuzzle);
     for slot_trigger_info in &triggers_by_slot {
-        if is_slot_solved(&state, &slot_trigger_info.f2l_slot) {
+        if is_slot_solved(&pattern, &slot_trigger_info.f2l_slot) {
             println!(
                 "Initially solved slot: {}",
                 slot_trigger_info.triggers.iter().as_slice()[0].short_alg
@@ -112,9 +112,9 @@ pub fn main() {
     let mut handles = Vec::<JoinHandle<()>>::default();
 
     for search in searches.into_iter() {
-        let state = state.clone();
+        let pattern = pattern.clone();
         let handle = thread::spawn(move || {
-            search.search(&state);
+            search.search(&pattern);
         });
         handles.push(handle);
     }

@@ -4,7 +4,7 @@ pub(crate) use std::{collections::HashMap, fmt::Display, sync::Arc};
 
 use crate::alg::{Alg, Move};
 
-use super::{state::KStateData, transformation::KTransformationData};
+use super::{pattern::KPatternData, transformation::KTransformationData};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct KPuzzleOrbitName(pub String);
@@ -21,7 +21,7 @@ impl Display for KPuzzleOrbitName {
     }
 }
 
-// use super::super::{state::KStateData, transformation::KTransformationData};
+// use super::super::{pattern::KPatternData, transformation::KTransformationData};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KPuzzleOrbitDefinition {
@@ -35,7 +35,7 @@ pub struct KPuzzleDefinition {
     pub name: String,
     pub orbit_ordering: Option<Vec<KPuzzleOrbitName>>,
     pub orbits: HashMap<KPuzzleOrbitName, KPuzzleOrbitDefinition>,
-    pub start_state_data: Arc<KStateData>,
+    pub default_pattern: Arc<KPatternData>,
     pub moves: HashMap<Move, Arc<KTransformationData>>,
     pub experimental_derived_moves: Option<HashMap<Move, Alg>>,
 }

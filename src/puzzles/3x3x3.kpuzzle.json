@@ -19,7 +19,7 @@
       "numOrientations": 4
     }
   },
-  "startStateData": {
+  "defaultPattern": {
     "EDGES": {
       "pieces": [
         0,

@@ -3,7 +3,7 @@ use std::{sync::Arc, thread::spawn};
 use cubing::{
     alg::{Alg, Move},
     kpuzzle::{
-        InvalidAlgError, KPuzzle, KPuzzleOrbitName, KStateData, KTransformationData,
+        InvalidAlgError, KPatternData, KPuzzle, KPuzzleOrbitName, KTransformationData,
         KTransformationOrbitData,
     },
     parse_alg,
@@ -15,7 +15,7 @@ use once_cell::sync::Lazy;
 fn it_works() -> Result<(), InvalidAlgError> {
     use std::collections::HashMap;
 
-    use cubing::kpuzzle::{KPuzzleOrbitDefinition, KStateOrbitData};
+    use cubing::kpuzzle::{KPatternOrbitData, KPuzzleOrbitDefinition};
 
     let items_orbit_name = &KPuzzleOrbitName("items".to_owned());
     let def = cubing::kpuzzle::KPuzzleDefinition {
@@ -28,9 +28,9 @@ fn it_works() -> Result<(), InvalidAlgError> {
                 num_orientations: 1,
             },
         )]),
-        start_state_data: KStateData::from([(
+        default_pattern: KPatternData::from([(
             items_orbit_name.clone(),
-            KStateOrbitData {
+            KPatternOrbitData {
                 pieces: (0..11).collect(),
                 orientation: vec![0; 12],
                 orientation_mod: None,
@@ -67,17 +67,17 @@ fn it_works() -> Result<(), InvalidAlgError> {
 
     assert_eq!(kpuzzle.definition().name, "topsy_turvy");
     assert_eq!(
-        kpuzzle.definition().start_state_data[items_orbit_name]
+        kpuzzle.definition().default_pattern[items_orbit_name]
             .orientation
             .len(),
         12
     );
     assert_eq!(
-        kpuzzle.definition().start_state_data[items_orbit_name].pieces[4],
+        kpuzzle.definition().default_pattern[items_orbit_name].pieces[4],
         4
     );
     assert_eq!(
-        kpuzzle.definition().start_state_data[items_orbit_name].orientation[4],
+        kpuzzle.definition().default_pattern[items_orbit_name].orientation[4],
         0
     );
 
@@ -140,19 +140,19 @@ static SUPERFLIP: Lazy<Alg> = Lazy::new(|| parse_alg!("((M' U')4 x y)3").unwrap(
 static TRIGGER: Lazy<Alg> = Lazy::new(|| parse_alg!("[R: U]").unwrap());
 
 #[test]
-fn static_kstate_can_be_sent_to_and_returned_from_threads() -> Result<(), InvalidAlgError> {
-    let start_state = cube3x3x3_kpuzzle().start_state();
+fn static_kpattern_can_be_sent_to_and_returned_from_threads() -> Result<(), InvalidAlgError> {
+    let default_pattern = cube3x3x3_kpuzzle().default_pattern();
 
-    let superflip_first = start_state.apply_alg(&SUPERFLIP)?;
+    let superflip_first = default_pattern.apply_alg(&SUPERFLIP)?;
     let trigger_second_handle = spawn(move || superflip_first.apply_alg(&TRIGGER).unwrap());
 
-    let trigger_first = start_state.apply_alg(&TRIGGER)?;
+    let trigger_first = default_pattern.apply_alg(&TRIGGER)?;
     let superflip_second_handle = spawn(move || trigger_first.apply_alg(&SUPERFLIP).unwrap());
 
     let trigger_second = trigger_second_handle.join().unwrap();
     let superflip_second = superflip_second_handle.join().unwrap();
     assert_eq!(trigger_second, superflip_second);
-    assert_ne!(start_state, trigger_second);
-    assert_ne!(start_state, superflip_second);
+    assert_ne!(default_pattern, trigger_second);
+    assert_ne!(default_pattern, superflip_second);
     Ok(())
 }

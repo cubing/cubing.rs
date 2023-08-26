@@ -9,7 +9,7 @@
       "numOrientations": 3
     }
   },
-  "startStateData": {
+  "defaultPattern": {
     "CORNERS": {
       "pieces": [
         0,

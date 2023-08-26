@@ -11,7 +11,7 @@ use rand::thread_rng;
 
 use cubing::{
     alg::{Alg, AlgBuilder, AlgNode, Pause},
-    kpuzzle::KState,
+    kpuzzle::KPattern,
 };
 
 struct SearchStatus {
@@ -20,7 +20,7 @@ struct SearchStatus {
 }
 
 struct SearchFrame {
-    state: KState,
+    pattern: KPattern,
     solved_slots: SlotMask, // TODO: see if `&SlotMask` is faster?
     total_depth: usize,
     slot_depth: usize,
@@ -49,7 +49,7 @@ pub struct Search {
 }
 
 impl Search {
-    pub fn search(&self, state: &KState) {
+    pub fn search(&self, pattern: &KPattern) {
         for depth_limit in self.start_depth_limit..(self.max_depth_limit + 1) {
             println!("Search depth: {}", depth_limit);
             let search_status = &mut SearchStatus {
@@ -57,8 +57,8 @@ impl Search {
                 num_solutions: 0,
             };
             let search_frame = &SearchFrame {
-                state: state.clone(),
-                solved_slots: SlotMask::from_state(state),
+                pattern: pattern.clone(),
+                solved_slots: SlotMask::from_pattern(pattern),
                 total_depth: 0,
                 slot_depth: 0,
             };
@@ -86,7 +86,9 @@ impl Search {
             // stdout().flush().unwrap();
 
             for auf in &self.auf_triggers {
-                let with_auf = search_frame.state.apply_transformation(&auf.transformation);
+                let with_auf = search_frame
+                    .pattern
+                    .apply_transformation(&auf.transformation);
                 if is_3x3x3_solved(&with_auf) {
                     let (short_solution, long_solution) =
                         self.build_solutions(recursion_info, &auf.short_alg);
@@ -120,11 +122,13 @@ impl Search {
                 continue;
             }
             for auf in &self.auf_triggers {
-                let next_state = search_frame.state.apply_transformation(&auf.transformation);
+                let next_pattern = search_frame
+                    .pattern
+                    .apply_transformation(&auf.transformation);
                 for trigger in &slot_trigger_info.triggers {
-                    let next_state = next_state.apply_transformation(&trigger.transformation);
+                    let next_pattern = next_pattern.apply_transformation(&trigger.transformation);
                     let (next_searches, remaining_depth_for_slot, solves_slot, solved_slots) =
-                        if is_slot_solved(&next_state, &slot_trigger_info.f2l_slot) {
+                        if is_slot_solved(&next_pattern, &slot_trigger_info.f2l_slot) {
                             (
                                 if self.prefer_immediate_slots {
                                     &mut next_frames_preferred
@@ -147,7 +151,7 @@ impl Search {
                         };
                     next_searches.push((
                         SearchFrame {
-                            state: next_state,
+                            pattern: next_pattern,
                             solved_slots,
                             total_depth: search_frame.total_depth + 1,
                             slot_depth: remaining_depth_for_slot,

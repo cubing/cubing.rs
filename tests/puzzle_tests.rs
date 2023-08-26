@@ -2,9 +2,8 @@ use std::{collections::HashMap, sync::Arc};
 
 use cubing::{
     kpuzzle::{
-        InvalidAlgError, InvalidDefinitionError, KPuzzle, KPuzzleDefinition,
-        KPuzzleOrbitDefinition, KStateData, KStateOrbitData, KTransformationData,
-        KTransformationOrbitData,
+        InvalidAlgError, InvalidDefinitionError, KPatternData, KPatternOrbitData, KPuzzle,
+        KPuzzleDefinition, KPuzzleOrbitDefinition, KTransformationData, KTransformationOrbitData,
     },
     parse_alg,
     puzzles::{cube2x2x2_kpuzzle, cube3x3x3_kpuzzle},
@@ -27,13 +26,13 @@ fn it_works() -> Result<(), InvalidAlgError> {
     );
     assert_eq!(
         &kpuzzle
-            .start_state()
+            .default_pattern()
             .apply_alg(&parse_alg!("(R U R' U)5")?)?
-            .state_data,
+            .pattern_data,
         &kpuzzle
-            .start_state()
+            .default_pattern()
             .apply_alg(&parse_alg!("")?)?
-            .state_data
+            .pattern_data
     );
 
     Ok(())
@@ -69,9 +68,9 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
                 num_orientations: 1,
             },
         )]),
-        start_state_data: Arc::new(KStateData::from([(
+        default_pattern: Arc::new(KPatternData::from([(
             "SOLVE_ORBIT".into(),
-            KStateOrbitData {
+            KPatternOrbitData {
                 pieces: vec![1, 0],
                 orientation: vec![0; 2],
                 orientation_mod: None,

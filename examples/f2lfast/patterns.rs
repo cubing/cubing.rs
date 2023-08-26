@@ -1,4 +1,4 @@
-use cubing::kpuzzle::{KPuzzleOrbitName, KState};
+use cubing::kpuzzle::{KPattern, KPuzzleOrbitName};
 
 use crate::triggers::F2LSlot;
 
@@ -35,55 +35,55 @@ impl SlotMask {
     }
 
     // Does *not* check if cross is solved.
-    pub fn from_state(state: &KState) -> Self {
+    pub fn from_pattern(pattern: &KPattern) -> Self {
         Self {
-            H: is_slot_solved(state, &F2LSlot::H),
-            I: is_slot_solved(state, &F2LSlot::I),
-            J: is_slot_solved(state, &F2LSlot::J),
-            K: is_slot_solved(state, &F2LSlot::K),
+            H: is_slot_solved(pattern, &F2LSlot::H),
+            I: is_slot_solved(pattern, &F2LSlot::I),
+            J: is_slot_solved(pattern, &F2LSlot::J),
+            K: is_slot_solved(pattern, &F2LSlot::K),
         }
     }
 }
 
 // TODO: is it more efficient not to borrow `F2LSlot`?
-pub fn is_slot_solved(state: &KState, f2l_slot: &F2LSlot) -> bool {
+pub fn is_slot_solved(pattern: &KPattern, f2l_slot: &F2LSlot) -> bool {
     // Reid order:
     // UF  UR  UB  UL  . DF  DR  DB  DL  . FR  FL  BR  BL
     // UFR URB UBL ULF . DRF DFL DLB DBR
     // U L F R B D
     match f2l_slot {
-        F2LSlot::H => are_slot_pieces_solved(state, 9, 5),
-        F2LSlot::I => are_slot_pieces_solved(state, 11, 6),
-        F2LSlot::J => are_slot_pieces_solved(state, 10, 7),
-        F2LSlot::K => are_slot_pieces_solved(state, 8, 4),
+        F2LSlot::H => are_slot_pieces_solved(pattern, 9, 5),
+        F2LSlot::I => are_slot_pieces_solved(pattern, 11, 6),
+        F2LSlot::J => are_slot_pieces_solved(pattern, 10, 7),
+        F2LSlot::K => are_slot_pieces_solved(pattern, 8, 4),
     }
 }
 
-pub fn are_slot_pieces_solved(state: &KState, edge_idx: usize, corner_idx: usize) -> bool {
-    is_piece_solved(state, &"EDGES".into(), edge_idx)
-        && is_piece_solved(state, &"CORNERS".into(), corner_idx)
+pub fn are_slot_pieces_solved(pattern: &KPattern, edge_idx: usize, corner_idx: usize) -> bool {
+    is_piece_solved(pattern, &"EDGES".into(), edge_idx)
+        && is_piece_solved(pattern, &"CORNERS".into(), corner_idx)
 }
 
-fn is_piece_solved(state: &KState, orbit_name: &KPuzzleOrbitName, idx: usize) -> bool {
-    let orbit = state
-        .state_data
+fn is_piece_solved(pattern: &KPattern, orbit_name: &KPuzzleOrbitName, idx: usize) -> bool {
+    let orbit = pattern
+        .pattern_data
         .get(orbit_name)
-        .expect("Invalid 3x3x3 state");
-    // TODO: compare against the start state
+        .expect("Invalid 3x3x3 pattern");
+    // TODO: compare against the start pattern
     orbit.pieces[idx] == idx && orbit.orientation[idx] == 0
 }
 
-// // TODO: allow comparing to state
-// pub fn is_f2l_solved(state: &KState) -> bool {
-//     let edges = state.state_data.get("EDGES").expect("Invalid 3x3x3 state");
-//     let corners = state
-//         .state_data
+// // TODO: allow comparing to pattern
+// pub fn is_f2l_solved(pattern: &KPattern) -> bool {
+//     let edges = pattern.pattern_data.get("EDGES").expect("Invalid 3x3x3 pattern");
+//     let corners = pattern
+//         .pattern_data
 //         .get("CORNERS")
-//         .expect("Invalid 3x3x3 state");
-//     let centers = state
-//         .state_data
+//         .expect("Invalid 3x3x3 pattern");
+//     let centers = pattern
+//         .pattern_data
 //         .get("CENTERS")
-//         .expect("Invalid 3x3x3 state");
+//         .expect("Invalid 3x3x3 pattern");
 //     edges.pieces[4..12] == [4, 5, 6, 7, 8, 9, 10, 11]
 //         && edges.orientation[4..12] == [0, 0, 0, 0, 0, 0, 0, 0]
 //         && corners.pieces[4..8] == [4, 5, 6, 7]
@@ -91,28 +91,28 @@ fn is_piece_solved(state: &KState, orbit_name: &KPuzzleOrbitName, idx: usize) ->
 //         && centers.pieces[0..2] == [0, 1] // We can get away with testing just two faces, and don't test orientation
 // }
 
-pub fn is_3x3x3_cross_solved(state: &KState) -> bool {
-    let edges = state
-        .state_data
+pub fn is_3x3x3_cross_solved(pattern: &KPattern) -> bool {
+    let edges = pattern
+        .pattern_data
         .get(&"EDGES".into())
-        .expect("Invalid 3x3x3 state");
+        .expect("Invalid 3x3x3 pattern");
     edges.pieces[4..8] == [4, 5, 6, 7] && edges.orientation[4..8] == [0, 0, 0, 0]
 }
 
-// TODO: allow comparing to state
-pub fn is_3x3x3_solved(state: &KState) -> bool {
-    let edges = state
-        .state_data
+// TODO: allow comparing to pattern
+pub fn is_3x3x3_solved(pattern: &KPattern) -> bool {
+    let edges = pattern
+        .pattern_data
         .get(&("EDGES").into())
-        .expect("Invalid 3x3x3 state");
-    let corners = state
-        .state_data
+        .expect("Invalid 3x3x3 pattern");
+    let corners = pattern
+        .pattern_data
         .get(&("CORNERS").into())
-        .expect("Invalid 3x3x3 state");
-    let centers = state
-        .state_data
+        .expect("Invalid 3x3x3 pattern");
+    let centers = pattern
+        .pattern_data
         .get(&("CENTERS").into())
-        .expect("Invalid 3x3x3 state");
+        .expect("Invalid 3x3x3 pattern");
     edges.pieces == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         && edges.orientation == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         && corners.pieces[0..8] == [0, 1, 2, 3, 4, 5, 6, 7]

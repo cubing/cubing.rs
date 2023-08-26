@@ -19,18 +19,18 @@ use cubing::{alg::Alg, puzzles::cube3x3x3_kpuzzle};
 
 pub fn main() {
     let kpuzzle = cube3x3x3_kpuzzle();
-    let start_state = kpuzzle.start_state();
+    let default_pattern = kpuzzle.default_pattern();
 
     let input_alg = "R U R' F' U2 L' U' L F U2"
         .parse::<Alg>()
         .expect("Invalid alg syntax.");
 
-    let input_state = start_state
+    let input_pattern = default_pattern
         .apply_alg(&input_alg)
         .expect("Input alg is not valid for puzzle.");
     println!(
-        "The following alg {} the puzzle to its original state (including center orientation): {}",
-        if start_state == input_state { "returns" } else { "does NOT return" },
+        "The following alg {} the puzzle to its original pattern (including center orientation): {}",
+        if default_pattern == input_pattern { "returns" } else { "does NOT return" },
         input_alg,
     )
 }
