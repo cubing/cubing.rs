@@ -223,7 +223,7 @@ fn lookup_move<'a>(def: &'a KPuzzleDefinition, r#move: &Move) -> Option<MoveLook
         });
     };
     if let Some(derived_moves) = &def.derived_moves {
-        if let Some((key_move, source)) = derived_moves.get_key_value(r#move) {
+        if let Some((key_move, source)) = derived_moves.get_key_value(&move_with_amount_1(r#move)) {
             return Some(MoveLookupResult {
                 key_move,
                 relative_amount: r#move.amount,
@@ -432,5 +432,97 @@ fn transformation_from_alg_node(
             let a_prime = transformation_from_alg(kpuzzle, &conjugate.a.invert())?; // TODO: invert the transformation instead of the alg!
             Ok(a.apply_transformation(&b).apply_transformation(&a_prime))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::kpuzzle::KPuzzleDefinition;
+
+    use super::KPuzzle;
+
+    #[test]
+    fn derived_moves() -> Result<(), String> {
+        let def: KPuzzleDefinition = serde_json::from_str(
+            r#"
+{
+    "name": "custom",
+    "orbits": [{ "orbitName": "PIECES", "numPieces": 2, "numOrientations": 12 }],
+    "defaultPattern": {
+        "PIECES": {
+        "pieces": [0, 1],
+        "orientation": [0, 0],
+        "orientationMod": [3, 4]
+        }
+    },
+    "moves": {
+        "SPIN": { "PIECES": { "permutation": [0, 1], "orientationDelta": [2, 5] } },
+        "SWAP": { "PIECES": { "permutation": [1, 0], "orientationDelta": [0, 0] } }
+    },
+    "derivedMoves": {
+        "SPINSWAP": "SPIN SWAP",
+        "SWAPSPIN2": "(SWAP SPIN)2"
+    }
+}
+"#,
+        )
+        .expect("Could not parse test puzzle JSON.");
+        assert!(serde_json::to_string(&def)
+            .unwrap()
+            .contains("derivedMoves"));
+
+        let kpuzzle: KPuzzle = def.try_into().unwrap();
+
+        assert_eq!(
+            kpuzzle
+                .transformation_from_move(&"SPINSWAP".try_into().unwrap())
+                .unwrap(),
+            kpuzzle
+                .transformation_from_alg(&"SPIN SWAP".try_into().unwrap())
+                .unwrap()
+        );
+
+        assert!(kpuzzle
+            .transformation_from_move(&"SPINSWAP2".try_into().unwrap())
+            .is_ok());
+
+        assert!(kpuzzle
+            .transformation_from_move(&"SWAPSPIN2".try_into().unwrap())
+            .is_ok());
+
+        assert!(kpuzzle
+            .transformation_from_move(&"SWAPSPIN".try_into().unwrap())
+            .is_err());
+
+        Ok(())
+    }
+    #[test]
+
+    fn no_derived_moves() -> Result<(), String> {
+        let def: KPuzzleDefinition = serde_json::from_str(
+            r#"
+{
+    "name": "custom",
+    "orbits": [{ "orbitName": "PIECES", "numPieces": 2, "numOrientations": 12 }],
+    "defaultPattern": {
+        "PIECES": {
+        "pieces": [0, 1],
+        "orientation": [0, 0],
+        "orientationMod": [3, 4]
+        }
+    },
+    "moves": {
+        "SPIN": { "PIECES": { "permutation": [0, 1], "orientationDelta": [2, 5] } },
+        "SWAP": { "PIECES": { "permutation": [1, 0], "orientationDelta": [0, 0] } }
+    }
+}
+"#,
+        )
+        .expect("Could not parse test puzzle JSON.");
+        assert!(!serde_json::to_string(&def)
+            .unwrap()
+            .contains("derivedMoves"));
+
+        Ok(())
     }
 }
