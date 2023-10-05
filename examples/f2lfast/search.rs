@@ -171,7 +171,7 @@ impl Search {
             next_frames_preferred.shuffle(&mut thread_rng());
             next_frames_non_preferred.shuffle(&mut thread_rng());
         }
-        for next_frames in vec![next_frames_preferred, next_frames_non_preferred] {
+        for next_frames in [next_frames_preferred, next_frames_non_preferred] {
             for next_frame in next_frames {
                 let (next_frame, recursion_info) = next_frame;
                 if self.debug {
