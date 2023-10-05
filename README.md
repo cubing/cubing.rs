@@ -1,7 +1,6 @@
 # `cubing.rs`
 
-Features from [`cubing.js`](https://github.com/cubing/cubing.js) in Rust. Just tinkering for now.
-
+Features from [`cubing.js`](https://github.com/cubing/cubing.js) in Rust.
 ## Structure
 
 See <https://docs.rs/cubing/latest/cubing/> for Rust docs.
