@@ -421,7 +421,7 @@ fn transformation_from_alg_node(
             let a = transformation_from_alg(kpuzzle, &commutator.a)?;
             let b = transformation_from_alg(kpuzzle, &commutator.b)?;
             let a_prime = transformation_from_alg(kpuzzle, &commutator.a.invert())?; // TODO: invert the transformation instead of the alg!
-            let b_prime = transformation_from_alg(kpuzzle, &commutator.a.invert())?; // TODO: invert the transformation instead of the alg!
+            let b_prime = transformation_from_alg(kpuzzle, &commutator.b.invert())?; // TODO: invert the transformation instead of the alg!
             Ok(a.apply_transformation(&b)
                 .apply_transformation(&a_prime)
                 .apply_transformation(&b_prime))
