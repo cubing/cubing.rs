@@ -140,7 +140,7 @@ impl DerivedMovesValidator<'_> {
         };
         // TODO: Would it help to save `descendant_move_keys` for something?
         self.derived_move_visit_statuses.insert(
-            key_move.clone(), /* Avoid this clonse by using lifetimes? */
+            key_move.clone(), /* Avoid this clone by using lifetimes? */
             DerivedMoveVisitStatus::Done(()),
         );
         Ok(())
