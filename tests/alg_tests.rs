@@ -65,6 +65,16 @@ fn it_works() -> Result<(), InvalidAlgError> {
     assert_eq!(range_move.quantum.family, "R");
     assert_eq!(range_move.amount, -2);
 
+    let range_move = "R++".parse::<Move>().unwrap();
+    assert_eq!(range_move.quantum.prefix, None);
+    assert_eq!(range_move.quantum.family, "R_PLUSPLUS_");
+    assert_eq!(range_move.amount, 1);
+
+    let range_move = "D--".parse::<Move>().unwrap();
+    assert_eq!(range_move.quantum.prefix, None);
+    assert_eq!(range_move.quantum.family, "D_PLUSPLUS_");
+    assert_eq!(range_move.amount, -1);
+
     assert_eq!(
         "R2".parse::<Move>().unwrap(),
         Move {
@@ -179,6 +189,15 @@ fn it_can_build_and_parse_long_strings() -> Result<(), InvalidAlgError> {
     let s = alg.to_string();
     let re_parsed = s.parse::<Alg>()?;
     assert_eq!(alg, re_parsed);
+
+    Ok(())
+}
+
+#[test]
+fn mixed_puzzle_notation() -> Result<(), InvalidAlgError> {
+    // Eventual parsing goal: `(R 2-5r3' (5, -24234) R++)' / [ UR1+   UR , F2 ]`
+    // From: https://github.com/cubing/cubing.js/blob/4ca170732f9b178bb9af4e04135447f23acfa8d8/src/sites/experiments.cubing.net/cubing.js/alg/inspector.html#L16
+    assert!("(R 2-5r3' R++)' [ UR1+ , F2 ]".parse::<Alg>().is_ok());
 
     Ok(())
 }
