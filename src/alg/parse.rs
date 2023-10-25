@@ -1,4 +1,4 @@
-use std::{fmt::Display, str::FromStr};
+use std::{fmt::Display, str::FromStr, sync::Arc};
 
 use nom::{
     branch::alt,
@@ -118,6 +118,38 @@ fn parse_amount_suffix(input: &str) -> IResult<&str, i32> {
     Ok((input, amount))
 }
 
+enum PochmannStringSuffix {
+    PlusPlus,
+    MinusMinus,
+}
+
+impl PochmannStringSuffix {
+    fn amount(&self) -> i32 {
+        match self {
+            PochmannStringSuffix::PlusPlus => 1,
+            PochmannStringSuffix::MinusMinus => -1,
+        }
+    }
+
+    fn add_internal_suffix(quantum: QuantumMove) -> QuantumMove {
+        QuantumMove {
+            family: format!("{}_PLUSPLUS_", quantum.family),
+            prefix: quantum.prefix,
+        }
+    }
+}
+
+fn parse_pochmann_megaminx_suffix(input: &str) -> IResult<&str, PochmannStringSuffix> {
+    let (input, suffix) = alt((tag("++"), tag("--")))(input)?;
+    Ok((
+        input,
+        match suffix {
+            "++" => PochmannStringSuffix::PlusPlus,
+            _ => PochmannStringSuffix::MinusMinus,
+        },
+    ))
+}
+
 fn parse_optional_amount_suffix(input: &str) -> IResult<&str, i32> {
     let (input, amount) = opt(parse_amount_suffix)(input)?;
     Ok((input, amount.unwrap_or(1)))
@@ -125,6 +157,18 @@ fn parse_optional_amount_suffix(input: &str) -> IResult<&str, i32> {
 
 fn parse_move(input: &str) -> IResult<&str, Move> {
     let (input, quantum) = parse_quantum_move(input)?;
+    let (input, pochmann_suffix) = opt(parse_pochmann_megaminx_suffix)(input)?;
+    if let Some(pochmann_suffix) = pochmann_suffix {
+        let amount = pochmann_suffix.amount();
+        return Ok((
+            input,
+            Move {
+                quantum: Arc::new(PochmannStringSuffix::add_internal_suffix(quantum)),
+                amount,
+            },
+        ));
+    }
+
     let (input, amount) = parse_optional_amount_suffix(input)?;
     Ok((
         input,
