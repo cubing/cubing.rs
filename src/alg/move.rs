@@ -7,6 +7,8 @@ use serde::{Deserialize, Deserializer, Serialize};
 use super::amount::{fmt_amount, Amount};
 use super::QuantumMove;
 
+pub const _PLUSPLUS_: &str = "_PLUSPLUS_";
+
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Move {
@@ -62,9 +64,28 @@ impl<'de> Visitor<'de> for MoveVisitor {
         }
     }
 }
+
 impl fmt::Display for Move {
     // TODO: memoize?
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // TODO: memoize this calculation at construction time so we don't have to do it during every serialization?
+        if let Some(family) = self.quantum.family.strip_suffix("_PLUSPLUS_") {
+            let suffix = match self.amount {
+                1 => "++",
+                -1 => "--",
+                _ => return Err(std::fmt::Error),
+            };
+            write!(
+                f,
+                "{}{}",
+                QuantumMove {
+                    family: family.to_owned(),
+                    prefix: self.quantum.prefix.clone()
+                },
+                suffix
+            )?;
+            return Ok(());
+        }
         write!(f, "{}", self.quantum)?;
         fmt_amount(f, self.amount)
     }

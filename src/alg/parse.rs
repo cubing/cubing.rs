@@ -11,8 +11,8 @@ use nom::{
 };
 
 use super::{
-    alg_node::AlgNode, Alg, Commutator, Conjugate, Grouping, LineComment, Move, MovePrefix,
-    Newline, Pause, QuantumMove,
+    alg_node::AlgNode, r#move::_PLUSPLUS_, Alg, Commutator, Conjugate, Grouping, LineComment, Move,
+    MovePrefix, Newline, Pause, QuantumMove,
 };
 
 #[derive(Debug)]
@@ -133,7 +133,7 @@ impl PochmannStringSuffix {
 
     fn add_internal_suffix(quantum: QuantumMove) -> QuantumMove {
         QuantumMove {
-            family: format!("{}_PLUSPLUS_", quantum.family),
+            family: format!("{}{}", quantum.family, _PLUSPLUS_),
             prefix: quantum.prefix,
         }
     }
