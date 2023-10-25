@@ -11,8 +11,10 @@ use nom::{
 };
 
 use super::{
-    alg_node::AlgNode, r#move::_PLUSPLUS_, Alg, Commutator, Conjugate, Grouping, LineComment, Move,
-    MovePrefix, Newline, Pause, QuantumMove,
+    alg_node::AlgNode,
+    r#move::{_PLUSPLUS_, _PLUS_},
+    Alg, Commutator, Conjugate, Grouping, LineComment, Move, MovePrefix, Newline, Pause,
+    QuantumMove,
 };
 
 #[derive(Debug)]
@@ -108,14 +110,27 @@ impl FromStr for QuantumMove {
     }
 }
 
-fn parse_amount_suffix(input: &str) -> IResult<&str, i32> {
-    let (input, opt_amount) = opt(parse_natural_number_signed)(input)?;
+fn parse_optional_positive_amount_number(input: &str) -> IResult<&str, Option<i32>> {
+    let (input, amount_number) = opt(parse_natural_number_signed)(input)?;
+    Ok((input, amount_number))
+}
+
+fn parse_optional_prime(input: &str) -> IResult<&str, i32> {
     let (input, prime) = opt(tag("'"))(input)?;
-    let mut amount = opt_amount.unwrap_or(1);
-    if prime.is_some() {
-        amount *= -1
-    }
-    Ok((input, amount))
+    Ok((
+        input,
+        match prime {
+            Some(_) => -1,
+            None => 1,
+        },
+    ))
+}
+
+fn parse_optional_amount_suffix(input: &str) -> IResult<&str, i32> {
+    let (input, amount_number) = parse_optional_positive_amount_number(input)?;
+    let amount_number = amount_number.unwrap_or(1);
+    let (input, prime) = parse_optional_prime(input)?;
+    Ok((input, amount_number * prime))
 }
 
 enum PochmannStringSuffix {
@@ -139,6 +154,27 @@ impl PochmannStringSuffix {
     }
 }
 
+enum ClockSuffix {
+    Plus,
+    Minus,
+}
+
+impl ClockSuffix {
+    fn amount(&self) -> i32 {
+        match self {
+            ClockSuffix::Plus => 1,
+            ClockSuffix::Minus => -1,
+        }
+    }
+
+    fn add_internal_suffix(quantum: QuantumMove) -> QuantumMove {
+        QuantumMove {
+            family: format!("{}{}", quantum.family, _PLUS_),
+            prefix: quantum.prefix,
+        }
+    }
+}
+
 fn parse_pochmann_megaminx_suffix(input: &str) -> IResult<&str, PochmannStringSuffix> {
     let (input, suffix) = alt((tag("++"), tag("--")))(input)?;
     Ok((
@@ -150,14 +186,20 @@ fn parse_pochmann_megaminx_suffix(input: &str) -> IResult<&str, PochmannStringSu
     ))
 }
 
+fn parse_clock_suffix(input: &str) -> IResult<&str, ClockSuffix> {
+    let (input, suffix) = alt((tag("+"), tag("-")))(input)?;
+    Ok((
+        input,
+        match suffix {
+            "+" => ClockSuffix::Plus,
+            _ => ClockSuffix::Minus,
+        },
+    ))
+}
+
 fn parse_slash(input: &str) -> IResult<&str, ()> {
     let (input, _) = tag("/")(input)?;
     Ok((input, ()))
-}
-
-fn parse_optional_amount_suffix(input: &str) -> IResult<&str, i32> {
-    let (input, amount) = opt(parse_amount_suffix)(input)?;
-    Ok((input, amount.unwrap_or(1)))
 }
 
 fn parse_move(input: &str) -> IResult<&str, Move> {
@@ -188,12 +230,29 @@ fn parse_move(input: &str) -> IResult<&str, Move> {
         ));
     }
 
-    let (input, amount) = parse_optional_amount_suffix(input)?;
+    let (input, amount_number) = parse_optional_positive_amount_number(input)?;
+
+    if let Some(amount_number) = amount_number {
+        let (input, clock_suffix) = opt(parse_clock_suffix)(input)?;
+        if let Some(clock_suffix) = clock_suffix {
+            let amount = amount_number * clock_suffix.amount();
+            return Ok((
+                input,
+                Move {
+                    quantum: Arc::new(ClockSuffix::add_internal_suffix(quantum)),
+                    amount,
+                },
+            ));
+        }
+    };
+
+    let (input, prime) = parse_optional_prime(input)?;
+
     Ok((
         input,
         Move {
             quantum: quantum.into(),
-            amount,
+            amount: amount_number.unwrap_or(1) * prime,
         },
     ))
 }
@@ -326,7 +385,7 @@ fn parse_commutator_or_conjugate(input: &str) -> IResult<&str, AlgNode> {
         }
         .into()
     };
-    let (input, amount) = parse_amount_suffix(input)?;
+    let (input, amount) = parse_optional_amount_suffix(input)?;
     if amount == 1 {
         return Ok((input, alg_node));
     }

@@ -8,6 +8,7 @@ use super::amount::{fmt_amount, Amount};
 use super::QuantumMove;
 
 pub const _PLUSPLUS_: &str = "_PLUSPLUS_";
+pub const _PLUS_: &str = "_PLUS_";
 
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -74,6 +75,20 @@ impl fmt::Display for Move {
                 return Err(std::fmt::Error);
             };
             write!(f, "/")?;
+            return Ok(());
+        }
+        if let Some(family) = self.quantum.family.strip_suffix("_PLUS_") {
+            let suffix = if self.amount < 0 { "-" } else { "+" };
+            write!(
+                f,
+                "{}{}{}",
+                QuantumMove {
+                    family: family.to_owned(),
+                    prefix: self.quantum.prefix.clone()
+                },
+                self.amount.abs(),
+                suffix
+            )?;
             return Ok(());
         }
         if let Some(family) = self.quantum.family.strip_suffix("_PLUSPLUS_") {
