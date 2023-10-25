@@ -68,7 +68,14 @@ impl<'de> Visitor<'de> for MoveVisitor {
 impl fmt::Display for Move {
     // TODO: memoize?
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // TODO: memoize this calculation at construction time so we don't have to do it during every serialization?
+        // TODO: memoize these calculations at construction time so we don't have to do it during every serialization?
+        if self.quantum.family == "_SLASH_" {
+            if self.amount != 1 {
+                return Err(std::fmt::Error);
+            };
+            write!(f, "/")?;
+            return Ok(());
+        }
         if let Some(family) = self.quantum.family.strip_suffix("_PLUSPLUS_") {
             let suffix = match self.amount {
                 1 => "++",

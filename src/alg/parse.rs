@@ -150,12 +150,31 @@ fn parse_pochmann_megaminx_suffix(input: &str) -> IResult<&str, PochmannStringSu
     ))
 }
 
+fn parse_slash(input: &str) -> IResult<&str, ()> {
+    let (input, _) = tag("/")(input)?;
+    Ok((input, ()))
+}
+
 fn parse_optional_amount_suffix(input: &str) -> IResult<&str, i32> {
     let (input, amount) = opt(parse_amount_suffix)(input)?;
     Ok((input, amount.unwrap_or(1)))
 }
 
 fn parse_move(input: &str) -> IResult<&str, Move> {
+    let (input, slash) = opt(parse_slash)(input)?;
+    if slash.is_some() {
+        return Ok((
+            input,
+            Move {
+                quantum: Arc::new(QuantumMove {
+                    family: "_SLASH_".to_owned(),
+                    prefix: None,
+                }),
+                amount: 1,
+            },
+        ));
+    }
+
     let (input, quantum) = parse_quantum_move(input)?;
     let (input, pochmann_suffix) = opt(parse_pochmann_megaminx_suffix)(input)?;
     if let Some(pochmann_suffix) = pochmann_suffix {
@@ -323,10 +342,10 @@ fn parse_commutator_or_conjugate(input: &str) -> IResult<&str, AlgNode> {
 
 fn parse_node(input: &str) -> IResult<&str, AlgNode> {
     alt((
+        into(parse_line_comment), // Placed before `parse_move` to parse `//` before `/`.
         into(parse_move),
         into(parse_pause),
         into(parse_newline),
-        into(parse_line_comment),
         into(parse_grouping),
         into(parse_commutator_or_conjugate),
     ))(input)

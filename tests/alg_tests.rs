@@ -29,6 +29,9 @@ fn it_works() -> Result<(), InvalidAlgError> {
     assert_eq!("U_R", format!("{}", "U_R".parse::<Move>().unwrap()));
     assert_eq!("4R2'", format!("{}", "4R2'".parse::<Move>().unwrap()));
     assert_eq!("3-7R2'", format!("{}", "3-7R2'".parse::<Move>().unwrap()));
+    assert_eq!("R++", format!("{}", "R++".parse::<Move>().unwrap()));
+    assert_eq!("D--", format!("{}", "D--".parse::<Move>().unwrap()));
+    assert_eq!("/", format!("{}", "/".parse::<Move>().unwrap()));
 
     assert_eq!("\n", Newline {}.to_string());
 
@@ -197,7 +200,7 @@ fn it_can_build_and_parse_long_strings() -> Result<(), InvalidAlgError> {
 fn mixed_puzzle_notation() -> Result<(), InvalidAlgError> {
     // Eventual parsing goal: `(R 2-5r3' (5, -24234) R++)' / [ UR1+   UR , F2 ]`
     // From: https://github.com/cubing/cubing.js/blob/4ca170732f9b178bb9af4e04135447f23acfa8d8/src/sites/experiments.cubing.net/cubing.js/alg/inspector.html#L16
-    assert!("(R 2-5r3' R++)' [ UR1+ , F2 ]".parse::<Alg>().is_ok());
+    assert!("(R 2-5r3' R++)' / [ UR , F2 ]".parse::<Alg>().is_ok());
 
     Ok(())
 }
