@@ -35,6 +35,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
     assert_eq!("R1+", format!("{}", "R1+".parse::<Move>().unwrap()));
     assert_eq!("DR3-", format!("{}", "DR3-".parse::<Move>().unwrap()));
     assert_eq!("U0+", format!("{}", "U0+".parse::<Move>().unwrap()));
+    assert!("R+".parse::<Move>().is_err());
     assert!("DR-".parse::<Move>().is_err());
     assert!("DR+3".parse::<Move>().is_err());
     assert!("DR+3'".parse::<Move>().is_err());
