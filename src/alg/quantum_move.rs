@@ -1,5 +1,10 @@
 use std::fmt;
 
+use serde::{
+    de::{Unexpected, Visitor},
+    Deserialize, Deserializer, Serialize,
+};
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MoveLayer {
     pub layer: u32,
@@ -128,5 +133,45 @@ impl QuantumMove {
             family: family.into(),
             prefix: layers,
         }
+    }
+}
+
+struct QuantumMoveVisitor;
+
+impl<'de> Visitor<'de> for QuantumMoveVisitor {
+    type Value = QuantumMove;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "a string")
+    }
+
+    fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        let quantum_move = s.parse::<QuantumMove>();
+        match quantum_move {
+            Ok(quantum_move) => Ok(quantum_move),
+            Err(_) => Err(serde::de::Error::invalid_value(Unexpected::Str(s), &self)),
+        }
+    }
+}
+
+// TODO: use https://docs.rs/serde_with/1.6.0/serde_with/index.html ?
+impl Serialize for QuantumMove {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for QuantumMove {
+    fn deserialize<D>(deserializer: D) -> Result<QuantumMove, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_str(QuantumMoveVisitor)
     }
 }
