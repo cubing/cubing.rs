@@ -1,10 +1,10 @@
-use std::{sync::Arc, thread::spawn};
+use std::thread::spawn;
 
 use cubing::{
     alg::{Alg, Move},
     kpuzzle::{
-        InvalidAlgError, KPatternData, KPuzzle, KPuzzleOrbitName, KTransformationData,
-        KTransformationOrbitData,
+        InvalidAlgError, KPatternData, KPuzzleOrbitName, KTransformationData,
+        KTransformationOrbitData, PackedKPuzzle,
     },
     parse_alg,
     puzzles::cube3x3x3_kpuzzle,
@@ -32,12 +32,11 @@ fn it_works() -> Result<(), InvalidAlgError> {
                 orientation: vec![0; 12],
                 orientation_mod: None,
             },
-        )])
-        .into(),
+        )]),
         moves: HashMap::from([
             (
                 "L".try_into()?,
-                Arc::new(KTransformationData::from([(
+                (KTransformationData::from([(
                     items_orbit_name.clone(),
                     KTransformationOrbitData {
                         permutation: vec![10, 8, 6, 4, 2, 0, 1, 3, 5, 7, 9, 11], // TODO: is this actually L'?
@@ -47,7 +46,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
             ),
             (
                 "R".try_into()?,
-                Arc::new(KTransformationData::from([(
+                (KTransformationData::from([(
                     items_orbit_name.clone(),
                     KTransformationOrbitData {
                         permutation: vec![1, 3, 5, 7, 9, 11, 10, 8, 6, 4, 2, 0], // TODO: is this actually R'?
@@ -59,8 +58,9 @@ fn it_works() -> Result<(), InvalidAlgError> {
         derived_moves: None,
     };
 
-    let kpuzzle: KPuzzle = def.try_into().unwrap();
+    let kpuzzle: PackedKPuzzle = PackedKPuzzle::try_new(def).unwrap();
     let items_orbit_name = &KPuzzleOrbitName("items".to_owned());
+    let items_orbit_info = kpuzzle.lookup_orbit_info(items_orbit_name).unwrap();
 
     assert_eq!(kpuzzle.definition().name, "topsy_turvy");
     assert_eq!(
@@ -81,41 +81,37 @@ fn it_works() -> Result<(), InvalidAlgError> {
     assert_eq!(
         kpuzzle
             .transformation_from_move(&("L").parse::<Move>()?)?
-            .ktransformation_data[items_orbit_name]
-            .permutation[0],
+            .get_permutation_idx(items_orbit_info, 0),
         10
     );
 
     let t = kpuzzle.transformation_from_move(&("R").parse::<Move>()?)?;
     let mut current = t.clone(); // TODO: start with solved.
     for _ in 1..10 {
-        assert_ne!(
-            current.ktransformation_data[items_orbit_name].permutation[0],
-            0
-        );
+        assert_ne!(current.get_permutation_idx(items_orbit_info, 0), 0);
         current = current.apply_transformation(&t);
     }
-    assert_eq!(
-        current.ktransformation_data[items_orbit_name].permutation[0],
-        0
-    );
+    assert_eq!(current.get_permutation_idx(items_orbit_info, 0), 0);
 
     assert_eq!(
-        t.apply_transformation(&t).ktransformation_data,
-        kpuzzle.transformation_from_str("R2")?.ktransformation_data
+        t.apply_transformation(&t),
+        kpuzzle.transformation_from_alg(&parse_alg!("R2").unwrap())?
     );
-    assert_ne!(t.apply_transformation(&t), (&kpuzzle, "L R").try_into()?);
+    assert_ne!(
+        t.apply_transformation(&t),
+        kpuzzle.transformation_from_alg(&parse_alg!("L R").unwrap())?
+    );
     assert_eq!(
         t.apply_transformation(&t).apply_transformation(&t),
-        (&kpuzzle, "R3").try_into()?
+        kpuzzle.transformation_from_alg(&parse_alg!("R3").unwrap())?
     );
     assert_eq!(
         kpuzzle.identity_transformation(),
-        (&kpuzzle, "R10").try_into()?
+        kpuzzle.transformation_from_alg(&parse_alg!("R10").unwrap())?
     );
     assert_ne!(
         kpuzzle.identity_transformation(),
-        (&kpuzzle, "R5").try_into()?
+        kpuzzle.transformation_from_alg(&parse_alg!("R5").unwrap())?
     );
     Ok(())
 }

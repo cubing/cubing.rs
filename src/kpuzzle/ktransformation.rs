@@ -4,18 +4,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::alg::{Alg, Amount};
 
-use super::{InvalidAlgError, KPuzzle, KPuzzleOrbitName};
+use super::{KPuzzleOrbitName, UnpackedInvalidAlgError, UnpackedKPuzzle};
 
 #[derive(Debug, Clone)]
-pub struct KTransformation {
+pub struct UnpackedKTransformation {
     // TODO: store the orbits directly?
-    pub kpuzzle: KPuzzle,
+    pub kpuzzle: UnpackedKPuzzle,
     pub ktransformation_data: Arc<KTransformationData>, // TODO: check that this is immutable
 }
 // TODO: Use `Move` as the key?
 pub type KTransformationData = HashMap<KPuzzleOrbitName, KTransformationOrbitData>;
 
-impl PartialEq<KTransformation> for KTransformation {
+impl PartialEq<UnpackedKTransformation> for UnpackedKTransformation {
     fn eq(&self, other: &Self) -> bool {
         // TODO: check if the KPuzzle comparison is correct and performant.
         self.kpuzzle == other.kpuzzle && self.ktransformation_data == other.ktransformation_data
@@ -29,7 +29,7 @@ pub struct KTransformationOrbitData {
     pub orientation_delta: Vec<usize>,
 }
 
-impl KTransformation {
+impl UnpackedKTransformation {
     pub fn apply_transformation(&self, other: &Self) -> Self {
         let mut transformation_data: KTransformationData = HashMap::new();
         for orbit_definition in &self.kpuzzle.definition().orbits {
@@ -56,7 +56,7 @@ impl KTransformation {
             transformation_data.insert(orbit_definition.orbit_name.clone(), orbit_data);
             // TODO: why do we need to coerce `orbit_name`?
         }
-        KTransformation {
+        UnpackedKTransformation {
             kpuzzle: self.kpuzzle.clone(),
             ktransformation_data: Arc::new(transformation_data),
         }
@@ -88,7 +88,7 @@ impl KTransformation {
             transformation_data.insert(orbit_definition.orbit_name.clone(), orbit_data);
             // TODO: why do we need to coerce `orbit_name`?
         }
-        KTransformation {
+        UnpackedKTransformation {
             kpuzzle: self.kpuzzle.clone(),
             ktransformation_data: Arc::new(transformation_data),
         }
@@ -122,29 +122,29 @@ impl KTransformation {
     }
 }
 
-impl TryFrom<(&KPuzzle, &Alg)> for KTransformation {
-    type Error = InvalidAlgError;
+impl TryFrom<(&UnpackedKPuzzle, &Alg)> for UnpackedKTransformation {
+    type Error = UnpackedInvalidAlgError;
 
-    fn try_from(input: (&KPuzzle, &Alg)) -> Result<Self, Self::Error> {
+    fn try_from(input: (&UnpackedKPuzzle, &Alg)) -> Result<Self, Self::Error> {
         let (kpuzzle, alg) = input;
         kpuzzle.transformation_from_alg(alg)
     }
 }
 
-impl TryFrom<(&KPuzzle, &str)> for KTransformation {
-    type Error = InvalidAlgError;
+impl TryFrom<(&UnpackedKPuzzle, &str)> for UnpackedKTransformation {
+    type Error = UnpackedInvalidAlgError;
 
-    fn try_from(input: (&KPuzzle, &str)) -> Result<Self, Self::Error> {
+    fn try_from(input: (&UnpackedKPuzzle, &str)) -> Result<Self, Self::Error> {
         let (kpuzzle, s) = input;
-        KTransformation::try_from((kpuzzle, &s.parse::<Alg>()?))
+        UnpackedKTransformation::try_from((kpuzzle, &s.parse::<Alg>()?))
     }
 }
 
-impl TryFrom<(KPuzzle, &str)> for KTransformation {
-    type Error = InvalidAlgError;
+impl TryFrom<(UnpackedKPuzzle, &str)> for UnpackedKTransformation {
+    type Error = UnpackedInvalidAlgError;
 
-    fn try_from(input: (KPuzzle, &str)) -> Result<Self, Self::Error> {
+    fn try_from(input: (UnpackedKPuzzle, &str)) -> Result<Self, Self::Error> {
         let (kpuzzle, s) = input;
-        KTransformation::try_from((&kpuzzle, &s.parse::<Alg>()?))
+        UnpackedKTransformation::try_from((&kpuzzle, &s.parse::<Alg>()?))
     }
 }

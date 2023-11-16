@@ -1,4 +1,4 @@
-use cubing::kpuzzle::{KPattern, KPuzzleOrbitName};
+use cubing::kpuzzle::PackedKPattern;
 
 use crate::triggers::F2LSlot;
 
@@ -35,7 +35,7 @@ impl SlotMask {
     }
 
     // Does *not* check if cross is solved.
-    pub fn from_pattern(pattern: &KPattern) -> Self {
+    pub fn from_pattern(pattern: &PackedKPattern) -> Self {
         Self {
             H: is_slot_solved(pattern, &F2LSlot::H),
             I: is_slot_solved(pattern, &F2LSlot::I),
@@ -46,7 +46,7 @@ impl SlotMask {
 }
 
 // TODO: is it more efficient not to borrow `F2LSlot`?
-pub fn is_slot_solved(pattern: &KPattern, f2l_slot: &F2LSlot) -> bool {
+pub fn is_slot_solved(pattern: &PackedKPattern, f2l_slot: &F2LSlot) -> bool {
     // Reid order:
     // UF  UR  UB  UL  . DF  DR  DB  DL  . FR  FL  BR  BL
     // UFR URB UBL ULF . DRF DFL DLB DBR
@@ -59,18 +59,30 @@ pub fn is_slot_solved(pattern: &KPattern, f2l_slot: &F2LSlot) -> bool {
     }
 }
 
-pub fn are_slot_pieces_solved(pattern: &KPattern, edge_idx: usize, corner_idx: usize) -> bool {
-    is_piece_solved(pattern, &"EDGES".into(), edge_idx)
-        && is_piece_solved(pattern, &"CORNERS".into(), corner_idx)
+const ORBIT_INDEX_EDGES: usize = 0;
+const ORBIT_INDEX_CORNERS: usize = 0;
+
+pub fn are_slot_pieces_solved(
+    pattern: &PackedKPattern,
+    edge_idx: usize,
+    corner_idx: usize,
+) -> bool {
+    is_piece_solved(pattern, ORBIT_INDEX_EDGES, edge_idx)
+        && is_piece_solved(pattern, ORBIT_INDEX_CORNERS, corner_idx)
 }
 
-fn is_piece_solved(pattern: &KPattern, orbit_name: &KPuzzleOrbitName, idx: usize) -> bool {
-    let orbit = pattern
-        .kpattern_data
-        .get(orbit_name)
-        .expect("Invalid 3x3x3 pattern");
+fn is_piece_solved(pattern: &PackedKPattern, orbit_index: usize, idx: usize) -> bool {
+    let orbit_info = &pattern
+        .packed_orbit_data
+        .packed_kpuzzle
+        .data
+        .orbit_iteration_info[orbit_index];
     // TODO: compare against the start pattern
-    orbit.pieces[idx] == idx && orbit.orientation[idx] == 0
+    pattern.get_piece(orbit_info, idx) == idx as u8
+        && pattern
+            .get_orientation_with_mod(orbit_info, idx)
+            .orientation
+            == 0
 }
 
 // // TODO: allow comparing to pattern
@@ -91,31 +103,31 @@ fn is_piece_solved(pattern: &KPattern, orbit_name: &KPuzzleOrbitName, idx: usize
 //         && centers.pieces[0..2] == [0, 1] // We can get away with testing just two faces, and don't test orientation
 // }
 
-pub fn is_3x3x3_cross_solved(pattern: &KPattern) -> bool {
-    let edges = pattern
-        .kpattern_data
-        .get(&"EDGES".into())
-        .expect("Invalid 3x3x3 pattern");
-    edges.pieces[4..8] == [4, 5, 6, 7] && edges.orientation[4..8] == [0, 0, 0, 0]
+pub fn is_3x3x3_cross_solved(pattern: &PackedKPattern) -> bool {
+    is_piece_solved(pattern, ORBIT_INDEX_EDGES, 4)
+        && is_piece_solved(pattern, ORBIT_INDEX_EDGES, 5)
+        && is_piece_solved(pattern, ORBIT_INDEX_EDGES, 6)
+        && is_piece_solved(pattern, ORBIT_INDEX_EDGES, 7)
 }
 
 // TODO: allow comparing to pattern
-pub fn is_3x3x3_solved(pattern: &KPattern) -> bool {
-    let edges = pattern
-        .kpattern_data
-        .get(&("EDGES").into())
-        .expect("Invalid 3x3x3 pattern");
-    let corners = pattern
-        .kpattern_data
-        .get(&("CORNERS").into())
-        .expect("Invalid 3x3x3 pattern");
-    let centers = pattern
-        .kpattern_data
-        .get(&("CENTERS").into())
-        .expect("Invalid 3x3x3 pattern");
-    edges.pieces == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        && edges.orientation == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        && corners.pieces[0..8] == [0, 1, 2, 3, 4, 5, 6, 7]
-        && corners.orientation[0..8] == [0, 0, 0, 0, 0, 0, 0, 0]
-        && centers.pieces[0..2] == [0, 1] // We can get away with testing just two faces, and don't test orientation
+pub fn is_3x3x3_solved(pattern: &PackedKPattern) -> bool {
+    pattern == &pattern.packed_orbit_data.packed_kpuzzle.default_pattern()
+    // let edges = pattern
+    //     .kpattern_data
+    //     .get(&("EDGES").into())
+    //     .expect("Invalid 3x3x3 pattern");
+    // let corners = pattern
+    //     .kpattern_data
+    //     .get(&("CORNERS").into())
+    //     .expect("Invalid 3x3x3 pattern");
+    // let centers = pattern
+    //     .kpattern_data
+    //     .get(&("CENTERS").into())
+    //     .expect("Invalid 3x3x3 pattern");
+    // edges.pieces == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    //     && edges.orientation == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    //     && corners.pieces[0..8] == [0, 1, 2, 3, 4, 5, 6, 7]
+    //     && corners.orientation[0..8] == [0, 0, 0, 0, 0, 0, 0, 0]
+    //     && centers.pieces[0..2] == [0, 1] // We can get away with testing just two faces, and don't test orientation
 }

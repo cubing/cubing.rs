@@ -1,9 +1,10 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use cubing::{
     kpuzzle::{
-        InvalidAlgError, InvalidDefinitionError, KPatternData, KPatternOrbitData, KPuzzle,
+        InvalidAlgError, InvalidDefinitionError, KPatternData, KPatternOrbitData,
         KPuzzleDefinition, KPuzzleOrbitDefinition, KTransformationData, KTransformationOrbitData,
+        UnpackedKPuzzle,
     },
     parse_alg,
     puzzles::{cube2x2x2_kpuzzle, cube3x3x3_kpuzzle},
@@ -14,11 +15,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
     let kpuzzle = cube3x3x3_kpuzzle();
     assert_eq!(
         &kpuzzle.transformation_from_alg(&parse_alg!("R U R' F' U2")?)?,
-        &kpuzzle.transformation_from_str("(L' U' L F U2')'")?,
-    );
-    assert_eq!(
-        kpuzzle.transformation_from_alg(&parse_alg!("R U R' F' U2")?)?,
-        (&kpuzzle, "(L' U' L F U2')'").try_into()?,
+        &kpuzzle.transformation_from_alg(&parse_alg!("(L' U' L F U2')'")?)?,
     );
     assert_ne!(
         &kpuzzle.transformation_from_alg(&parse_alg!("(R U R' U)5")?)?,
@@ -27,12 +24,8 @@ fn it_works() -> Result<(), InvalidAlgError> {
     assert_eq!(
         &kpuzzle
             .default_pattern()
-            .apply_alg(&parse_alg!("(R U R' U)5")?)?
-            .kpattern_data,
-        &kpuzzle
-            .default_pattern()
-            .apply_alg(&parse_alg!("")?)?
-            .kpattern_data
+            .apply_alg(&parse_alg!("(R U R' U)5")?)?,
+        &kpuzzle.default_pattern().apply_alg(&parse_alg!("")?)?
     );
 
     Ok(())
@@ -43,17 +36,11 @@ fn test_2x2x2() -> Result<(), InvalidAlgError> {
     let kpuzzle = cube2x2x2_kpuzzle();
     assert_eq!(
         kpuzzle.transformation_from_alg(&parse_alg!("z")?)?,
-        kpuzzle.transformation_from_str("z")?,
+        kpuzzle.transformation_from_alg(&parse_alg!("[x: y]")?)?,
     );
     assert_eq!(
-        kpuzzle.transformation_from_str("z")?,
-        kpuzzle.transformation_from_str("[x: y]")?,
-    );
-    assert_eq!(
-        kpuzzle.transformation_from_str("L")?.ktransformation_data,
-        kpuzzle
-            .transformation_from_str("x' R")?
-            .ktransformation_data,
+        kpuzzle.transformation_from_alg(&parse_alg!("L")?)?,
+        kpuzzle.transformation_from_alg(&parse_alg!("x' R")?)?
     );
     Ok(())
 }
@@ -67,7 +54,7 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
             num_pieces: 2,
             num_orientations: 1,
         }],
-        default_pattern: Arc::new(KPatternData::from([(
+        default_pattern: (KPatternData::from([(
             "SOLVE_ORBIT".into(),
             KPatternOrbitData {
                 pieces: vec![1, 0],
@@ -77,7 +64,7 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
         )])),
         moves: HashMap::from([(
             "A".try_into().unwrap(),
-            Arc::new(KTransformationData::from([(
+            (KTransformationData::from([(
                 "SOLVE_ORBIT".into(),
                 KTransformationOrbitData {
                     permutation: vec![1, 0],
@@ -90,7 +77,7 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
             ("C".try_into().unwrap(), "A B".try_into().unwrap()),
         ])),
     };
-    assert!(KPuzzle::try_new(def)
+    assert!(UnpackedKPuzzle::try_new(def)
         .expect_err("Expected recursive KPuzzle to fail instantiation.")
         .description
         .starts_with("Recursive derived move definition for: "));

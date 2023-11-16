@@ -2,12 +2,12 @@ use std::{sync::Arc, thread::spawn};
 
 use cubing::{
     alg::{Alg, AlgBuilder, AlgNode, Move, MoveLayer, MovePrefix, MoveRange, Newline, QuantumMove},
-    kpuzzle::InvalidAlgError,
+    kpuzzle::UnpackedInvalidAlgError,
     parse_alg, parse_move,
 };
 
 #[test]
-fn it_works() -> Result<(), InvalidAlgError> {
+fn it_works() -> Result<(), UnpackedInvalidAlgError> {
     assert_eq!(
         "R",
         format!(
@@ -185,7 +185,7 @@ U // AUF
 }
 
 #[test]
-fn it_can_build_and_parse_long_strings() -> Result<(), InvalidAlgError> {
+fn it_can_build_and_parse_long_strings() -> Result<(), UnpackedInvalidAlgError> {
     let mut builder = AlgBuilder::default();
     let quantum = Arc::new(QuantumMove {
         family: "R".into(),
@@ -208,7 +208,7 @@ fn it_can_build_and_parse_long_strings() -> Result<(), InvalidAlgError> {
 }
 
 #[test]
-fn mixed_puzzle_notation() -> Result<(), InvalidAlgError> {
+fn mixed_puzzle_notation() -> Result<(), UnpackedInvalidAlgError> {
     // Eventual parsing goal: `(R 2-5r3' (5, -24234) R++)' / [ UR1+   UR , F2 ]`
     // From: https://github.com/cubing/cubing.js/blob/4ca170732f9b178bb9af4e04135447f23acfa8d8/src/sites/experiments.cubing.net/cubing.js/alg/inspector.html#L16
     assert!("(R 2-5r3' R++)' / [ UR , F2 ]".parse::<Alg>().is_ok());
@@ -224,7 +224,7 @@ fn it_handles_crowding() -> Result<(), String> {
 }
 
 #[test]
-fn alg_can_be_sent_to_and_returned_from_threads() -> Result<(), InvalidAlgError> {
+fn alg_can_be_sent_to_and_returned_from_threads() -> Result<(), UnpackedInvalidAlgError> {
     let alg = "R U R'".parse::<Alg>()?;
     let inverse = alg.invert();
     let inverse_clone = alg.invert();

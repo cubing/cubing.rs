@@ -7,7 +7,8 @@ use std::{
 use crate::alg::{Alg, AlgNode, AlgParseError, Move};
 
 use super::{
-    KPattern, KPuzzleDefinition, KTransformation, KTransformationData, KTransformationOrbitData,
+    KPuzzleDefinition, KTransformationData, KTransformationOrbitData, UnpackedKPattern,
+    UnpackedKTransformation,
 };
 
 use std::error::Error;
@@ -68,12 +69,12 @@ impl Display for InvalidMoveError {
 
 /// An error type that can indicate multiple error causes, when parsing and applying an alg at the same time.
 #[derive(derive_more::From, Debug, derive_more::Display)]
-pub enum InvalidAlgError {
+pub enum UnpackedInvalidAlgError {
     AlgParse(AlgParseError),
     InvalidMove(InvalidMoveError),
 }
 
-impl Error for InvalidAlgError {
+impl Error for UnpackedInvalidAlgError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         Some(self)
     }
@@ -269,12 +270,12 @@ fn lookup_move<'a>(def: &'a KPuzzleDefinition, r#move: &Move) -> Option<MoveLook
 }
 
 #[derive(Debug, Clone)]
-pub struct KPuzzle {
+pub struct UnpackedKPuzzle {
     data: Arc<KPuzzleData>,
 }
 
 enum MoveLookupResultSource<'a> {
-    DirectlyDefined(&'a Arc<KTransformationData>),
+    DirectlyDefined(&'a KTransformationData),
     DerivedFromAlg(&'a Alg), // TODO: parse and store these algs at `KPuzzle` instantiation time.
 }
 
@@ -285,7 +286,7 @@ struct MoveLookupResult<'a> {
 }
 
 // TODO: Get rid of this in favor of purely `KTransformation` and `KPattern`?
-impl KPuzzle {
+impl UnpackedKPuzzle {
     pub fn try_new(
         definition: impl Into<Arc<KPuzzleDefinition>>,
     ) -> Result<Self, InvalidDefinitionError> {
@@ -296,7 +297,7 @@ impl KPuzzle {
             cached_identity_transformation_data,
         }
         .into();
-        let kpuzzle = KPuzzle { data };
+        let kpuzzle = UnpackedKPuzzle { data };
         DerivedMovesValidator::check(&kpuzzle.data.definition)?;
         Ok(kpuzzle)
     }
@@ -309,7 +310,7 @@ impl KPuzzle {
     pub fn transformation_from_move(
         &self, // TODO: Any issues with not using `&self`?
         key_move: &Move,
-    ) -> Result<KTransformation, InvalidAlgError> {
+    ) -> Result<UnpackedKTransformation, UnpackedInvalidAlgError> {
         let move_lookup_result = match lookup_move(self.definition(), key_move) {
             Some(move_lookup_result) => move_lookup_result,
             None => {
@@ -321,10 +322,12 @@ impl KPuzzle {
         };
         let transformation = match move_lookup_result.source {
             // TODO: Avoid constructing this `KTransformation`.
-            MoveLookupResultSource::DirectlyDefined(transformation_data) => KTransformation {
-                kpuzzle: self.clone(),
-                ktransformation_data: transformation_data.clone(),
-            },
+            MoveLookupResultSource::DirectlyDefined(transformation_data) => {
+                UnpackedKTransformation {
+                    kpuzzle: self.clone(),
+                    ktransformation_data: Arc::new(transformation_data.clone()),
+                }
+            }
             MoveLookupResultSource::DerivedFromAlg(alg) => self.transformation_from_alg(alg)?,
         };
         Ok(transformation.self_multiply(move_lookup_result.relative_amount))
@@ -334,7 +337,7 @@ impl KPuzzle {
     pub fn transformation_from_alg(
         &self, // TODO: Any issues with not using `&self`?
         alg: &crate::alg::Alg,
-    ) -> Result<KTransformation, InvalidAlgError> {
+    ) -> Result<UnpackedKTransformation, UnpackedInvalidAlgError> {
         transformation_from_alg(self, alg)
     }
 
@@ -342,37 +345,37 @@ impl KPuzzle {
     pub fn transformation_from_str(
         &self, // TODO: Any issues with not using `&self`?
         alg_str: &str,
-    ) -> Result<KTransformation, InvalidAlgError> {
+    ) -> Result<UnpackedKTransformation, UnpackedInvalidAlgError> {
         transformation_from_alg(self, &alg_str.parse::<Alg>()?)
     }
 
-    pub fn identity_transformation(&self) -> KTransformation {
-        KTransformation {
+    pub fn identity_transformation(&self) -> UnpackedKTransformation {
+        UnpackedKTransformation {
             kpuzzle: self.clone(),
             ktransformation_data: self.data.cached_identity_transformation_data.clone(),
         }
     }
 
-    pub fn default_pattern(&self) -> KPattern {
-        let pattern_data = self.data.definition.default_pattern.clone();
-        KPattern {
+    pub fn default_pattern(&self) -> UnpackedKPattern {
+        let pattern_data = Arc::new(self.data.definition.default_pattern.clone());
+        UnpackedKPattern {
             kpuzzle: self.clone(),
             kpattern_data: pattern_data,
         }
     }
 }
 
-impl PartialEq<KPuzzle> for KPuzzle {
+impl PartialEq<UnpackedKPuzzle> for UnpackedKPuzzle {
     fn eq(&self, other: &Self) -> bool {
         // TODO: is this ref comparison safe?
         std::ptr::eq(self.data.as_ref(), other.data.as_ref())
     }
 }
 
-impl TryFrom<KPuzzleDefinition> for KPuzzle {
+impl TryFrom<KPuzzleDefinition> for UnpackedKPuzzle {
     type Error = InvalidDefinitionError;
-    fn try_from(input: KPuzzleDefinition) -> Result<KPuzzle, InvalidDefinitionError> {
-        KPuzzle::try_new(input)
+    fn try_from(input: KPuzzleDefinition) -> Result<UnpackedKPuzzle, InvalidDefinitionError> {
+        UnpackedKPuzzle::try_new(input)
     }
 }
 
@@ -394,9 +397,9 @@ fn identity_transformation_data(definition: &KPuzzleDefinition) -> KTransformati
 }
 
 fn transformation_from_alg(
-    kpuzzle: &KPuzzle,
+    kpuzzle: &UnpackedKPuzzle,
     alg: &Alg,
-) -> Result<KTransformation, InvalidAlgError> {
+) -> Result<UnpackedKTransformation, UnpackedInvalidAlgError> {
     let mut t = kpuzzle.identity_transformation();
     for node in alg.nodes.iter() {
         let node_transformation = transformation_from_alg_node(kpuzzle, node)?;
@@ -406,9 +409,9 @@ fn transformation_from_alg(
 }
 
 fn transformation_from_alg_node(
-    kpuzzle: &KPuzzle,
+    kpuzzle: &UnpackedKPuzzle,
     alg_node: &AlgNode,
-) -> Result<KTransformation, InvalidAlgError> {
+) -> Result<UnpackedKTransformation, UnpackedInvalidAlgError> {
     match alg_node {
         AlgNode::MoveNode(key_move) => kpuzzle.transformation_from_move(key_move),
         AlgNode::PauseNode(_pause) => Ok(kpuzzle.identity_transformation()),
@@ -439,7 +442,7 @@ fn transformation_from_alg_node(
 mod tests {
     use crate::kpuzzle::KPuzzleDefinition;
 
-    use super::KPuzzle;
+    use super::UnpackedKPuzzle;
 
     #[test]
     fn derived_moves() -> Result<(), String> {
@@ -471,7 +474,7 @@ mod tests {
             .unwrap()
             .contains("derivedMoves"));
 
-        let kpuzzle: KPuzzle = def.try_into().unwrap();
+        let kpuzzle: UnpackedKPuzzle = def.try_into().unwrap();
 
         assert_eq!(
             kpuzzle

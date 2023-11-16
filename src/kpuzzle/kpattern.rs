@@ -4,11 +4,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::alg::{Alg, Move};
 
-use super::{InvalidAlgError, KPuzzle, KPuzzleOrbitName, KTransformation};
+use super::{KPuzzleOrbitName, UnpackedInvalidAlgError, UnpackedKPuzzle, UnpackedKTransformation};
 
 pub type KPatternData = HashMap<KPuzzleOrbitName, KPatternOrbitData>;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(
+    Debug,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    Clone, // TODO
+)]
 #[serde(rename_all = "camelCase")]
 pub struct KPatternOrbitData {
     pub pieces: Vec<usize>,
@@ -16,8 +22,8 @@ pub struct KPatternOrbitData {
     pub orientation_mod: Option<Vec<usize>>,
 }
 #[derive(Debug, Clone)]
-pub struct KPattern {
-    pub kpuzzle: KPuzzle,
+pub struct UnpackedKPattern {
+    pub kpuzzle: UnpackedKPuzzle,
     pub kpattern_data: Arc<KPatternData>,
 }
 
@@ -27,8 +33,11 @@ struct OrientationMods<'a> {
     new: Vec<usize>,
 }
 
-impl KPattern {
-    pub fn apply_transformation(&self, transformation: &KTransformation) -> KPattern {
+impl UnpackedKPattern {
+    pub fn apply_transformation(
+        &self,
+        transformation: &UnpackedKTransformation,
+    ) -> UnpackedKPattern {
         let mut pattern_data = KPatternData::new();
         for orbit_definition in &self.kpuzzle.definition().orbits {
             let num_pieces = orbit_definition.num_pieces;
@@ -76,24 +85,24 @@ impl KPattern {
             // TODO: why do we need to coerce `orbit_name`?
         }
 
-        KPattern {
+        UnpackedKPattern {
             kpuzzle: self.kpuzzle.clone(),
             kpattern_data: pattern_data.into(),
         }
     }
 
-    pub fn apply_alg(&self, alg: &Alg) -> Result<KPattern, InvalidAlgError> {
+    pub fn apply_alg(&self, alg: &Alg) -> Result<UnpackedKPattern, UnpackedInvalidAlgError> {
         let transformation = self.kpuzzle.transformation_from_alg(alg)?;
         Ok(self.apply_transformation(&transformation))
     }
 
-    pub fn apply_move(&self, m: &Move) -> Result<KPattern, InvalidAlgError> {
+    pub fn apply_move(&self, m: &Move) -> Result<UnpackedKPattern, UnpackedInvalidAlgError> {
         let transformation = self.kpuzzle.transformation_from_move(m)?;
         Ok(self.apply_transformation(&transformation))
     }
 }
 
-impl PartialEq<KPattern> for KPattern {
+impl PartialEq<UnpackedKPattern> for UnpackedKPattern {
     fn eq(&self, other: &Self) -> bool {
         // TODO: check if the KPuzzle comparison is correct and performant.
         self.kpuzzle == other.kpuzzle && self.kpattern_data == other.kpattern_data
