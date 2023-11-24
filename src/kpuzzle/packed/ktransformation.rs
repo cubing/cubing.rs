@@ -1,4 +1,4 @@
-use std::{fmt::Debug, hash::BuildHasher, mem::swap};
+use std::{fmt::Debug, hash::BuildHasher};
 
 use crate::{alg::Amount, kpuzzle::KTransformationData};
 
@@ -281,29 +281,46 @@ mod tests {
 }
 
 pub struct KTransformationBuffer {
-    pub current: KTransformation, // TODO(v0.9.0): Change this to a function (to match `KPatternBuffer`)
-    scratch_space: KTransformation,
+    a: KTransformation,
+    b: KTransformation,
+    // In some rough benchmarks, using a boolean to track the current pattern was just a tad faster than using `std::mem::swap(…)`.
+    // TODO: measure this properly across devices, and updated `PackedKTransformationBuffer` to match.
+    a_is_current: bool,
 }
 
 impl From<KTransformation> for KTransformationBuffer {
     fn from(initial: KTransformation) -> Self {
         Self {
-            scratch_space: initial.clone(), // TODO?
-            current: initial,
+            b: initial.clone(), // TODO?
+            a: initial,
+            a_is_current: true,
         }
     }
 }
 
 impl KTransformationBuffer {
     pub fn apply_transformation(&mut self, transformation: &KTransformation) {
-        self.current
-            .apply_transformation_into(transformation, &mut self.scratch_space);
-        swap(&mut self.current, &mut self.scratch_space);
+        if self.a_is_current {
+            self.a
+                .apply_transformation_into(transformation, &mut self.b);
+        } else {
+            self.b
+                .apply_transformation_into(transformation, &mut self.a);
+        }
+        self.a_is_current = !self.a_is_current
+    }
+
+    pub fn current(&self) -> &KTransformation {
+        if self.a_is_current {
+            &self.a
+        } else {
+            &self.b
+        }
     }
 }
 
 impl PartialEq for KTransformationBuffer {
     fn eq(&self, other: &Self) -> bool {
-        self.current == other.current
+        self.current() == other.current()
     }
 }
