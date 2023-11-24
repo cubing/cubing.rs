@@ -29,7 +29,7 @@ impl KTransformation {
         ktransformation_data: &KTransformationData,
     ) -> Result<Self, ConversionError> {
         let mut new_packed_ktransformation = Self::new_uninitialized(kpuzzle.clone());
-        for orbit_info in &kpuzzle.data.orbit_iteration_info {
+        for orbit_info in kpuzzle.orbit_info_iter() {
             for i in 0..orbit_info.num_pieces {
                 let orbit = ktransformation_data.get(&orbit_info.name);
                 let orbit = match orbit {
@@ -54,7 +54,7 @@ impl KTransformation {
 
     pub fn to_data(&self) -> KTransformationData {
         let mut data = KTransformationData::new();
-        for orbit_info in &self.packed_orbit_data.kpuzzle().data.orbit_iteration_info {
+        for orbit_info in self.kpuzzle().orbit_info_iter() {
             let mut permutation = Vec::with_capacity(orbit_info.num_pieces as usize);
             let mut orientation_delta = Vec::with_capacity(orbit_info.num_pieces as usize);
 
@@ -173,7 +173,7 @@ impl KTransformation {
     // TODO: dedup the implementation (but avoid runtime overhead for the shared abstraction).
     pub fn apply_transformation(&self, transformation: &KTransformation) -> KTransformation {
         let mut new_packed_ktransformation =
-            KTransformation::new_uninitialized(self.packed_orbit_data.kpuzzle.clone());
+            KTransformation::new_uninitialized(self.kpuzzle().clone());
         self.apply_transformation_into(transformation, &mut new_packed_ktransformation);
         new_packed_ktransformation
     }
@@ -186,7 +186,7 @@ impl KTransformation {
         transformation: &KTransformation,
         into_packed_ktransformation: &mut KTransformation,
     ) {
-        for orbit_info in &self.packed_orbit_data.kpuzzle.data.orbit_iteration_info {
+        for orbit_info in self.kpuzzle().orbit_info_iter() {
             // TODO: optimization when either value is the identity.
             for i in 0..orbit_info.num_pieces {
                 let transformation_idx =
@@ -233,8 +233,8 @@ impl KTransformation {
 
     pub fn invert(&self) -> KTransformation {
         let mut new_packed_ktransformation =
-            KTransformation::new_uninitialized(self.packed_orbit_data.kpuzzle.clone());
-        for orbit_info in &self.packed_orbit_data.kpuzzle.data.orbit_iteration_info {
+            KTransformation::new_uninitialized(self.kpuzzle().clone());
+        for orbit_info in self.kpuzzle().orbit_info_iter() {
             let num_orientations = orbit_info.num_orientations;
 
             // TODO: optimization when either value is the identity.
@@ -261,7 +261,7 @@ impl KTransformation {
         }
         if amount == 0 {
             // TODO: use cached identity transformations from `KPuzzle`???
-            return self.packed_orbit_data.kpuzzle.identity_transformation();
+            return self.kpuzzle().identity_transformation();
         }
         let twice_halfish = if amount == 2 {
             // We'd share this `apply_transformation` with the other branch, but that triggers a bug in the borrow checker(!)
@@ -286,11 +286,7 @@ struct KPuzzleDebug {
 
 impl Debug for KPuzzleDebug {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{{ … name: \"{}\" … }}",
-            &self.kpuzzle.data.definition.name
-        )
+        write!(f, "{{ … name: \"{}\" … }}", &self.kpuzzle.definition().name)
     }
 }
 
@@ -300,7 +296,7 @@ impl Debug for KTransformation {
             .field(
                 "kpuzzle",
                 &KPuzzleDebug {
-                    kpuzzle: self.packed_orbit_data.kpuzzle.clone(),
+                    kpuzzle: self.kpuzzle().clone(),
                 },
             )
             .field("bytes", &unsafe { self.byte_slice() })

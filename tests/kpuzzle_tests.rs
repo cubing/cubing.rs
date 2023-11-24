@@ -60,7 +60,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
 
     let kpuzzle: KPuzzle = KPuzzle::try_new(def).unwrap();
     let items_orbit_name = &KPuzzleOrbitName("items".to_owned());
-    let items_orbit_info = kpuzzle.lookup_orbit_info(items_orbit_name).unwrap();
+    let items_orbit = kpuzzle.lookup_orbit(items_orbit_name).unwrap();
 
     assert_eq!(kpuzzle.definition().name, "topsy_turvy");
     assert_eq!(
@@ -81,17 +81,17 @@ fn it_works() -> Result<(), InvalidAlgError> {
     assert_eq!(
         kpuzzle
             .transformation_from_move(&("L").parse::<Move>()?)?
-            .get_permutation_idx(items_orbit_info, 0),
+            .get_permutation_idx(items_orbit, 0),
         10
     );
 
     let t = kpuzzle.transformation_from_move(&("R").parse::<Move>()?)?;
     let mut current = t.clone(); // TODO: start with solved.
     for _ in 1..10 {
-        assert_ne!(current.get_permutation_idx(items_orbit_info, 0), 0);
+        assert_ne!(current.get_permutation_idx(items_orbit, 0), 0);
         current = current.apply_transformation(&t);
     }
-    assert_eq!(current.get_permutation_idx(items_orbit_info, 0), 0);
+    assert_eq!(current.get_permutation_idx(items_orbit, 0), 0);
 
     assert_eq!(
         t.apply_transformation(&t),

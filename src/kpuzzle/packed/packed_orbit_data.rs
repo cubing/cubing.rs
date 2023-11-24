@@ -9,7 +9,8 @@ use more_asserts::debug_assert_le;
 use super::{kpuzzle::KPuzzleOrbitInfo, KPuzzle, KTransformation};
 
 pub struct PackedOrbitData {
-    pub(crate) kpuzzle: KPuzzle,
+    /// Use `.kpuzzle()` directly on `KPattern` or `KTransformation` instead, when possible.
+    pub kpuzzle: KPuzzle,
     pub bytes: *mut u8,
 }
 
@@ -44,45 +45,33 @@ impl PackedOrbitData {
         self.bytes.add(main_offset + (second_offset as usize))
     }
 
-    pub unsafe fn get_raw_piece_or_permutation_value(
-        &self,
-        orbit_info: &KPuzzleOrbitInfo,
-        i: u8,
-    ) -> u8 {
+    pub unsafe fn get_raw_piece_or_permutation_value(&self, orbit: &KPuzzleOrbitInfo, i: u8) -> u8 {
         unsafe {
-            self.bytes_offset(orbit_info.pieces_or_permutations_offset, i)
+            self.bytes_offset(orbit.pieces_or_permutations_offset, i)
                 .read()
         }
     }
 
     /// Note: to get orientation with mod, call functions on `PackedKPattern` instead.
-    pub unsafe fn get_raw_orientation_value(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {
-        unsafe { self.bytes_offset(orbit_info.orientations_offset, i).read() }
+    pub unsafe fn get_raw_orientation_value(&self, orbit: &KPuzzleOrbitInfo, i: u8) -> u8 {
+        unsafe { self.bytes_offset(orbit.orientations_offset, i).read() }
     }
 
     pub unsafe fn set_raw_piece_or_permutation_value(
         &mut self,
-        orbit_info: &KPuzzleOrbitInfo,
+        orbit: &KPuzzleOrbitInfo,
         i: u8,
         value: u8,
     ) {
         unsafe {
-            self.bytes_offset(orbit_info.pieces_or_permutations_offset, i)
+            self.bytes_offset(orbit.pieces_or_permutations_offset, i)
                 .write(value)
         }
     }
 
     /// Note: to set orientation with mod, call functions on `PackedKPattern` instead.
-    pub unsafe fn set_raw_orientation_value(
-        &mut self,
-        orbit_info: &KPuzzleOrbitInfo,
-        i: u8,
-        value: u8,
-    ) {
-        unsafe {
-            self.bytes_offset(orbit_info.orientations_offset, i)
-                .write(value)
-        }
+    pub unsafe fn set_raw_orientation_value(&mut self, orbit: &KPuzzleOrbitInfo, i: u8, value: u8) {
+        unsafe { self.bytes_offset(orbit.orientations_offset, i).write(value) }
     }
 
     pub unsafe fn byte_slice(&self) -> &[u8] {

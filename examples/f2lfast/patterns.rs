@@ -68,13 +68,10 @@ pub fn are_slot_pieces_solved(pattern: &KPattern, edge_idx: u8, corner_idx: u8) 
 }
 
 fn is_piece_solved(pattern: &KPattern, orbit_index: usize, idx: u8) -> bool {
-    let orbit_info = &pattern.kpuzzle().data.orbit_iteration_info[orbit_index];
+    let orbit = &pattern.kpuzzle().data.ordered_orbit_info[orbit_index];
     // TODO: compare against the start pattern
-    pattern.get_piece(orbit_info, idx) == idx
-        && pattern
-            .get_orientation_with_mod(orbit_info, idx)
-            .orientation
-            == 0
+    pattern.get_piece(orbit, idx) == idx
+        && pattern.get_orientation_with_mod(orbit, idx).orientation == 0
 }
 
 // // TODO: allow comparing to pattern

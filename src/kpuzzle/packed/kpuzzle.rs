@@ -2,6 +2,7 @@ use std::{
     alloc::Layout,
     error::Error,
     fmt::{Debug, Display},
+    slice::Iter,
     sync::Arc,
 };
 
@@ -91,7 +92,7 @@ impl Error for InvalidAlgError {
 fn identity_transformation(kpuzzle: &KPuzzle) -> KTransformation {
     let mut packed_orbit_data =
         unsafe { PackedOrbitData::new_with_uninitialized_bytes(kpuzzle.clone()) };
-    for orbit_info in &kpuzzle.data.orbit_iteration_info {
+    for orbit_info in kpuzzle.orbit_info_iter() {
         // for orbit_definition in &kpuzzle.definition.orbits {
         let num_pieces = orbit_info.num_pieces;
         for i in 0..num_pieces {
@@ -114,14 +115,16 @@ pub struct KPuzzleOrbitInfo {
 
 #[derive(Debug)]
 pub struct KPuzzleData {
+    /// Use `.definition()` directly on `KPuzzle` instead, when possible.
     pub definition: Arc<KPuzzleDefinition>,
-    // TODO: compute lazily while being thread-safe?
-    // cached_identity_transformation_data: PackedOrbitData, // TODO
+    /// Use `.orbit_iter()` directly on `KPuzzle` instead, when possible.
+    pub ordered_orbit_info: Vec<KPuzzleOrbitInfo>,
 
     // Private cached values.
-    pub num_bytes: usize,
-    pub orbit_iteration_info: Vec<KPuzzleOrbitInfo>,
-    pub layout: Layout,
+    pub(crate) num_bytes: usize,
+    pub(crate) layout: Layout,
+    // TODO: compute lazily while being thread-safe?
+    // cached_identity_transformation_data: PackedOrbitData, // TODO
 }
 
 #[derive(Clone)]
@@ -190,14 +193,14 @@ impl KPuzzle {
         DerivedMovesValidator::check(&definition)?;
 
         let mut bytes_offset = 0;
-        let mut orbit_iteration_info: Vec<KPuzzleOrbitInfo> = vec![];
+        let mut ordered_orbit_info: Vec<KPuzzleOrbitInfo> = vec![];
 
         for orbit_definition in &definition.orbits {
             let num_orientations = orbit_definition.num_orientations;
             if num_orientations > MAX_NUM_ORIENTATIONS_INCLUSIVE {
                 return Err(InvalidDefinitionError { description: format!("`num_orientations` for orbit {} is too large ({}). Maximum is {} for the current build." , orbit_definition.orbit_name, num_orientations, MAX_NUM_ORIENTATIONS_INCLUSIVE)});
             }
-            orbit_iteration_info.push({
+            ordered_orbit_info.push({
                 KPuzzleOrbitInfo {
                     name: orbit_definition.orbit_name.clone(),
                     num_pieces: orbit_definition.num_pieces,
@@ -214,7 +217,7 @@ impl KPuzzle {
             data: Arc::new(KPuzzleData {
                 definition,
                 num_bytes: bytes_offset,
-                orbit_iteration_info,
+                ordered_orbit_info,
                 layout: Layout::array::<u8>(bytes_offset).map_err(|_| InvalidDefinitionError {
                     description: "Could not construct packed layout.".to_owned(),
                 })?,
@@ -239,18 +242,20 @@ impl KPuzzle {
         &self.data.definition
     }
 
+    pub fn orbit_info_iter(&self) -> Iter<'_, KPuzzleOrbitInfo> {
+        self.data.ordered_orbit_info.iter()
+    }
+
     pub fn default_pattern(&self) -> KPattern {
         // TODO: check/cache at construction time.
-        KPattern::try_from_data(self, &self.data.definition.default_pattern)
+        KPattern::try_from_data(self, &self.definition().default_pattern)
             .expect("Invalid default pattern")
     }
 
     // TODO: design a much much more efficient API.
-    pub fn lookup_orbit_info(&self, orbit_name: &KPuzzleOrbitName) -> Option<&KPuzzleOrbitInfo> {
-        self.data
-            .orbit_iteration_info
-            .iter()
-            .find(|&orbit_info| &orbit_info.name == orbit_name)
+    pub fn lookup_orbit(&self, orbit_name: &KPuzzleOrbitName) -> Option<&KPuzzleOrbitInfo> {
+        self.orbit_info_iter()
+            .find(|&orbit| &orbit.name == orbit_name)
     }
 
     pub fn identity_transformation(&self) -> KTransformation {
@@ -262,7 +267,7 @@ impl KPuzzle {
         &self, // TODO: Any issues with not using `&self`?
         key_move: &Move,
     ) -> Result<KTransformation, InvalidAlgError> {
-        let move_lookup_result = match lookup_move(&self.data.definition, key_move) {
+        let move_lookup_result = match lookup_move(self.definition(), key_move) {
             Some(move_lookup_result) => move_lookup_result,
             None => {
                 return Err(InvalidMoveError {
@@ -298,6 +303,6 @@ impl TryFrom<KPuzzleDefinition> for KPuzzle {
 
 impl Debug for KPuzzle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{{ … name: \"{}\" … }}", &self.data.definition.name)
+        write!(f, "{{ … name: \"{}\" … }}", &self.definition().name)
     }
 }

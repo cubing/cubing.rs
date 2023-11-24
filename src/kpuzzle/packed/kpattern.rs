@@ -32,7 +32,7 @@ impl KPattern {
         kpattern_data: &KPatternData,
     ) -> Result<Self, ConversionError> {
         let mut new_packed_kpattern = Self::new_unitialized(kpuzzle.clone());
-        for orbit_info in &kpuzzle.data.orbit_iteration_info {
+        for orbit_info in kpuzzle.orbit_info_iter() {
             for i in 0..orbit_info.num_pieces {
                 let default_orbit = kpattern_data.get(&orbit_info.name);
                 let default_orbit = match default_orbit {
@@ -53,7 +53,7 @@ impl KPattern {
                                     orientation_mod[i as usize],
                                     i,
                                     orbit_info.name,
-                                    kpuzzle.data.definition.name,
+                                    kpuzzle.definition().name,
                                     orbit_info.num_orientations
                                 )}));
                             };
@@ -71,7 +71,7 @@ impl KPattern {
 
     pub fn to_data(&self) -> KPatternData {
         let mut data = KPatternData::new();
-        for orbit_info in &self.packed_orbit_data.kpuzzle().data.orbit_iteration_info {
+        for orbit_info in self.kpuzzle().orbit_info_iter() {
             let mut pieces = Vec::with_capacity(orbit_info.num_pieces as usize);
             let mut orientation = Vec::with_capacity(orbit_info.num_pieces as usize);
             let mut orientation_mod = Vec::with_capacity(orbit_info.num_pieces as usize);
@@ -120,119 +120,113 @@ impl KPattern {
         Self::try_from_data(kpuzzle, &kpattern_data)
     }
 
-    pub fn get_piece(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {
-        assert_lt!(i, orbit_info.num_pieces);
-        unsafe { self.get_piece_unchecked(orbit_info, i) }
+    pub fn get_piece(&self, orbit: &KPuzzleOrbitInfo, i: u8) -> u8 {
+        assert_lt!(i, orbit.num_pieces);
+        unsafe { self.get_piece_unchecked(orbit, i) }
     }
 
     /// # Safety
     /// This version does not check whether `i` is in the correct range.
-    unsafe fn get_piece_unchecked(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {
+    unsafe fn get_piece_unchecked(&self, orbit: &KPuzzleOrbitInfo, i: u8) -> u8 {
         self.packed_orbit_data
-            .bytes_offset(orbit_info.pieces_or_permutations_offset, i)
+            .bytes_offset(orbit.pieces_or_permutations_offset, i)
             .read()
     }
 
     pub fn get_orientation_with_mod<'a>(
         &self,
-        orbit_info: &'a KPuzzleOrbitInfo,
+        orbit: &'a KPuzzleOrbitInfo,
         i: u8,
     ) -> &'a OrientationWithMod {
-        assert_lt!(i, orbit_info.num_pieces);
-        unsafe { self.get_orientation_with_mod_unchecked(orbit_info, i) }
+        assert_lt!(i, orbit.num_pieces);
+        unsafe { self.get_orientation_with_mod_unchecked(orbit, i) }
     }
 
     /// # Safety
     /// This version does not check whether `i` is in the correct range.
     pub unsafe fn get_orientation_with_mod_unchecked<'a>(
         &self,
-        orbit_info: &'a KPuzzleOrbitInfo,
+        orbit: &'a KPuzzleOrbitInfo,
         i: u8,
     ) -> &'a OrientationWithMod {
-        let packed_orientation_with_mod =
-            &self.get_packed_orientation_with_mod_unchecked(orbit_info, i);
-        orbit_info
-            .orientation_packer
-            .unpack(packed_orientation_with_mod)
+        let packed_orientation_with_mod = &self.get_packed_orientation_with_mod_unchecked(orbit, i);
+        orbit.orientation_packer.unpack(packed_orientation_with_mod)
     }
 
     fn get_packed_orientation_with_mod_unchecked(
         &self,
-        orbit_info: &KPuzzleOrbitInfo,
+        orbit: &KPuzzleOrbitInfo,
         i: u8,
     ) -> PackedOrientationWithMod {
         unsafe {
             self.packed_orbit_data
-                .bytes_offset(orbit_info.orientations_offset, i)
+                .bytes_offset(orbit.orientations_offset, i)
                 .read()
         }
     }
 
-    pub fn set_piece(&mut self, orbit_info: &KPuzzleOrbitInfo, i: u8, value: u8) {
-        assert_lt!(i, orbit_info.num_pieces);
-        unsafe { self.set_piece_unchecked(orbit_info, i, value) }
+    pub fn set_piece(&mut self, orbit: &KPuzzleOrbitInfo, i: u8, value: u8) {
+        assert_lt!(i, orbit.num_pieces);
+        unsafe { self.set_piece_unchecked(orbit, i, value) }
     }
 
     /// # Safety
     /// This version does not check whether `i` is in the correct range.
-    pub unsafe fn set_piece_unchecked(&mut self, orbit_info: &KPuzzleOrbitInfo, i: u8, value: u8) {
+    pub unsafe fn set_piece_unchecked(&mut self, orbit: &KPuzzleOrbitInfo, i: u8, value: u8) {
         unsafe {
             self.packed_orbit_data
-                .bytes_offset(orbit_info.pieces_or_permutations_offset, i)
+                .bytes_offset(orbit.pieces_or_permutations_offset, i)
                 .write(value)
         }
     }
 
     pub fn set_orientation_with_mod(
         &mut self,
-        orbit_info: &KPuzzleOrbitInfo,
+        orbit: &KPuzzleOrbitInfo,
         i: u8,
         orientation_with_mod: &OrientationWithMod,
     ) {
-        assert_lt!(i, orbit_info.num_pieces);
+        assert_lt!(i, orbit.num_pieces);
         if orientation_with_mod.orientation_mod == 0 {
-            assert_lt!(
-                orientation_with_mod.orientation,
-                orbit_info.num_orientations
-            )
+            assert_lt!(orientation_with_mod.orientation, orbit.num_orientations)
         } else {
             assert_lt!(
                 orientation_with_mod.orientation,
                 orientation_with_mod.orientation_mod
             );
             assert_eq!(
-                orbit_info.num_orientations % orientation_with_mod.orientation_mod,
+                orbit.num_orientations % orientation_with_mod.orientation_mod,
                 0
             );
         }
-        unsafe { self.set_orientation_with_mod_unchecked(orbit_info, i, orientation_with_mod) }
+        unsafe { self.set_orientation_with_mod_unchecked(orbit, i, orientation_with_mod) }
     }
 
     /// # Safety
     /// This version does not check whether `i` or `orientation_with_mod` are in the correct ranges.
     pub unsafe fn set_orientation_with_mod_unchecked(
         &mut self,
-        orbit_info: &KPuzzleOrbitInfo,
+        orbit: &KPuzzleOrbitInfo,
         i: u8,
         orientation_with_mod: &OrientationWithMod,
     ) {
-        let packed_orientation_with_mod = orbit_info.orientation_packer.pack(orientation_with_mod);
+        let packed_orientation_with_mod = orbit.orientation_packer.pack(orientation_with_mod);
         unsafe {
             self.packed_orbit_data
-                .bytes_offset(orbit_info.orientations_offset, i)
+                .bytes_offset(orbit.orientations_offset, i)
                 .write(packed_orientation_with_mod)
         }
     }
 
     pub(crate) fn set_packed_orientation_with_mod_unchecked(
         &mut self,
-        orbit_info: &KPuzzleOrbitInfo,
+        orbit: &KPuzzleOrbitInfo,
         i: u8,
         value: PackedOrientationWithMod,
     ) {
         unsafe {
             self.packed_orbit_data
-                .bytes_offset(orbit_info.orientations_offset, i)
+                .bytes_offset(orbit.orientations_offset, i)
                 .write(value)
         }
     }
@@ -240,8 +234,7 @@ impl KPattern {
     // Adapted from https://github.com/cubing/cubing.rs/blob/b737c6a36528e9984b45b29f9449a9a330c272fb/src/kpuzzle/pattern.rs#L31-L82
     // TODO: dedup the implementation (but avoid runtime overhead for the shared abstraction).
     pub fn apply_transformation(&self, transformation: &KTransformation) -> KPattern {
-        let mut new_packed_kpattern =
-            KPattern::new_unitialized(self.packed_orbit_data.kpuzzle.clone());
+        let mut new_packed_kpattern = KPattern::new_unitialized(self.kpuzzle().clone());
         self.apply_transformation_into(transformation, &mut new_packed_kpattern);
         new_packed_kpattern
     }
@@ -254,7 +247,7 @@ impl KPattern {
         transformation: &KTransformation,
         into_packed_kpattern: &mut KPattern,
     ) {
-        for orbit_info in &self.packed_orbit_data.kpuzzle.data.orbit_iteration_info {
+        for orbit_info in self.kpuzzle().orbit_info_iter() {
             // TODO: optimization when either value is the identity.
             for i in 0..orbit_info.num_pieces {
                 let transformation_idx =
@@ -292,7 +285,7 @@ impl KPattern {
     }
 
     pub fn apply_move(&self, m: &Move) -> Result<KPattern, InvalidAlgError> {
-        let transformation = self.packed_orbit_data.kpuzzle.transformation_from_move(m)?;
+        let transformation = self.kpuzzle().transformation_from_move(m)?;
         Ok(self.apply_transformation(&transformation))
     }
 
@@ -313,11 +306,7 @@ struct KPuzzleDebug {
 
 impl Debug for KPuzzleDebug {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{{ … name: \"{}\" … }}",
-            &self.kpuzzle.data.definition.name
-        )
+        write!(f, "{{ … name: \"{}\" … }}", &self.kpuzzle.definition().name)
     }
 }
 
@@ -327,7 +316,7 @@ impl Debug for KPattern {
             .field(
                 "kpuzzle",
                 &KPuzzleDebug {
-                    kpuzzle: self.packed_orbit_data.kpuzzle.clone(),
+                    kpuzzle: self.kpuzzle().clone(),
                 },
             )
             .field("bytes", &unsafe { self.byte_slice() })
