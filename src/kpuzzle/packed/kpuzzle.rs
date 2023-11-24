@@ -105,7 +105,7 @@ fn identity_transformation(kpuzzle: &KPuzzle) -> KTransformation {
 #[derive(Debug)]
 pub struct KPuzzleOrbitInfo {
     pub name: KPuzzleOrbitName,
-    pub pieces_or_pemutations_offset: usize, // TODO(v0.9.0): Rename
+    pub pieces_or_permutations_offset: usize,
     pub orientations_offset: usize,
     pub num_pieces: usize,
     pub num_orientations: u8,
@@ -202,7 +202,7 @@ impl KPuzzle {
                     name: orbit_definition.orbit_name.clone(),
                     num_pieces: orbit_definition.num_pieces,
                     num_orientations: usize_to_u8(num_orientations),
-                    pieces_or_pemutations_offset: bytes_offset,
+                    pieces_or_permutations_offset: bytes_offset,
                     orientations_offset: bytes_offset + orbit_definition.num_pieces,
                     orientation_packer: OrientationPacker::new(orbit_definition.num_orientations),
                 }

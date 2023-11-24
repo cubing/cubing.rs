@@ -54,7 +54,7 @@ impl KTransformation {
         unsafe {
             self.packed_orbit_data
                 .bytes
-                .add(orbit_info.pieces_or_pemutations_offset + i)
+                .add(orbit_info.pieces_or_permutations_offset + i)
                 .read()
         }
     }
@@ -74,7 +74,7 @@ impl KTransformation {
         unsafe {
             self.packed_orbit_data
                 .bytes
-                .add(orbit_info.pieces_or_pemutations_offset + i)
+                .add(orbit_info.pieces_or_permutations_offset + i)
                 .write(value)
         }
     }

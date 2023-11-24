@@ -41,7 +41,7 @@ impl PackedOrbitData {
     ) -> u8 {
         unsafe {
             self.bytes
-                .add(orbit_info.pieces_or_pemutations_offset + i)
+                .add(orbit_info.pieces_or_permutations_offset + i)
                 .read()
         }
     }
@@ -59,7 +59,7 @@ impl PackedOrbitData {
     ) {
         unsafe {
             self.bytes
-                .add(orbit_info.pieces_or_pemutations_offset + i)
+                .add(orbit_info.pieces_or_permutations_offset + i)
                 .write(value)
         }
     }
