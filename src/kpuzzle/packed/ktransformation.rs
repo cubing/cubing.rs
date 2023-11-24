@@ -10,7 +10,7 @@ use super::{
 
 #[derive(Clone, Eq)]
 pub struct KTransformation {
-    pub packed_orbit_data: PackedOrbitData,
+    pub(crate) packed_orbit_data: PackedOrbitData,
 }
 
 impl KTransformation {
@@ -51,6 +51,12 @@ impl KTransformation {
 
     pub fn kpuzzle(&self) -> &KPuzzle {
         &self.packed_orbit_data.kpuzzle
+    }
+
+    /// # Safety
+    /// `packed_orbit_data` implementation details are not a public API and implemented using `unsafe` themselves.
+    pub unsafe fn packed_orbit_data(&self) -> &PackedOrbitData {
+        &self.packed_orbit_data
     }
 
     pub fn get_permutation_idx(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {

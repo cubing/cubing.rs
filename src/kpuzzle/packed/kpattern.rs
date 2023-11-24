@@ -16,7 +16,7 @@ use crate::{
 
 #[derive(Hash, PartialEq, Eq, Clone)]
 pub struct KPattern {
-    pub packed_orbit_data: PackedOrbitData,
+    pub(crate) packed_orbit_data: PackedOrbitData,
 }
 
 impl KPattern {
@@ -71,6 +71,11 @@ impl KPattern {
 
     pub fn kpuzzle(&self) -> &KPuzzle {
         &self.packed_orbit_data.kpuzzle
+    }
+    /// # Safety
+    /// `packed_orbit_data` implementation details are not a public API and implemented using `unsafe` themselves.
+    pub unsafe fn packed_orbit_data(&self) -> &PackedOrbitData {
+        &self.packed_orbit_data
     }
 
     pub fn try_from_json(kpuzzle: &KPuzzle, json_bytes: &[u8]) -> Result<Self, ConversionError> {
