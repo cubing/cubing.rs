@@ -11,7 +11,7 @@ use rand::thread_rng;
 
 use cubing::{
     alg::{Alg, AlgBuilder, AlgNode, Pause},
-    kpuzzle::PackedKPattern,
+    kpuzzle::KPattern,
 };
 
 struct SearchStatus {
@@ -20,7 +20,7 @@ struct SearchStatus {
 }
 
 struct SearchFrame {
-    pattern: PackedKPattern,
+    pattern: KPattern,
     solved_slots: SlotMask, // TODO: see if `&SlotMask` is faster?
     total_depth: usize,
     slot_depth: usize,
@@ -49,7 +49,7 @@ pub struct Search {
 }
 
 impl Search {
-    pub fn search(&self, pattern: &PackedKPattern) {
+    pub fn search(&self, pattern: &KPattern) {
         for depth_limit in self.start_depth_limit..(self.max_depth_limit + 1) {
             println!("Search depth: {}", depth_limit);
             let search_status = &mut SearchStatus {

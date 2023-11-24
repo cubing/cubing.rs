@@ -4,8 +4,8 @@ use crate::alg::{Alg, AlgNode, Move};
 
 use super::{
     super::KPuzzleDefinition,
+    kpuzzle::InvalidDefinitionError,
     lookup_move::{lookup_move, MoveLookupResultSource},
-    packed_kpuzzle::InvalidDefinitionError,
 };
 
 enum DerivedMoveVisitStatus {

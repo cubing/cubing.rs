@@ -4,26 +4,22 @@ use std::{
     hash::{BuildHasher, Hash},
 };
 
-use super::{packed_kpuzzle::PackedKPuzzleOrbitInfo, PackedKPuzzle, PackedKTransformation};
+use super::{kpuzzle::KPuzzleOrbitInfo, KPuzzle, KTransformation};
 
 pub struct PackedOrbitData {
-    pub packed_kpuzzle: PackedKPuzzle,
+    pub kpuzzle: KPuzzle,
     pub bytes: *mut u8,
 }
 
 impl Drop for PackedOrbitData {
     fn drop(&mut self) {
-        unsafe { dealloc(self.bytes, self.packed_kpuzzle.data.layout) }
+        unsafe { dealloc(self.bytes, self.kpuzzle.data.layout) }
     }
 }
 
 trait KPatternOrKTransformation {
     fn apply_transformation(&self, transformation: &Self) -> Self;
-    fn apply_transformation_into(
-        &self,
-        transformation: &PackedKTransformation,
-        into_other: &mut Self,
-    );
+    fn apply_transformation_into(&self, transformation: &KTransformation, into_other: &mut Self);
 
     fn byte_slice(&self) -> &[u8];
 
@@ -33,17 +29,14 @@ trait KPatternOrKTransformation {
 }
 
 impl PackedOrbitData {
-    pub fn new_with_uninitialized_bytes(packed_kpuzzle: PackedKPuzzle) -> Self {
-        let bytes = unsafe { alloc(packed_kpuzzle.data.layout) };
-        Self {
-            packed_kpuzzle,
-            bytes,
-        }
+    pub fn new_with_uninitialized_bytes(kpuzzle: KPuzzle) -> Self {
+        let bytes = unsafe { alloc(kpuzzle.data.layout) };
+        Self { kpuzzle, bytes }
     }
 
     pub fn get_raw_piece_or_permutation_value(
         &self,
-        orbit_info: &PackedKPuzzleOrbitInfo,
+        orbit_info: &KPuzzleOrbitInfo,
         i: usize,
     ) -> u8 {
         unsafe {
@@ -54,13 +47,13 @@ impl PackedOrbitData {
     }
 
     /// Note: to get orientation with mod, call functions on `PackedKPattern` instead.
-    pub fn get_raw_orientation_value(&self, orbit_info: &PackedKPuzzleOrbitInfo, i: usize) -> u8 {
+    pub fn get_raw_orientation_value(&self, orbit_info: &KPuzzleOrbitInfo, i: usize) -> u8 {
         unsafe { self.bytes.add(orbit_info.orientations_offset + i).read() }
     }
 
     pub fn set_raw_piece_or_permutation_value(
         &mut self,
-        orbit_info: &PackedKPuzzleOrbitInfo,
+        orbit_info: &KPuzzleOrbitInfo,
         i: usize,
         value: u8,
     ) {
@@ -74,7 +67,7 @@ impl PackedOrbitData {
     /// Note: to set orientation with mod, call functions on `PackedKPattern` instead.
     pub fn set_raw_orientation_value(
         &mut self,
-        orbit_info: &PackedKPuzzleOrbitInfo,
+        orbit_info: &KPuzzleOrbitInfo,
         i: usize,
         value: u8,
     ) {
@@ -88,7 +81,7 @@ impl PackedOrbitData {
     pub fn byte_slice(&self) -> &[u8] {
         // yiss ☺️
         // https://stackoverflow.com/a/27150865
-        unsafe { std::slice::from_raw_parts(self.bytes, self.packed_kpuzzle.data.num_bytes) }
+        unsafe { std::slice::from_raw_parts(self.bytes, self.kpuzzle.data.num_bytes) }
     }
 
     pub fn hash(&self) -> u64 {
@@ -100,7 +93,7 @@ impl PackedOrbitData {
 impl Debug for PackedOrbitData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PackedKPattern")
-            .field("packed_kpuzzle", &self.packed_kpuzzle)
+            .field("kpuzzle", &self.kpuzzle)
             .field("bytes", &self.byte_slice())
             .finish()
     }
@@ -124,12 +117,12 @@ impl Eq for PackedOrbitData {}
 impl Clone for PackedOrbitData {
     fn clone(&self) -> Self {
         let new_packed_orbit_data =
-            PackedOrbitData::new_with_uninitialized_bytes(self.packed_kpuzzle.clone());
+            PackedOrbitData::new_with_uninitialized_bytes(self.kpuzzle.clone());
         unsafe {
             std::ptr::copy(
                 self.bytes,
                 new_packed_orbit_data.bytes,
-                self.packed_kpuzzle.data.num_bytes,
+                self.kpuzzle.data.num_bytes,
             )
         };
         new_packed_orbit_data

@@ -1,6 +1,6 @@
 use cubing::{
     alg::Alg,
-    kpuzzle::{PackedKPuzzle, PackedKTransformation},
+    kpuzzle::{KPuzzle, KTransformation},
     parse_alg,
 };
 
@@ -17,12 +17,12 @@ pub enum F2LSlot {
 pub struct TriggerInfo {
     pub short_alg: Alg,
     pub long_alg: Alg,
-    pub transformation: PackedKTransformation,
+    pub transformation: KTransformation,
 }
 
 impl TriggerInfo {
     #[allow(non_snake_case)]
-    pub fn new(kpuzzle: &PackedKPuzzle, short_alg: &str, long_alg: &str) -> TriggerInfo {
+    pub fn new(kpuzzle: &KPuzzle, short_alg: &str, long_alg: &str) -> TriggerInfo {
         let short_alg = parse_alg!(short_alg).unwrap();
         let long_alg = parse_alg!(long_alg).unwrap();
         let transformation = kpuzzle.transformation_from_alg(&long_alg).unwrap();
@@ -40,7 +40,7 @@ pub struct SlotTriggerInfo {
     pub triggers: Vec<TriggerInfo>,
 }
 
-pub fn get_triggers_by_slot(kpuzzle: &PackedKPuzzle) -> Vec<SlotTriggerInfo> {
+pub fn get_triggers_by_slot(kpuzzle: &KPuzzle) -> Vec<SlotTriggerInfo> {
     vec![
         SlotTriggerInfo {
             f2l_slot: F2LSlot::K,
@@ -89,7 +89,7 @@ pub fn get_triggers_by_slot(kpuzzle: &PackedKPuzzle) -> Vec<SlotTriggerInfo> {
     ]
 }
 
-pub fn get_auf_triggers(kpuzzle: &PackedKPuzzle) -> Vec<TriggerInfo> {
+pub fn get_auf_triggers(kpuzzle: &KPuzzle) -> Vec<TriggerInfo> {
     vec![
         TriggerInfo::new(kpuzzle, "", ""),
         TriggerInfo::new(kpuzzle, "U", "U"),

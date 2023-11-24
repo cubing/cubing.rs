@@ -2,9 +2,8 @@ use std::collections::HashMap;
 
 use cubing::{
     kpuzzle::{
-        InvalidAlgError, InvalidDefinitionError, KPatternData, KPatternOrbitData,
+        InvalidAlgError, InvalidDefinitionError, KPatternData, KPatternOrbitData, KPuzzle,
         KPuzzleDefinition, KPuzzleOrbitDefinition, KTransformationData, KTransformationOrbitData,
-        PackedKPuzzle,
     },
     parse_alg,
     puzzles::{cube2x2x2_kpuzzle, cube3x3x3_kpuzzle},
@@ -77,7 +76,7 @@ fn avoids_recursion() -> Result<(), InvalidDefinitionError> {
             ("C".try_into().unwrap(), "A B".try_into().unwrap()),
         ])),
     };
-    assert!(PackedKPuzzle::try_new(def)
+    assert!(KPuzzle::try_new(def)
         .expect_err("Expected recursive KPuzzle to fail instantiation.")
         .description
         .starts_with("Recursive derived move definition for: "));

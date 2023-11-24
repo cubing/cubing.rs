@@ -132,8 +132,7 @@ impl OrientationPacker {
 #[cfg(test)]
 mod tests {
     use crate::kpuzzle::{
-        KPatternData, KPatternOrbitData, KPuzzleDefinition, KPuzzleOrbitName, PackedKPattern,
-        PackedKPuzzle,
+        KPattern, KPatternData, KPatternOrbitData, KPuzzle, KPuzzleDefinition, KPuzzleOrbitName,
     };
 
     // TODO: Return a `Result`.
@@ -159,7 +158,7 @@ mod tests {
 }"#,
         )
         .unwrap();
-        let kpuzzle = PackedKPuzzle::try_new(def).unwrap();
+        let kpuzzle = KPuzzle::try_new(def).unwrap();
 
         let spin = kpuzzle
             .transformation_from_move(&"SPIN".try_into().unwrap())
@@ -180,7 +179,7 @@ mod tests {
         let pattern = pattern.apply_transformation(&spin);
         // println!("{:?}", pattern.unpack().kpattern_data);
 
-        let expected = PackedKPattern::try_from_data(
+        let expected = KPattern::try_from_data(
             &kpuzzle,
             &KPatternData::from([(
                 KPuzzleOrbitName("PIECES".to_owned()),

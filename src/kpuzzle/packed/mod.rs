@@ -1,18 +1,18 @@
 mod errors;
 pub use errors::*;
 
-mod packed_kpuzzle;
-pub use packed_kpuzzle::{
-    ConversionError, InvalidAlgError, InvalidDefinitionError, PackedKPuzzle, PackedKPuzzleOrbitInfo,
+mod kpuzzle;
+pub use kpuzzle::{
+    ConversionError, InvalidAlgError, InvalidDefinitionError, KPuzzle, KPuzzleOrbitInfo,
 };
 
 mod packed_orbit_data;
 
-mod packed_ktransformation;
-pub use packed_ktransformation::{PackedKTransformation, PackedKTransformationBuffer};
+mod ktransformation;
+pub use ktransformation::{KTransformation, KTransformationBuffer};
 
-mod packed_kpattern;
-pub use packed_kpattern::{PackedKPattern, PackedKPatternBuffer};
+mod kpattern;
+pub use kpattern::{KPattern, KPatternBuffer};
 
 mod byte_conversions;
 mod orientation_packer;

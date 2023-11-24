@@ -1,4 +1,4 @@
-use cubing::kpuzzle::PackedKPattern;
+use cubing::kpuzzle::KPattern;
 
 use crate::triggers::F2LSlot;
 
@@ -35,7 +35,7 @@ impl SlotMask {
     }
 
     // Does *not* check if cross is solved.
-    pub fn from_pattern(pattern: &PackedKPattern) -> Self {
+    pub fn from_pattern(pattern: &KPattern) -> Self {
         Self {
             H: is_slot_solved(pattern, &F2LSlot::H),
             I: is_slot_solved(pattern, &F2LSlot::I),
@@ -46,7 +46,7 @@ impl SlotMask {
 }
 
 // TODO: is it more efficient not to borrow `F2LSlot`?
-pub fn is_slot_solved(pattern: &PackedKPattern, f2l_slot: &F2LSlot) -> bool {
+pub fn is_slot_solved(pattern: &KPattern, f2l_slot: &F2LSlot) -> bool {
     // Reid order:
     // UF  UR  UB  UL  . DF  DR  DB  DL  . FR  FL  BR  BL
     // UFR URB UBL ULF . DRF DFL DLB DBR
@@ -62,21 +62,13 @@ pub fn is_slot_solved(pattern: &PackedKPattern, f2l_slot: &F2LSlot) -> bool {
 const ORBIT_INDEX_EDGES: usize = 0;
 const ORBIT_INDEX_CORNERS: usize = 0;
 
-pub fn are_slot_pieces_solved(
-    pattern: &PackedKPattern,
-    edge_idx: usize,
-    corner_idx: usize,
-) -> bool {
+pub fn are_slot_pieces_solved(pattern: &KPattern, edge_idx: usize, corner_idx: usize) -> bool {
     is_piece_solved(pattern, ORBIT_INDEX_EDGES, edge_idx)
         && is_piece_solved(pattern, ORBIT_INDEX_CORNERS, corner_idx)
 }
 
-fn is_piece_solved(pattern: &PackedKPattern, orbit_index: usize, idx: usize) -> bool {
-    let orbit_info = &pattern
-        .packed_orbit_data
-        .packed_kpuzzle
-        .data
-        .orbit_iteration_info[orbit_index];
+fn is_piece_solved(pattern: &KPattern, orbit_index: usize, idx: usize) -> bool {
+    let orbit_info = &pattern.packed_orbit_data.kpuzzle.data.orbit_iteration_info[orbit_index];
     // TODO: compare against the start pattern
     pattern.get_piece(orbit_info, idx) == idx as u8
         && pattern
@@ -103,7 +95,7 @@ fn is_piece_solved(pattern: &PackedKPattern, orbit_index: usize, idx: usize) -> 
 //         && centers.pieces[0..2] == [0, 1] // We can get away with testing just two faces, and don't test orientation
 // }
 
-pub fn is_3x3x3_cross_solved(pattern: &PackedKPattern) -> bool {
+pub fn is_3x3x3_cross_solved(pattern: &KPattern) -> bool {
     is_piece_solved(pattern, ORBIT_INDEX_EDGES, 4)
         && is_piece_solved(pattern, ORBIT_INDEX_EDGES, 5)
         && is_piece_solved(pattern, ORBIT_INDEX_EDGES, 6)
@@ -111,8 +103,8 @@ pub fn is_3x3x3_cross_solved(pattern: &PackedKPattern) -> bool {
 }
 
 // TODO: allow comparing to pattern
-pub fn is_3x3x3_solved(pattern: &PackedKPattern) -> bool {
-    pattern == &pattern.packed_orbit_data.packed_kpuzzle.default_pattern()
+pub fn is_3x3x3_solved(pattern: &KPattern) -> bool {
+    pattern == &pattern.packed_orbit_data.kpuzzle.default_pattern()
     // let edges = pattern
     //     .kpattern_data
     //     .get(&("EDGES").into())

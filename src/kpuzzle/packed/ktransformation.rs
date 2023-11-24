@@ -4,30 +4,30 @@ use crate::{alg::Amount, kpuzzle::KTransformationData};
 
 use super::{
     byte_conversions::{u8_to_usize, usize_to_u8},
-    packed_kpuzzle::PackedKPuzzleOrbitInfo,
+    kpuzzle::KPuzzleOrbitInfo,
     packed_orbit_data::PackedOrbitData,
-    ConversionError, PackedKPuzzle,
+    ConversionError, KPuzzle,
 };
 
 #[derive(Clone, Eq)]
-pub struct PackedKTransformation {
+pub struct KTransformation {
     pub packed_orbit_data: PackedOrbitData,
 }
 
-impl PackedKTransformation {
-    pub(crate) fn new_uninitialized(packed_kpuzzle: PackedKPuzzle) -> Self {
+impl KTransformation {
+    pub(crate) fn new_uninitialized(kpuzzle: KPuzzle) -> Self {
         Self {
-            packed_orbit_data: PackedOrbitData::new_with_uninitialized_bytes(packed_kpuzzle),
+            packed_orbit_data: PackedOrbitData::new_with_uninitialized_bytes(kpuzzle),
         }
     }
 
     // TODO: validation?
     pub fn try_from_data(
-        packed_kpuzzle: &PackedKPuzzle,
+        kpuzzle: &KPuzzle,
         kpattern_data: &KTransformationData,
     ) -> Result<Self, ConversionError> {
-        let mut new_packed_ktransformation = Self::new_uninitialized(packed_kpuzzle.clone());
-        for orbit_info in &packed_kpuzzle.data.orbit_iteration_info {
+        let mut new_packed_ktransformation = Self::new_uninitialized(kpuzzle.clone());
+        for orbit_info in &kpuzzle.data.orbit_iteration_info {
             for i in 0..orbit_info.num_pieces {
                 let orbit = kpattern_data.get(&orbit_info.name);
                 let orbit = match orbit {
@@ -50,7 +50,7 @@ impl PackedKTransformation {
         Ok(new_packed_ktransformation)
     }
     // TODO: dedup with PackedKTransformation, or at least implement as a trait?
-    pub fn get_permutation_idx(&self, orbit_info: &PackedKPuzzleOrbitInfo, i: usize) -> u8 {
+    pub fn get_permutation_idx(&self, orbit_info: &KPuzzleOrbitInfo, i: usize) -> u8 {
         unsafe {
             self.packed_orbit_data
                 .bytes
@@ -60,7 +60,7 @@ impl PackedKTransformation {
     }
 
     // TODO: dedup with PackedKTransformation, or at least implement as a trait?
-    pub fn get_orientation_delta(&self, orbit_info: &PackedKPuzzleOrbitInfo, i: usize) -> u8 {
+    pub fn get_orientation_delta(&self, orbit_info: &KPuzzleOrbitInfo, i: usize) -> u8 {
         unsafe {
             self.packed_orbit_data
                 .bytes
@@ -70,12 +70,7 @@ impl PackedKTransformation {
     }
 
     // TODO: dedup with PackedKTransformation, or at least implement as a trait?
-    pub fn set_permutation_idx(
-        &mut self,
-        orbit_info: &PackedKPuzzleOrbitInfo,
-        i: usize,
-        value: u8,
-    ) {
+    pub fn set_permutation_idx(&mut self, orbit_info: &KPuzzleOrbitInfo, i: usize, value: u8) {
         unsafe {
             self.packed_orbit_data
                 .bytes
@@ -85,12 +80,7 @@ impl PackedKTransformation {
     }
 
     // TODO: dedup with PackedKTransformation, or at least implement as a trait?
-    pub fn set_orientation_delta(
-        &mut self,
-        orbit_info: &PackedKPuzzleOrbitInfo,
-        i: usize,
-        value: u8,
-    ) {
+    pub fn set_orientation_delta(&mut self, orbit_info: &KPuzzleOrbitInfo, i: usize, value: u8) {
         unsafe {
             self.packed_orbit_data
                 .bytes
@@ -101,12 +91,9 @@ impl PackedKTransformation {
 
     // Adapted from https://github.com/cubing/cubing.rs/blob/b737c6a36528e9984b45b29f9449a9a330c272fb/src/kpuzzle/transformation.rs#L32-L61
     // TODO: dedup the implementation (but avoid runtime overhead for the shared abstraction).
-    pub fn apply_transformation(
-        &self,
-        transformation: &PackedKTransformation,
-    ) -> PackedKTransformation {
+    pub fn apply_transformation(&self, transformation: &KTransformation) -> KTransformation {
         let mut new_packed_ktransformation =
-            PackedKTransformation::new_uninitialized(self.packed_orbit_data.packed_kpuzzle.clone());
+            KTransformation::new_uninitialized(self.packed_orbit_data.kpuzzle.clone());
         self.apply_transformation_into(transformation, &mut new_packed_ktransformation);
         new_packed_ktransformation
     }
@@ -116,15 +103,10 @@ impl PackedKTransformation {
     // TODO: assign to self from another value, not into another
     pub fn apply_transformation_into(
         &self,
-        transformation: &PackedKTransformation,
-        into_packed_ktransformation: &mut PackedKTransformation,
+        transformation: &KTransformation,
+        into_packed_ktransformation: &mut KTransformation,
     ) {
-        for orbit_info in &self
-            .packed_orbit_data
-            .packed_kpuzzle
-            .data
-            .orbit_iteration_info
-        {
+        for orbit_info in &self.packed_orbit_data.kpuzzle.data.orbit_iteration_info {
             // TODO: optimization when either value is the identity.
             for i in 0..orbit_info.num_pieces {
                 let transformation_idx = transformation.get_permutation_idx(orbit_info, i);
@@ -159,7 +141,7 @@ impl PackedKTransformation {
         unsafe {
             std::slice::from_raw_parts(
                 self.packed_orbit_data.bytes,
-                self.packed_orbit_data.packed_kpuzzle.data.num_bytes,
+                self.packed_orbit_data.kpuzzle.data.num_bytes,
             )
         }
     }
@@ -169,15 +151,10 @@ impl PackedKTransformation {
         h.hash_one(self.byte_slice())
     }
 
-    pub fn invert(&self) -> PackedKTransformation {
+    pub fn invert(&self) -> KTransformation {
         let mut new_packed_ktransformation =
-            PackedKTransformation::new_uninitialized(self.packed_orbit_data.packed_kpuzzle.clone());
-        for orbit_info in &self
-            .packed_orbit_data
-            .packed_kpuzzle
-            .data
-            .orbit_iteration_info
-        {
+            KTransformation::new_uninitialized(self.packed_orbit_data.kpuzzle.clone());
+        for orbit_info in &self.packed_orbit_data.kpuzzle.data.orbit_iteration_info {
             let num_orientations = orbit_info.num_orientations;
 
             // TODO: optimization when either value is the identity.
@@ -208,10 +185,7 @@ impl PackedKTransformation {
         }
         if amount == 0 {
             // TODO: use cached identity transformations from `KPuzzle`???
-            return self
-                .packed_orbit_data
-                .packed_kpuzzle
-                .identity_transformation();
+            return self.packed_orbit_data.kpuzzle.identity_transformation();
         }
         let twice_halfish = if amount == 2 {
             // We'd share this `apply_transformation` with the other branch, but that triggers a bug in the borrow checker(!)
@@ -231,7 +205,7 @@ impl PackedKTransformation {
 }
 
 struct KPuzzleDebug {
-    kpuzzle: PackedKPuzzle,
+    kpuzzle: KPuzzle,
 }
 
 impl Debug for KPuzzleDebug {
@@ -244,13 +218,13 @@ impl Debug for KPuzzleDebug {
     }
 }
 
-impl Debug for PackedKTransformation {
+impl Debug for KTransformation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PackedKTransformation")
             .field(
-                "packed_kpuzzle",
+                "kpuzzle",
                 &KPuzzleDebug {
-                    kpuzzle: self.packed_orbit_data.packed_kpuzzle.clone(),
+                    kpuzzle: self.packed_orbit_data.kpuzzle.clone(),
                 },
             )
             .field("bytes", &self.byte_slice())
@@ -258,7 +232,7 @@ impl Debug for PackedKTransformation {
     }
 }
 
-impl PartialEq<PackedKTransformation> for PackedKTransformation {
+impl PartialEq<KTransformation> for KTransformation {
     fn eq(&self, other: &Self) -> bool {
         self.byte_slice() == other.byte_slice()
     }
@@ -267,8 +241,8 @@ impl PartialEq<PackedKTransformation> for PackedKTransformation {
 #[cfg(test)]
 mod tests {
     use crate::alg::AlgParseError;
-    use crate::kpuzzle::packed::packed_kpuzzle::InvalidAlgError;
-    use crate::kpuzzle::PackedKTransformation;
+    use crate::kpuzzle::InvalidAlgError;
+    use crate::kpuzzle::KTransformation;
     use crate::parse_move;
     use crate::puzzles::cube3x3x3_kpuzzle;
 
@@ -276,7 +250,7 @@ mod tests {
     fn compose() -> Result<(), String> {
         let kpuzzle = cube3x3x3_kpuzzle();
 
-        let from_move = |move_str: &str| -> Result<PackedKTransformation, String> {
+        let from_move = |move_str: &str| -> Result<KTransformation, String> {
             let r#move = parse_move!(move_str).map_err(|e: AlgParseError| e.description)?;
             kpuzzle
                 .transformation_from_move(&r#move)
@@ -306,13 +280,13 @@ mod tests {
     }
 }
 
-pub struct PackedKTransformationBuffer {
-    pub current: PackedKTransformation,
-    scratch_space: PackedKTransformation,
+pub struct KTransformationBuffer {
+    pub current: KTransformation, // TODO(v0.9.0): Change this to a function (to match `KPatternBuffer`)
+    scratch_space: KTransformation,
 }
 
-impl From<PackedKTransformation> for PackedKTransformationBuffer {
-    fn from(initial: PackedKTransformation) -> Self {
+impl From<KTransformation> for KTransformationBuffer {
+    fn from(initial: KTransformation) -> Self {
         Self {
             scratch_space: initial.clone(), // TODO?
             current: initial,
@@ -320,15 +294,15 @@ impl From<PackedKTransformation> for PackedKTransformationBuffer {
     }
 }
 
-impl PackedKTransformationBuffer {
-    pub fn apply_transformation(&mut self, transformation: &PackedKTransformation) {
+impl KTransformationBuffer {
+    pub fn apply_transformation(&mut self, transformation: &KTransformation) {
         self.current
             .apply_transformation_into(transformation, &mut self.scratch_space);
         swap(&mut self.current, &mut self.scratch_space);
     }
 }
 
-impl PartialEq for PackedKTransformationBuffer {
+impl PartialEq for KTransformationBuffer {
     fn eq(&self, other: &Self) -> bool {
         self.current == other.current
     }

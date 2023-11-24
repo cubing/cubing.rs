@@ -3,8 +3,8 @@ use std::thread::spawn;
 use cubing::{
     alg::{Alg, Move},
     kpuzzle::{
-        InvalidAlgError, KPatternData, KPuzzleOrbitName, KTransformationData,
-        KTransformationOrbitData, PackedKPuzzle,
+        InvalidAlgError, KPatternData, KPuzzle, KPuzzleOrbitName, KTransformationData,
+        KTransformationOrbitData,
     },
     parse_alg,
     puzzles::cube3x3x3_kpuzzle,
@@ -58,7 +58,7 @@ fn it_works() -> Result<(), InvalidAlgError> {
         derived_moves: None,
     };
 
-    let kpuzzle: PackedKPuzzle = PackedKPuzzle::try_new(def).unwrap();
+    let kpuzzle: KPuzzle = KPuzzle::try_new(def).unwrap();
     let items_orbit_name = &KPuzzleOrbitName("items".to_owned());
     let items_orbit_info = kpuzzle.lookup_orbit_info(items_orbit_name).unwrap();
 

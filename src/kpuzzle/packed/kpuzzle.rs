@@ -16,7 +16,7 @@ use super::{
     lookup_move::{lookup_move, MoveLookupResultSource},
     orientation_packer::OrientationPacker,
     packed_orbit_data::PackedOrbitData,
-    InvalidPatternDataError, PackedKPattern, PackedKTransformation,
+    InvalidPatternDataError, KPattern, KTransformation,
 };
 
 // TODO: allow certain values over 107?
@@ -89,24 +89,23 @@ impl Error for InvalidAlgError {
     }
 }
 
-fn identity_transformation(packed_kpuzzle: &PackedKPuzzle) -> PackedKTransformation {
-    let mut packed_orbit_data =
-        PackedOrbitData::new_with_uninitialized_bytes(packed_kpuzzle.clone());
-    for orbit_info in &packed_kpuzzle.data.orbit_iteration_info {
-        // for orbit_definition in &packed_kpuzzle.definition.orbits {
+fn identity_transformation(kpuzzle: &KPuzzle) -> KTransformation {
+    let mut packed_orbit_data = PackedOrbitData::new_with_uninitialized_bytes(kpuzzle.clone());
+    for orbit_info in &kpuzzle.data.orbit_iteration_info {
+        // for orbit_definition in &kpuzzle.definition.orbits {
         let num_pieces = orbit_info.num_pieces;
         for i in 0..num_pieces {
             packed_orbit_data.set_raw_piece_or_permutation_value(orbit_info, i, i as u8);
             packed_orbit_data.set_raw_orientation_value(orbit_info, i, 0);
         }
     }
-    PackedKTransformation { packed_orbit_data }
+    KTransformation { packed_orbit_data }
 }
 
 #[derive(Debug)]
-pub struct PackedKPuzzleOrbitInfo {
+pub struct KPuzzleOrbitInfo {
     pub name: KPuzzleOrbitName,
-    pub pieces_or_pemutations_offset: usize,
+    pub pieces_or_pemutations_offset: usize, // TODO(v0.9.0): Rename
     pub orientations_offset: usize,
     pub num_pieces: usize,
     pub num_orientations: u8,
@@ -114,21 +113,21 @@ pub struct PackedKPuzzleOrbitInfo {
 }
 
 #[derive(Debug)]
-pub struct PackedKPuzzleData {
+pub struct KPuzzleData {
     pub definition: Arc<KPuzzleDefinition>,
     // TODO: compute lazily while being thread-safe?
     // cached_identity_transformation_data: PackedOrbitData, // TODO
 
     // Private cached values.
     pub num_bytes: usize,
-    pub orbit_iteration_info: Vec<PackedKPuzzleOrbitInfo>,
+    pub orbit_iteration_info: Vec<KPuzzleOrbitInfo>,
     pub layout: Layout,
 }
 
 #[derive(Clone)]
-pub struct PackedKPuzzle {
-    pub data: Arc<PackedKPuzzleData>, // TODO
-                                      // pub data: PackedKPuzzleData,
+pub struct KPuzzle {
+    pub data: Arc<KPuzzleData>, // TODO
+                                // pub data: PackedKPuzzleData,
 }
 
 /// An error type that can indicate multiple error causes, when parsing and applying an alg at the same time.
@@ -140,9 +139,9 @@ pub enum ConversionError {
 }
 
 fn transformation_from_alg(
-    kpuzzle: &PackedKPuzzle,
+    kpuzzle: &KPuzzle,
     alg: &Alg,
-) -> Result<PackedKTransformation, InvalidAlgError> {
+) -> Result<KTransformation, InvalidAlgError> {
     let mut t = kpuzzle.identity_transformation();
     for node in alg.nodes.iter() {
         let node_transformation = transformation_from_alg_node(kpuzzle, node)?;
@@ -152,9 +151,9 @@ fn transformation_from_alg(
 }
 
 fn transformation_from_alg_node(
-    kpuzzle: &PackedKPuzzle,
+    kpuzzle: &KPuzzle,
     alg_node: &AlgNode,
-) -> Result<PackedKTransformation, InvalidAlgError> {
+) -> Result<KTransformation, InvalidAlgError> {
     match alg_node {
         AlgNode::MoveNode(key_move) => kpuzzle.transformation_from_move(key_move),
         AlgNode::PauseNode(_pause) => Ok(kpuzzle.identity_transformation()),
@@ -181,7 +180,7 @@ fn transformation_from_alg_node(
     }
 }
 
-impl PackedKPuzzle {
+impl KPuzzle {
     pub fn try_new(
         definition: impl Into<Arc<KPuzzleDefinition>>,
     ) -> Result<Self, InvalidDefinitionError> {
@@ -191,7 +190,7 @@ impl PackedKPuzzle {
         DerivedMovesValidator::check(&definition)?;
 
         let mut bytes_offset = 0;
-        let mut orbit_iteration_info: Vec<PackedKPuzzleOrbitInfo> = vec![];
+        let mut orbit_iteration_info: Vec<KPuzzleOrbitInfo> = vec![];
 
         for orbit_definition in &definition.orbits {
             let num_orientations = orbit_definition.num_orientations;
@@ -199,7 +198,7 @@ impl PackedKPuzzle {
                 return Err(InvalidDefinitionError { description: format!("`num_orientations` for orbit {} is too large ({}). Maximum is {} for the current build." , orbit_definition.orbit_name, num_orientations, MAX_NUM_ORIENTATIONS_INCLUSIVE)});
             }
             orbit_iteration_info.push({
-                PackedKPuzzleOrbitInfo {
+                KPuzzleOrbitInfo {
                     name: orbit_definition.orbit_name.clone(),
                     num_pieces: orbit_definition.num_pieces,
                     num_orientations: usize_to_u8(num_orientations),
@@ -212,7 +211,7 @@ impl PackedKPuzzle {
         }
 
         Ok(Self {
-            data: Arc::new(PackedKPuzzleData {
+            data: Arc::new(KPuzzleData {
                 definition,
                 num_bytes: bytes_offset,
                 orbit_iteration_info,
@@ -223,7 +222,7 @@ impl PackedKPuzzle {
         })
     }
 
-    pub fn try_from_json(json_bytes: &[u8]) -> Result<PackedKPuzzle, InvalidDefinitionError> {
+    pub fn try_from_json(json_bytes: &[u8]) -> Result<KPuzzle, InvalidDefinitionError> {
         // TODO: implement this directly
         let definition: KPuzzleDefinition = match serde_json::from_slice(json_bytes) {
             Ok(kpuzzle_data) => kpuzzle_data,
@@ -233,31 +232,28 @@ impl PackedKPuzzle {
                 })
             }
         };
-        PackedKPuzzle::try_new(definition)
+        KPuzzle::try_new(definition)
     }
 
     pub fn definition(&self) -> &KPuzzleDefinition {
         &self.data.definition
     }
 
-    pub fn default_pattern(&self) -> PackedKPattern {
+    pub fn default_pattern(&self) -> KPattern {
         // TODO: check/cache at construction time.
-        PackedKPattern::try_from_data(self, &self.data.definition.default_pattern)
+        KPattern::try_from_data(self, &self.data.definition.default_pattern)
             .expect("Invalid default pattern")
     }
 
     // TODO: design a much much more efficient API.
-    pub fn lookup_orbit_info(
-        &self,
-        orbit_name: &KPuzzleOrbitName,
-    ) -> Option<&PackedKPuzzleOrbitInfo> {
+    pub fn lookup_orbit_info(&self, orbit_name: &KPuzzleOrbitName) -> Option<&KPuzzleOrbitInfo> {
         self.data
             .orbit_iteration_info
             .iter()
             .find(|&orbit_info| &orbit_info.name == orbit_name)
     }
 
-    pub fn identity_transformation(&self) -> PackedKTransformation {
+    pub fn identity_transformation(&self) -> KTransformation {
         identity_transformation(self)
     }
 
@@ -265,7 +261,7 @@ impl PackedKPuzzle {
     pub fn transformation_from_move(
         &self, // TODO: Any issues with not using `&self`?
         key_move: &Move,
-    ) -> Result<PackedKTransformation, InvalidAlgError> {
+    ) -> Result<KTransformation, InvalidAlgError> {
         let move_lookup_result = match lookup_move(&self.data.definition, key_move) {
             Some(move_lookup_result) => move_lookup_result,
             None => {
@@ -278,7 +274,7 @@ impl PackedKPuzzle {
         let transformation = match move_lookup_result.source {
             // TODO: Avoid constructing this `KTransformation`.
             MoveLookupResultSource::DirectlyDefined(transformation_data) => {
-                PackedKTransformation::try_from_data(self, transformation_data)
+                KTransformation::try_from_data(self, transformation_data)
                     .expect("TODO: invalid definition — this should be caught earlier")
             }
             MoveLookupResultSource::DerivedFromAlg(alg) => self.transformation_from_alg(alg)?,
@@ -287,23 +283,20 @@ impl PackedKPuzzle {
     }
 
     // TODO: implement this directly
-    pub fn transformation_from_alg(
-        &self,
-        alg: &Alg,
-    ) -> Result<PackedKTransformation, InvalidAlgError> {
+    pub fn transformation_from_alg(&self, alg: &Alg) -> Result<KTransformation, InvalidAlgError> {
         transformation_from_alg(self, alg)
     }
 }
 
-impl TryFrom<KPuzzleDefinition> for PackedKPuzzle {
+impl TryFrom<KPuzzleDefinition> for KPuzzle {
     type Error = InvalidDefinitionError;
 
     fn try_from(definition: KPuzzleDefinition) -> Result<Self, Self::Error> {
-        PackedKPuzzle::try_new(definition)
+        KPuzzle::try_new(definition)
     }
 }
 
-impl Debug for PackedKPuzzle {
+impl Debug for KPuzzle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{{ … name: \"{}\" … }}", &self.data.definition.name)
     }
