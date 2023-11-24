@@ -1,17 +1,26 @@
-use std::{alloc::Layout, sync::Arc, fmt::{Debug, Display}, error::Error};
-
-use crate::{
-    alg::{Move, Alg, AlgNode, AlgParseError},
-    kpuzzle::{
-        KPuzzleOrbitName, UnpackedKTransformation, UnpackedKPattern, KPuzzleDefinition,
-    },
+use std::{
+    alloc::Layout,
+    error::Error,
+    fmt::{Debug, Display},
+    sync::Arc,
 };
 
-use super::{byte_conversions::{usize_to_u8, u8_to_usize},  PackedKTransformation, orientation_packer::{OrientationPacker, OrientationWithMod}, InvalidPatternDataError, PackedKPattern, derived_moves_validator::DerivedMovesValidator, packed_orbit_data::PackedOrbitData, lookup_move::{lookup_move, MoveLookupResultSource}};
+use crate::{
+    alg::{Alg, AlgNode, AlgParseError, Move},
+    kpuzzle::{KPuzzleDefinition, KPuzzleOrbitName},
+};
+
+use super::{
+    byte_conversions::usize_to_u8,
+    derived_moves_validator::DerivedMovesValidator,
+    lookup_move::{lookup_move, MoveLookupResultSource},
+    orientation_packer::OrientationPacker,
+    packed_orbit_data::PackedOrbitData,
+    InvalidPatternDataError, PackedKPattern, PackedKTransformation,
+};
 
 // TODO: allow certain values over 107?
 const MAX_NUM_ORIENTATIONS_INCLUSIVE: usize = 107;
-
 
 /// An error due to the structure of a [`KPuzzleDefinition`] (such as a recursive derived move definition).
 #[derive(Debug)]
@@ -80,11 +89,11 @@ impl Error for InvalidAlgError {
     }
 }
 
-
 fn identity_transformation(packed_kpuzzle: &PackedKPuzzle) -> PackedKTransformation {
-    let mut packed_orbit_data = PackedOrbitData::new_with_uninitialized_bytes(packed_kpuzzle.clone());
+    let mut packed_orbit_data =
+        PackedOrbitData::new_with_uninitialized_bytes(packed_kpuzzle.clone());
     for orbit_info in &packed_kpuzzle.data.orbit_iteration_info {
-    // for orbit_definition in &packed_kpuzzle.definition.orbits {
+        // for orbit_definition in &packed_kpuzzle.definition.orbits {
         let num_pieces = orbit_info.num_pieces;
         for i in 0..num_pieces {
             packed_orbit_data.set_raw_piece_or_permutation_value(orbit_info, i, i as u8);
@@ -93,7 +102,6 @@ fn identity_transformation(packed_kpuzzle: &PackedKPuzzle) -> PackedKTransformat
     }
     PackedKTransformation { packed_orbit_data }
 }
-
 
 #[derive(Debug)]
 pub struct PackedKPuzzleOrbitInfo {
@@ -130,7 +138,6 @@ pub enum ConversionError {
     InvalidDefinition(InvalidDefinitionError),
     InvalidPatternData(InvalidPatternDataError),
 }
-
 
 fn transformation_from_alg(
     kpuzzle: &PackedKPuzzle,
@@ -174,8 +181,6 @@ fn transformation_from_alg_node(
     }
 }
 
-
-
 impl PackedKPuzzle {
     pub fn try_new(
         definition: impl Into<Arc<KPuzzleDefinition>>,
@@ -183,10 +188,8 @@ impl PackedKPuzzle {
         let definition = definition.into();
         // let cached_identity_transformation_data = identity_transformation_data(&definition).into(); // TODO
 
-        
         DerivedMovesValidator::check(&definition)?;
-        
-    
+
         let mut bytes_offset = 0;
         let mut orbit_iteration_info: Vec<PackedKPuzzleOrbitInfo> = vec![];
 
@@ -220,12 +223,14 @@ impl PackedKPuzzle {
         })
     }
 
-    pub fn try_from_json(json_bytes: &[u8])-> Result<PackedKPuzzle, InvalidDefinitionError> {
+    pub fn try_from_json(json_bytes: &[u8]) -> Result<PackedKPuzzle, InvalidDefinitionError> {
         // TODO: implement this directly
         let definition: KPuzzleDefinition = match serde_json::from_slice(json_bytes) {
             Ok(kpuzzle_data) => kpuzzle_data,
             Err(e) => {
-                return Err(InvalidDefinitionError { description: e.to_string().to_owned() })
+                return Err(InvalidDefinitionError {
+                    description: e.to_string().to_owned(),
+                })
             }
         };
         PackedKPuzzle::try_new(definition)
@@ -237,69 +242,19 @@ impl PackedKPuzzle {
 
     pub fn default_pattern(&self) -> PackedKPattern {
         // TODO: check/cache at construction time.
-        PackedKPattern::try_from_data(self, &self.data.definition.default_pattern).expect("Invalid default pattern")
+        PackedKPattern::try_from_data(self, &self.data.definition.default_pattern)
+            .expect("Invalid default pattern")
     }
 
     // TODO: design a much much more efficient API.
-    pub fn lookup_orbit_info(&self, orbit_name: &KPuzzleOrbitName) -> Option<&PackedKPuzzleOrbitInfo> {
-        for orbit_info in &self.data.orbit_iteration_info {
-            if &orbit_info.name == orbit_name {
-                return Some(orbit_info)
-            }
-        };
-        None
-    }
-
-    // TODO: `try_pack_pattern`?
-    pub fn try_pack_pattern(&self, pattern: UnpackedKPattern) -> Result<PackedKPattern , ConversionError>{
-        let pattern_data = pattern.kpattern_data;
-
-        let mut new_packed_kpattern = PackedKPattern::new_unitialized(self.clone());
-        for orbit_info in &self.data.orbit_iteration_info {
-            let orbit_data = match pattern_data
-                .get(&orbit_info.name)
-                 {
-                    Some(orbit_data) => orbit_data,
-                    None => {return Err( 
-                        ConversionError::InvalidPatternData(InvalidPatternDataError {
-                            description: format!("Missing data for orbit: {}", orbit_info.name),
-                        })
-                        )}
-                };
-            for i in 0..orbit_info.num_pieces {
-                new_packed_kpattern.set_piece(
-                    orbit_info,
-                    i,
-                    usize_to_u8(orbit_data.pieces[i]),
-                );
-                new_packed_kpattern.set_packed_orientation_with_mod(
-                    orbit_info,
-                    i,
-                    match &orbit_data.orientation_mod {
-                        None => usize_to_u8(orbit_data.orientation[i]),
-                        Some(orientation_mod) => {
-                                if orientation_mod[i] != 0 && u8_to_usize(orbit_info.num_orientations) % orientation_mod[i] != 0 {
-                                    return Err(ConversionError::InvalidPatternData(InvalidPatternDataError { description: format!(
-                                        "`orientation_mod` of {} seen for piece at index {} in orbit {} in the start pattern for puzzle {}. This must be a factor of `num_orientations` for the orbit ({}). See: https://js.cubing.net/cubing/api/interfaces/kpuzzle.KPatternOrbitData.html#orientationMod",
-                                        orientation_mod[i],
-                                        i,
-                                        orbit_info.name,
-                                        self.data.definition.name,
-                                        orbit_info.num_orientations
-                                    )}));
-                                };
-                                orbit_info.orientation_packer.pack(&OrientationWithMod {
-                                    orientation: orbit_data.orientation[i],
-                                    orientation_mod: orientation_mod[i],
-                                })
-                            
-                        }
-                    },
-                );
-            }
-        }
-
-        Ok(new_packed_kpattern)
+    pub fn lookup_orbit_info(
+        &self,
+        orbit_name: &KPuzzleOrbitName,
+    ) -> Option<&PackedKPuzzleOrbitInfo> {
+        self.data
+            .orbit_iteration_info
+            .iter()
+            .find(|&orbit_info| &orbit_info.name == orbit_name)
     }
 
     pub fn identity_transformation(&self) -> PackedKTransformation {
@@ -323,7 +278,8 @@ impl PackedKPuzzle {
         let transformation = match move_lookup_result.source {
             // TODO: Avoid constructing this `KTransformation`.
             MoveLookupResultSource::DirectlyDefined(transformation_data) => {
-                PackedKTransformation::try_from_data(self, transformation_data).expect("TODO: invalid definition — this should be caught earlier")
+                PackedKTransformation::try_from_data(self, transformation_data)
+                    .expect("TODO: invalid definition — this should be caught earlier")
             }
             MoveLookupResultSource::DerivedFromAlg(alg) => self.transformation_from_alg(alg)?,
         };
@@ -336,36 +292,6 @@ impl PackedKPuzzle {
         alg: &Alg,
     ) -> Result<PackedKTransformation, InvalidAlgError> {
         transformation_from_alg(self, alg)
-    }
-
-    pub fn pack_transformation(
-        &self,
-        unpacked_ktransformation: &UnpackedKTransformation,
-    ) -> Result<PackedKTransformation, ConversionError> {
-        let mut new_transformation = PackedKTransformation::new_uninitialized(self.clone());
-        for orbit_info in &self.data.orbit_iteration_info {
-            let unpacked_orbit_data = unpacked_ktransformation
-                .ktransformation_data
-                .get(&orbit_info.name);
-            let unpacked_orbit_data =
-                unpacked_orbit_data.ok_or_else(|| InvalidDefinitionError {
-                    description: format!("Missing orbit: {}", orbit_info.name),
-                })?;
-            for i in 0..orbit_info.num_pieces {
-                new_transformation.set_permutation_idx(
-                    orbit_info,
-                    i,
-                    usize_to_u8(unpacked_orbit_data.permutation[i]),
-                );
-                new_transformation.set_orientation_delta(
-                    orbit_info,
-                    i,
-                    usize_to_u8(unpacked_orbit_data.orientation_delta[i]),
-                )
-            }
-        }
-
-        Ok(new_transformation)
     }
 }
 

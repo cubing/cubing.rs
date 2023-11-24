@@ -1,25 +1,11 @@
 mod definition;
+pub use definition::KPatternData;
+pub use definition::KPatternOrbitData;
 pub use definition::KPuzzleDefinition;
 pub use definition::KPuzzleOrbitDefinition;
 pub use definition::KPuzzleOrbitName;
-
-mod kpattern;
-pub use kpattern::KPatternData;
-pub use kpattern::KPatternOrbitData;
-pub use kpattern::UnpackedKPattern;
-
-mod ktransformation;
-pub use ktransformation::KTransformationData;
-pub use ktransformation::KTransformationOrbitData;
-pub use ktransformation::UnpackedKTransformation;
-
-#[allow(clippy::module_inception)]
-mod kpuzzle;
-pub use kpuzzle::InvalidDefinitionError;
-pub use kpuzzle::InvalidMoveError;
-pub use kpuzzle::KPuzzleData;
-pub use kpuzzle::UnpackedInvalidAlgError;
-pub use kpuzzle::UnpackedKPuzzle;
+pub use definition::KTransformationData;
+pub use definition::KTransformationOrbitData;
 
 mod packed;
 pub use packed::*;

@@ -4,8 +4,6 @@ pub(crate) use std::{collections::HashMap, fmt::Display};
 
 use crate::alg::{Alg, Move};
 
-use super::{kpattern::KPatternData, ktransformation::KTransformationData};
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct KPuzzleOrbitName(pub String);
 
@@ -40,3 +38,29 @@ pub struct KPuzzleDefinition {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub derived_moves: Option<HashMap<Move, Alg>>,
 }
+
+#[derive(
+    Debug,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    Clone, // TODO
+)]
+#[serde(rename_all = "camelCase")]
+pub struct KPatternOrbitData {
+    pub pieces: Vec<usize>,
+    pub orientation: Vec<usize>,
+    pub orientation_mod: Option<Vec<usize>>,
+}
+
+pub type KPatternData = HashMap<KPuzzleOrbitName, KPatternOrbitData>;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct KTransformationOrbitData {
+    pub permutation: Vec<usize>,
+    pub orientation_delta: Vec<usize>,
+}
+
+// TODO: Use `Move` as the key?
+pub type KTransformationData = HashMap<KPuzzleOrbitName, KTransformationOrbitData>;
