@@ -2,7 +2,10 @@ use std::{fmt::Debug, hash::BuildHasher};
 
 use more_asserts::assert_lt;
 
-use crate::{alg::Amount, kpuzzle::KTransformationData};
+use crate::{
+    alg::Amount,
+    kpuzzle::{KTransformationData, KTransformationOrbitData},
+};
 
 use super::{
     kpuzzle::KPuzzleOrbitInfo, packed_orbit_data::PackedOrbitData, ConversionError, KPuzzle,
@@ -23,12 +26,12 @@ impl KTransformation {
     // TODO: validation?
     pub fn try_from_data(
         kpuzzle: &KPuzzle,
-        kpattern_data: &KTransformationData,
+        ktransformation_data: &KTransformationData,
     ) -> Result<Self, ConversionError> {
         let mut new_packed_ktransformation = Self::new_uninitialized(kpuzzle.clone());
         for orbit_info in &kpuzzle.data.orbit_iteration_info {
             for i in 0..orbit_info.num_pieces {
-                let orbit = kpattern_data.get(&orbit_info.name);
+                let orbit = ktransformation_data.get(&orbit_info.name);
                 let orbit = match orbit {
                     Some(default_orbit) => default_orbit,
                     None => panic!("Invalid default pattern"), // TODO: catch at construction time?
@@ -47,6 +50,27 @@ impl KTransformation {
             }
         }
         Ok(new_packed_ktransformation)
+    }
+
+    pub fn to_data(&self) -> KTransformationData {
+        let mut data = KTransformationData::new();
+        for orbit_info in &self.packed_orbit_data.kpuzzle().data.orbit_iteration_info {
+            let mut permutation = Vec::with_capacity(orbit_info.num_pieces as usize);
+            let mut orientation_delta = Vec::with_capacity(orbit_info.num_pieces as usize);
+
+            for i in 0..orbit_info.num_pieces {
+                permutation.push(self.get_permutation_idx(orbit_info, i));
+                orientation_delta.push(self.get_orientation_delta(orbit_info, i));
+            }
+            data.insert(
+                orbit_info.name.clone(),
+                KTransformationOrbitData {
+                    permutation,
+                    orientation_delta,
+                },
+            );
+        }
+        data
     }
 
     pub fn kpuzzle(&self) -> &KPuzzle {

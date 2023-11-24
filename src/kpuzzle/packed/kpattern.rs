@@ -11,7 +11,7 @@ use super::{
 
 use crate::{
     alg::{Alg, Move},
-    kpuzzle::KPatternData,
+    kpuzzle::{KPatternData, KPatternOrbitData},
 };
 
 #[derive(Hash, PartialEq, Eq, Clone)]
@@ -67,6 +67,33 @@ impl KPattern {
             }
         }
         Ok(new_packed_kpattern)
+    }
+
+    pub fn to_data(&self) -> KPatternData {
+        let mut data = KPatternData::new();
+        for orbit_info in &self.packed_orbit_data.kpuzzle().data.orbit_iteration_info {
+            let mut pieces = Vec::with_capacity(orbit_info.num_pieces as usize);
+            let mut orientation = Vec::with_capacity(orbit_info.num_pieces as usize);
+            let mut orientation_mod = Vec::with_capacity(orbit_info.num_pieces as usize);
+
+            for i in 0..orbit_info.num_pieces {
+                pieces.push(self.get_piece(orbit_info, i));
+
+                let orientation_with_mod = self.get_orientation_with_mod(orbit_info, i);
+                orientation.push(orientation_with_mod.orientation);
+                orientation_mod.push(orientation_with_mod.orientation_mod);
+            }
+            let orientation_mod = Some(orientation_mod);
+            data.insert(
+                orbit_info.name.clone(),
+                KPatternOrbitData {
+                    pieces,
+                    orientation,
+                    orientation_mod,
+                },
+            );
+        }
+        data
     }
 
     pub fn kpuzzle(&self) -> &KPuzzle {

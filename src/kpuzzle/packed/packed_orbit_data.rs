@@ -4,6 +4,8 @@ use std::{
     hash::{BuildHasher, Hash},
 };
 
+use more_asserts::debug_assert_le;
+
 use super::{kpuzzle::KPuzzleOrbitInfo, KPuzzle, KTransformation};
 
 pub struct PackedOrbitData {
@@ -84,9 +86,15 @@ impl PackedOrbitData {
     }
 
     pub unsafe fn byte_slice(&self) -> &[u8] {
+        self.byte_slice_offset(0, self.kpuzzle.data.num_bytes)
+    }
+
+    pub(crate) unsafe fn byte_slice_offset(&self, offset: usize, len: usize) -> &[u8] {
+        debug_assert_le!(offset, self.kpuzzle.data.num_bytes);
+        debug_assert_le!(offset + len, self.kpuzzle.data.num_bytes);
         // yiss ☺️
         // https://stackoverflow.com/a/27150865
-        unsafe { std::slice::from_raw_parts(self.bytes, self.kpuzzle.data.num_bytes) }
+        unsafe { std::slice::from_raw_parts(self.bytes.add(offset), len) }
     }
 
     pub fn hash(&self) -> u64 {

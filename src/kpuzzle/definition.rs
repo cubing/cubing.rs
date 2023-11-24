@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use std::fmt::Debug;
 pub(crate) use std::{collections::HashMap, fmt::Display};
 
 use crate::alg::{Alg, Move};
@@ -40,7 +41,6 @@ pub struct KPuzzleDefinition {
 }
 
 #[derive(
-    Debug,
     PartialEq,
     Serialize,
     Deserialize,
@@ -53,13 +53,54 @@ pub struct KPatternOrbitData {
     pub orientation_mod: Option<Vec<u8>>,
 }
 
+struct SameLineDebugVecU8<'a>(&'a Vec<u8>);
+
+impl Debug for SameLineDebugVecU8<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[{}]",
+            self.0
+                .iter()
+                .map(|n| n.to_string())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
+impl Debug for KPatternOrbitData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("KPatternOrbitData")
+            .field("pieces", &SameLineDebugVecU8(&self.pieces))
+            .field("orientation", &SameLineDebugVecU8(&self.orientation))
+            .field(
+                "orientation_mod",
+                &self.orientation_mod.as_ref().map(SameLineDebugVecU8),
+            )
+            .finish()
+    }
+}
+
 pub type KPatternData = HashMap<KPuzzleOrbitName, KPatternOrbitData>;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KTransformationOrbitData {
     pub permutation: Vec<u8>,
     pub orientation_delta: Vec<u8>,
+}
+
+impl Debug for KTransformationOrbitData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("KTransformationOrbitData")
+            .field("permutation", &SameLineDebugVecU8(&self.permutation))
+            .field(
+                "orientation_delta",
+                &SameLineDebugVecU8(&self.orientation_delta),
+            )
+            .finish()
+    }
 }
 
 // TODO: Use `Move` as the key?
