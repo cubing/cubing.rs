@@ -11,7 +11,6 @@ use crate::{
 };
 
 use super::{
-    byte_conversions::usize_to_u8,
     derived_moves_validator::DerivedMovesValidator,
     lookup_move::{lookup_move, MoveLookupResultSource},
     orientation_packer::OrientationPacker,
@@ -20,7 +19,7 @@ use super::{
 };
 
 // TODO: allow certain values over 107?
-const MAX_NUM_ORIENTATIONS_INCLUSIVE: usize = 107;
+const MAX_NUM_ORIENTATIONS_INCLUSIVE: u8 = 107;
 
 /// An error due to the structure of a [`KPuzzleDefinition`] (such as a recursive derived move definition).
 #[derive(Debug)]
@@ -90,13 +89,14 @@ impl Error for InvalidAlgError {
 }
 
 fn identity_transformation(kpuzzle: &KPuzzle) -> KTransformation {
-    let mut packed_orbit_data = PackedOrbitData::new_with_uninitialized_bytes(kpuzzle.clone());
+    let mut packed_orbit_data =
+        unsafe { PackedOrbitData::new_with_uninitialized_bytes(kpuzzle.clone()) };
     for orbit_info in &kpuzzle.data.orbit_iteration_info {
         // for orbit_definition in &kpuzzle.definition.orbits {
         let num_pieces = orbit_info.num_pieces;
         for i in 0..num_pieces {
-            packed_orbit_data.set_raw_piece_or_permutation_value(orbit_info, i, i as u8);
-            packed_orbit_data.set_raw_orientation_value(orbit_info, i, 0);
+            unsafe { packed_orbit_data.set_raw_piece_or_permutation_value(orbit_info, i, i) };
+            unsafe { packed_orbit_data.set_raw_orientation_value(orbit_info, i, 0) };
         }
     }
     KTransformation { packed_orbit_data }
@@ -107,7 +107,7 @@ pub struct KPuzzleOrbitInfo {
     pub name: KPuzzleOrbitName,
     pub pieces_or_permutations_offset: usize,
     pub orientations_offset: usize,
-    pub num_pieces: usize,
+    pub num_pieces: u8,
     pub num_orientations: u8,
     pub orientation_packer: OrientationPacker,
 }
@@ -201,13 +201,13 @@ impl KPuzzle {
                 KPuzzleOrbitInfo {
                     name: orbit_definition.orbit_name.clone(),
                     num_pieces: orbit_definition.num_pieces,
-                    num_orientations: usize_to_u8(num_orientations),
+                    num_orientations,
                     pieces_or_permutations_offset: bytes_offset,
-                    orientations_offset: bytes_offset + orbit_definition.num_pieces,
+                    orientations_offset: bytes_offset + (orbit_definition.num_pieces as usize),
                     orientation_packer: OrientationPacker::new(orbit_definition.num_orientations),
                 }
             });
-            bytes_offset += orbit_definition.num_pieces * 2;
+            bytes_offset += (orbit_definition.num_pieces as usize) * 2;
         }
 
         Ok(Self {

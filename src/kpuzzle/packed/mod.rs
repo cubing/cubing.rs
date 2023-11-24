@@ -14,7 +14,6 @@ pub use ktransformation::{KTransformation, KTransformationBuffer};
 mod kpattern;
 pub use kpattern::{KPattern, KPatternBuffer};
 
-mod byte_conversions;
 mod orientation_packer;
 pub use orientation_packer::OrientationWithMod;
 

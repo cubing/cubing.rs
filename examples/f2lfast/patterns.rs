@@ -62,15 +62,15 @@ pub fn is_slot_solved(pattern: &KPattern, f2l_slot: &F2LSlot) -> bool {
 const ORBIT_INDEX_EDGES: usize = 0;
 const ORBIT_INDEX_CORNERS: usize = 0;
 
-pub fn are_slot_pieces_solved(pattern: &KPattern, edge_idx: usize, corner_idx: usize) -> bool {
+pub fn are_slot_pieces_solved(pattern: &KPattern, edge_idx: u8, corner_idx: u8) -> bool {
     is_piece_solved(pattern, ORBIT_INDEX_EDGES, edge_idx)
         && is_piece_solved(pattern, ORBIT_INDEX_CORNERS, corner_idx)
 }
 
-fn is_piece_solved(pattern: &KPattern, orbit_index: usize, idx: usize) -> bool {
+fn is_piece_solved(pattern: &KPattern, orbit_index: usize, idx: u8) -> bool {
     let orbit_info = &pattern.packed_orbit_data.kpuzzle.data.orbit_iteration_info[orbit_index];
     // TODO: compare against the start pattern
-    pattern.get_piece(orbit_info, idx) == idx as u8
+    pattern.get_piece(orbit_info, idx) == idx
         && pattern
             .get_orientation_with_mod(orbit_info, idx)
             .orientation

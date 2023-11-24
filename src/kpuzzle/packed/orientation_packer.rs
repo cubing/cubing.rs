@@ -1,4 +1,4 @@
-use super::byte_conversions::{u8_to_usize, usize_to_u8, PackedOrientationWithMod};
+pub type PackedOrientationWithMod = u8;
 
 const NUM_BYTE_VALUES: usize = 0x100;
 const BOGUS_PACKED_VALUE: PackedOrientationWithMod = 0xFF;
@@ -10,10 +10,19 @@ const BOGUS_PACKED_VALUE: PackedOrientationWithMod = 0xFF;
 // situation).
 const MAX_NUM_ORIENTATIONS: usize = 107;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct OrientationWithMod {
-    pub orientation: usize,
-    pub orientation_mod: usize,
+    pub orientation: u8,
+    pub orientation_mod: u8,
+}
+
+impl OrientationWithMod {
+    pub fn new_using_default_orientation_mod(orientation: u8) -> Self {
+        Self {
+            orientation,
+            orientation_mod: 0,
+        }
+    }
 }
 
 const BOGUS_ORIENTATION_WITH_MOD: OrientationWithMod = OrientationWithMod {
@@ -56,7 +65,7 @@ pub struct OrientationPacker {
 /// efficiently. This replaces arithmetic with simple lookups for `PackedKPattern` logic.
 
 impl OrientationPacker {
-    pub fn new(num_orientations: usize) -> Self {
+    pub fn new(num_orientations: u8) -> Self {
         let mut unpacking_table: [OrientationWithMod; NUM_BYTE_VALUES] =
             [BOGUS_ORIENTATION_WITH_MOD; NUM_BYTE_VALUES];
         let mut packing_table = [BOGUS_PACKED_VALUE; NUM_BYTE_VALUES];
@@ -65,7 +74,7 @@ impl OrientationPacker {
 
         // Ignore an idiom suggestion by Clippy that doesn't work here (because we use `orientation_mod` as a value, not just as an index into `packing_table`).
         #[allow(clippy::needless_range_loop)]
-        for orientation_mod in 0..NUM_BYTE_VALUES {
+        for orientation_mod in 0..=(u8::MAX) {
             let factor = if orientation_mod == 0 {
                 num_orientations
             } else {
@@ -74,9 +83,9 @@ impl OrientationPacker {
             if num_orientations % factor != 0 {
                 continue;
             }
-            packing_table[orientation_mod] = num_packed_values_sofar; // Note: this is sparse, so we only assign once per `orientation_mod`, not once per packed value.
+            packing_table[orientation_mod as usize] = num_packed_values_sofar; // Note: this is sparse, so we only assign once per `orientation_mod`, not once per packed value.
             for orientation in 0..factor {
-                unpacking_table[u8_to_usize(num_packed_values_sofar)] = OrientationWithMod {
+                unpacking_table[num_packed_values_sofar as usize] = OrientationWithMod {
                     orientation,
                     orientation_mod,
                 };
@@ -90,16 +99,15 @@ impl OrientationPacker {
         #[allow(clippy::needless_range_loop)]
         for orientation_delta in 0..num_orientations {
             for packed_value in 0..num_packed_values_sofar {
-                let orientation_with_mod = &unpacking_table[u8_to_usize(packed_value)];
+                let orientation_with_mod = &unpacking_table[packed_value as usize];
                 let new_orientation = (orientation_with_mod.orientation + orientation_delta)
                     % if orientation_with_mod.orientation_mod == 0 {
                         num_orientations
                     } else {
                         orientation_with_mod.orientation_mod
                     };
-                transformation_lookup[orientation_delta][u8_to_usize(packed_value)] = packing_table
-                    [orientation_with_mod.orientation_mod]
-                    + usize_to_u8(new_orientation)
+                transformation_lookup[orientation_delta as usize][packed_value as usize] =
+                    packing_table[orientation_with_mod.orientation_mod as usize] + new_orientation
             }
         }
 
@@ -113,19 +121,19 @@ impl OrientationPacker {
     pub fn transform(
         &self,
         packed_value: PackedOrientationWithMod,
-        orientation_delta: usize,
+        orientation_delta: u8,
     ) -> PackedOrientationWithMod {
-        self.transformation_lookup[orientation_delta][u8_to_usize(packed_value)]
+        self.transformation_lookup[orientation_delta as usize][packed_value as usize]
     }
 
     #[allow(dead_code)]
     pub fn unpack(&self, packed_value: &PackedOrientationWithMod) -> &OrientationWithMod {
-        &self.unpacking_table[u8_to_usize(*packed_value)]
+        &self.unpacking_table[(*packed_value) as usize]
     }
 
     pub fn pack(&self, orientation_with_mod: &OrientationWithMod) -> PackedOrientationWithMod {
-        self.packing_table[orientation_with_mod.orientation_mod]
-            + usize_to_u8(orientation_with_mod.orientation)
+        self.packing_table[orientation_with_mod.orientation_mod as usize]
+            + orientation_with_mod.orientation
     }
 }
 

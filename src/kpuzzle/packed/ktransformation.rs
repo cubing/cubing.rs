@@ -1,12 +1,11 @@
 use std::{fmt::Debug, hash::BuildHasher};
 
+use more_asserts::assert_lt;
+
 use crate::{alg::Amount, kpuzzle::KTransformationData};
 
 use super::{
-    byte_conversions::{u8_to_usize, usize_to_u8},
-    kpuzzle::KPuzzleOrbitInfo,
-    packed_orbit_data::PackedOrbitData,
-    ConversionError, KPuzzle,
+    kpuzzle::KPuzzleOrbitInfo, packed_orbit_data::PackedOrbitData, ConversionError, KPuzzle,
 };
 
 #[derive(Clone, Eq)]
@@ -17,7 +16,7 @@ pub struct KTransformation {
 impl KTransformation {
     pub(crate) fn new_uninitialized(kpuzzle: KPuzzle) -> Self {
         Self {
-            packed_orbit_data: PackedOrbitData::new_with_uninitialized_bytes(kpuzzle),
+            packed_orbit_data: unsafe { PackedOrbitData::new_with_uninitialized_bytes(kpuzzle) },
         }
     }
 
@@ -38,54 +37,101 @@ impl KTransformation {
                 new_packed_ktransformation.set_permutation_idx(
                     orbit_info,
                     i,
-                    usize_to_u8(orbit.permutation[i]),
+                    orbit.permutation[i as usize],
                 );
                 new_packed_ktransformation.set_orientation_delta(
                     orbit_info,
                     i,
-                    usize_to_u8(orbit.orientation_delta[i]),
+                    orbit.orientation_delta[i as usize],
                 );
             }
         }
         Ok(new_packed_ktransformation)
     }
-    // TODO: dedup with PackedKTransformation, or at least implement as a trait?
-    pub fn get_permutation_idx(&self, orbit_info: &KPuzzleOrbitInfo, i: usize) -> u8 {
+
+    pub fn get_permutation_idx(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {
+        assert_lt!(i, orbit_info.num_pieces);
+        unsafe { self.get_permutation_idx_unchecked(orbit_info, i) }
+    }
+
+    /// # Safety
+    /// This version does not check whether `i` is in the correct range.
+    pub unsafe fn get_permutation_idx_unchecked(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {
+        // TODO: dedup with PackedKTransformation, or at least implement as a trait?
         unsafe {
             self.packed_orbit_data
-                .bytes
-                .add(orbit_info.pieces_or_permutations_offset + i)
+                .bytes_offset(orbit_info.pieces_or_permutations_offset, i)
                 .read()
         }
     }
 
-    // TODO: dedup with PackedKTransformation, or at least implement as a trait?
-    pub fn get_orientation_delta(&self, orbit_info: &KPuzzleOrbitInfo, i: usize) -> u8 {
+    pub fn get_orientation_delta(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {
+        assert_lt!(i, orbit_info.num_pieces);
+        unsafe { self.get_orientation_delta_unchecked(orbit_info, i) }
+    }
+
+    /// # Safety
+    /// This version does not check whether `i` is in the correct range.
+    pub unsafe fn get_orientation_delta_unchecked(
+        &self,
+        orbit_info: &KPuzzleOrbitInfo,
+        i: u8,
+    ) -> u8 {
+        // TODO: dedup with PackedKTransformation, or at least implement as a trait?
         unsafe {
             self.packed_orbit_data
-                .bytes
-                .add(orbit_info.orientations_offset + i)
+                .bytes_offset(orbit_info.orientations_offset, i)
                 .read()
         }
     }
 
-    // TODO: dedup with PackedKTransformation, or at least implement as a trait?
-    pub fn set_permutation_idx(&mut self, orbit_info: &KPuzzleOrbitInfo, i: usize, value: u8) {
+    /// # Safety
+    /// This version does not check whether `i` is in the correct range.
+    pub fn set_permutation_idx(&mut self, orbit_info: &KPuzzleOrbitInfo, i: u8, value: u8) {
+        assert_lt!(i, orbit_info.num_pieces);
+        unsafe { self.set_permutation_idx_unchecked(orbit_info, i, value) }
+    }
+
+    /// # Safety
+    /// This version does not check whether `i` is in the correct range.
+    pub unsafe fn set_permutation_idx_unchecked(
+        &mut self,
+        orbit_info: &KPuzzleOrbitInfo,
+        i: u8,
+        value: u8,
+    ) {
+        // TODO: dedup with PackedKTransformation, or at least implement as a trait?
         unsafe {
             self.packed_orbit_data
-                .bytes
-                .add(orbit_info.pieces_or_permutations_offset + i)
+                .bytes_offset(orbit_info.pieces_or_permutations_offset, i)
                 .write(value)
         }
     }
 
-    // TODO: dedup with PackedKTransformation, or at least implement as a trait?
-    pub fn set_orientation_delta(&mut self, orbit_info: &KPuzzleOrbitInfo, i: usize, value: u8) {
+    pub fn set_orientation_delta(
+        &mut self,
+        orbit_info: &KPuzzleOrbitInfo,
+        i: u8,
+        orientation_delta: u8,
+    ) {
+        assert_lt!(i, orbit_info.num_pieces);
+        assert_lt!(orientation_delta, orbit_info.num_orientations);
+        unsafe { self.set_orientation_delta_unchecked(orbit_info, i, orientation_delta) }
+    }
+
+    /// # Safety
+    /// This version does not check whether `i` or `orientation_delta` are in the correct ranges.
+    pub unsafe fn set_orientation_delta_unchecked(
+        &mut self,
+        orbit_info: &KPuzzleOrbitInfo,
+        i: u8,
+        orientation_delta: u8,
+    ) {
+        // TODO: dedup with PackedKTransformation, or at least implement as a trait?
         unsafe {
             self.packed_orbit_data
-                .bytes
-                .add(orbit_info.orientations_offset + i)
-                .write(value)
+                .bytes_offset(orbit_info.orientations_offset, i)
+                .write(orientation_delta)
         }
     }
 
@@ -109,46 +155,46 @@ impl KTransformation {
         for orbit_info in &self.packed_orbit_data.kpuzzle.data.orbit_iteration_info {
             // TODO: optimization when either value is the identity.
             for i in 0..orbit_info.num_pieces {
-                let transformation_idx = transformation.get_permutation_idx(orbit_info, i);
+                let transformation_idx =
+                    unsafe { transformation.get_permutation_idx_unchecked(orbit_info, i) };
 
                 let new_piece_permutation =
-                    self.get_permutation_idx(orbit_info, u8_to_usize(transformation_idx));
-                into_packed_ktransformation.set_permutation_idx(
-                    orbit_info,
-                    i,
-                    new_piece_permutation,
-                );
+                    self.get_permutation_idx(orbit_info, transformation_idx);
+                unsafe {
+                    into_packed_ktransformation.set_permutation_idx_unchecked(
+                        orbit_info,
+                        i,
+                        new_piece_permutation,
+                    )
+                };
 
                 let previous_orientation_delta =
-                    self.get_orientation_delta(orbit_info, u8_to_usize(transformation_idx));
+                    unsafe { self.get_orientation_delta_unchecked(orbit_info, transformation_idx) };
 
                 // TODO: lookup table?
                 let new_orientation_delta = (previous_orientation_delta
-                    + transformation.get_orientation_delta(orbit_info, i))
+                    + unsafe { transformation.get_orientation_delta_unchecked(orbit_info, i) })
                     % orbit_info.num_orientations;
-                into_packed_ktransformation.set_orientation_delta(
-                    orbit_info,
-                    i,
-                    new_orientation_delta,
-                );
+                unsafe {
+                    into_packed_ktransformation.set_orientation_delta_unchecked(
+                        orbit_info,
+                        i,
+                        new_orientation_delta,
+                    )
+                };
             }
         }
     }
 
-    pub fn byte_slice(&self) -> &[u8] {
-        // yiss ☺️
-        // https://stackoverflow.com/a/27150865
-        unsafe {
-            std::slice::from_raw_parts(
-                self.packed_orbit_data.bytes,
-                self.packed_orbit_data.kpuzzle.data.num_bytes,
-            )
-        }
+    /// # Safety
+    /// The internal structure of bytes is not yet stable.
+    pub unsafe fn byte_slice(&self) -> &[u8] {
+        self.packed_orbit_data.byte_slice()
     }
 
     pub fn hash(&self) -> u64 {
         let h = cityhasher::CityHasher::new();
-        h.hash_one(self.byte_slice())
+        h.hash_one(unsafe { self.byte_slice() })
     }
 
     pub fn invert(&self) -> KTransformation {
@@ -160,14 +206,10 @@ impl KTransformation {
             // TODO: optimization when either value is the identity.
             for i in 0..orbit_info.num_pieces {
                 let from_idx = self.get_permutation_idx(orbit_info, i);
-                new_packed_ktransformation.set_permutation_idx(
-                    orbit_info,
-                    u8_to_usize(from_idx),
-                    usize_to_u8(i),
-                );
+                new_packed_ktransformation.set_permutation_idx(orbit_info, from_idx, i);
                 new_packed_ktransformation.set_orientation_delta(
                     orbit_info,
-                    u8_to_usize(from_idx),
+                    from_idx,
                     (num_orientations - self.get_orientation_delta(orbit_info, i))
                         .rem_euclid(num_orientations),
                 )
@@ -227,14 +269,14 @@ impl Debug for KTransformation {
                     kpuzzle: self.packed_orbit_data.kpuzzle.clone(),
                 },
             )
-            .field("bytes", &self.byte_slice())
+            .field("bytes", &unsafe { self.byte_slice() })
             .finish()
     }
 }
 
 impl PartialEq<KTransformation> for KTransformation {
     fn eq(&self, other: &Self) -> bool {
-        self.byte_slice() == other.byte_slice()
+        unsafe { self.byte_slice() == other.byte_slice() }
     }
 }
 

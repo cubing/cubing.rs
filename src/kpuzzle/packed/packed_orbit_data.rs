@@ -29,56 +29,57 @@ trait KPatternOrKTransformation {
 }
 
 impl PackedOrbitData {
-    pub fn new_with_uninitialized_bytes(kpuzzle: KPuzzle) -> Self {
+    pub(crate) unsafe fn new_with_uninitialized_bytes(kpuzzle: KPuzzle) -> Self {
         let bytes = unsafe { alloc(kpuzzle.data.layout) };
         Self { kpuzzle, bytes }
     }
 
-    pub fn get_raw_piece_or_permutation_value(
+    pub(crate) unsafe fn bytes_offset(&self, main_offset: usize, second_offset: u8) -> *mut u8 {
+        self.bytes.add(main_offset + (second_offset as usize))
+    }
+
+    pub unsafe fn get_raw_piece_or_permutation_value(
         &self,
         orbit_info: &KPuzzleOrbitInfo,
-        i: usize,
+        i: u8,
     ) -> u8 {
         unsafe {
-            self.bytes
-                .add(orbit_info.pieces_or_permutations_offset + i)
+            self.bytes_offset(orbit_info.pieces_or_permutations_offset, i)
                 .read()
         }
     }
 
     /// Note: to get orientation with mod, call functions on `PackedKPattern` instead.
-    pub fn get_raw_orientation_value(&self, orbit_info: &KPuzzleOrbitInfo, i: usize) -> u8 {
-        unsafe { self.bytes.add(orbit_info.orientations_offset + i).read() }
+    pub unsafe fn get_raw_orientation_value(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {
+        unsafe { self.bytes_offset(orbit_info.orientations_offset, i).read() }
     }
 
-    pub fn set_raw_piece_or_permutation_value(
+    pub unsafe fn set_raw_piece_or_permutation_value(
         &mut self,
         orbit_info: &KPuzzleOrbitInfo,
-        i: usize,
+        i: u8,
         value: u8,
     ) {
         unsafe {
-            self.bytes
-                .add(orbit_info.pieces_or_permutations_offset + i)
+            self.bytes_offset(orbit_info.pieces_or_permutations_offset, i)
                 .write(value)
         }
     }
 
     /// Note: to set orientation with mod, call functions on `PackedKPattern` instead.
-    pub fn set_raw_orientation_value(
+    pub unsafe fn set_raw_orientation_value(
         &mut self,
         orbit_info: &KPuzzleOrbitInfo,
-        i: usize,
+        i: u8,
         value: u8,
     ) {
         unsafe {
-            self.bytes
-                .add(orbit_info.orientations_offset + i)
+            self.bytes_offset(orbit_info.orientations_offset, i)
                 .write(value)
         }
     }
 
-    pub fn byte_slice(&self) -> &[u8] {
+    pub unsafe fn byte_slice(&self) -> &[u8] {
         // yiss ☺️
         // https://stackoverflow.com/a/27150865
         unsafe { std::slice::from_raw_parts(self.bytes, self.kpuzzle.data.num_bytes) }
@@ -86,7 +87,7 @@ impl PackedOrbitData {
 
     pub fn hash(&self) -> u64 {
         let h = cityhasher::CityHasher::new();
-        h.hash_one(self.byte_slice())
+        h.hash_one(unsafe { self.byte_slice() })
     }
 }
 
@@ -94,21 +95,21 @@ impl Debug for PackedOrbitData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PackedKPattern")
             .field("kpuzzle", &self.kpuzzle)
-            .field("bytes", &self.byte_slice())
+            .field("bytes", &unsafe { self.byte_slice() })
             .finish()
     }
 }
 
 impl Hash for PackedOrbitData {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.byte_slice().hash(state); // TODO: would hashing the kpuzzle significantly affect performance?
+        unsafe { self.byte_slice() }.hash(state); // TODO: would hashing the kpuzzle significantly affect performance?
     }
 }
 
 impl PartialEq for PackedOrbitData {
     fn eq(&self, other: &Self) -> bool {
         // TODO: would comparing the kpuzzles significantly affect performance?
-        self.byte_slice() == other.byte_slice()
+        unsafe { self.byte_slice() == other.byte_slice() }
     }
 }
 
@@ -117,7 +118,7 @@ impl Eq for PackedOrbitData {}
 impl Clone for PackedOrbitData {
     fn clone(&self) -> Self {
         let new_packed_orbit_data =
-            PackedOrbitData::new_with_uninitialized_bytes(self.kpuzzle.clone());
+            unsafe { PackedOrbitData::new_with_uninitialized_bytes(self.kpuzzle.clone()) };
         unsafe {
             std::ptr::copy(
                 self.bytes,

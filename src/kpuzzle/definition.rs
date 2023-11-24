@@ -24,8 +24,8 @@ impl Display for KPuzzleOrbitName {
 #[serde(rename_all = "camelCase")]
 pub struct KPuzzleOrbitDefinition {
     pub orbit_name: KPuzzleOrbitName,
-    pub num_pieces: usize,       // TODO
-    pub num_orientations: usize, // TODO
+    pub num_pieces: u8,       // TODO
+    pub num_orientations: u8, // TODO
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -48,9 +48,9 @@ pub struct KPuzzleDefinition {
 )]
 #[serde(rename_all = "camelCase")]
 pub struct KPatternOrbitData {
-    pub pieces: Vec<usize>,
-    pub orientation: Vec<usize>,
-    pub orientation_mod: Option<Vec<usize>>,
+    pub pieces: Vec<u8>,
+    pub orientation: Vec<u8>,
+    pub orientation_mod: Option<Vec<u8>>,
 }
 
 pub type KPatternData = HashMap<KPuzzleOrbitName, KPatternOrbitData>;
@@ -58,8 +58,8 @@ pub type KPatternData = HashMap<KPuzzleOrbitName, KPatternOrbitData>;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KTransformationOrbitData {
-    pub permutation: Vec<usize>,
-    pub orientation_delta: Vec<usize>,
+    pub permutation: Vec<u8>,
+    pub orientation_delta: Vec<u8>,
 }
 
 // TODO: Use `Move` as the key?
