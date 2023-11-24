@@ -68,7 +68,7 @@ pub fn are_slot_pieces_solved(pattern: &KPattern, edge_idx: u8, corner_idx: u8) 
 }
 
 fn is_piece_solved(pattern: &KPattern, orbit_index: usize, idx: u8) -> bool {
-    let orbit_info = &pattern.packed_orbit_data.kpuzzle.data.orbit_iteration_info[orbit_index];
+    let orbit_info = &pattern.kpuzzle().data.orbit_iteration_info[orbit_index];
     // TODO: compare against the start pattern
     pattern.get_piece(orbit_info, idx) == idx
         && pattern
@@ -104,7 +104,7 @@ pub fn is_3x3x3_cross_solved(pattern: &KPattern) -> bool {
 
 // TODO: allow comparing to pattern
 pub fn is_3x3x3_solved(pattern: &KPattern) -> bool {
-    pattern == &pattern.packed_orbit_data.kpuzzle.default_pattern()
+    pattern == &pattern.kpuzzle().default_pattern()
     // let edges = pattern
     //     .kpattern_data
     //     .get(&("EDGES").into())

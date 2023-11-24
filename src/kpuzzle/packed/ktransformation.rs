@@ -49,6 +49,10 @@ impl KTransformation {
         Ok(new_packed_ktransformation)
     }
 
+    pub fn kpuzzle(&self) -> &KPuzzle {
+        &self.packed_orbit_data.kpuzzle
+    }
+
     pub fn get_permutation_idx(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {
         assert_lt!(i, orbit_info.num_pieces);
         unsafe { self.get_permutation_idx_unchecked(orbit_info, i) }

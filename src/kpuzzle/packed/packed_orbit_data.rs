@@ -7,7 +7,7 @@ use std::{
 use super::{kpuzzle::KPuzzleOrbitInfo, KPuzzle, KTransformation};
 
 pub struct PackedOrbitData {
-    pub kpuzzle: KPuzzle,
+    pub(crate) kpuzzle: KPuzzle,
     pub bytes: *mut u8,
 }
 
@@ -29,6 +29,10 @@ trait KPatternOrKTransformation {
 }
 
 impl PackedOrbitData {
+    pub fn kpuzzle(&self) -> &KPuzzle {
+        &self.kpuzzle
+    }
+
     pub(crate) unsafe fn new_with_uninitialized_bytes(kpuzzle: KPuzzle) -> Self {
         let bytes = unsafe { alloc(kpuzzle.data.layout) };
         Self { kpuzzle, bytes }

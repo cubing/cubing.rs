@@ -69,6 +69,10 @@ impl KPattern {
         Ok(new_packed_kpattern)
     }
 
+    pub fn kpuzzle(&self) -> &KPuzzle {
+        &self.packed_orbit_data.kpuzzle
+    }
+
     pub fn try_from_json(kpuzzle: &KPuzzle, json_bytes: &[u8]) -> Result<Self, ConversionError> {
         // TODO: implement this directly
         let kpattern_data: KPatternData = match serde_json::from_slice(json_bytes) {
