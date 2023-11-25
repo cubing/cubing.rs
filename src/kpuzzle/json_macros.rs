@@ -1,6 +1,6 @@
 /// Load a `KPuzzle` from a JSON file in your source code. The file will only be
 /// loaded on the first call, and all subsequent calls will use the cached
-/// value
+/// value. Call `.to_owned()` on the result if you need an owned value.
 ///
 ///  Example:
 ///
@@ -30,7 +30,7 @@ macro_rules! kpuzzle_from_json_file {
 
 /// Load a `KPattern` from a JSON file in your source code. The file will only be
 /// loaded on the first call, and all subsequent calls will use the cached
-/// value
+/// value. Call `.to_owned()` on the result if you need an owned value.
 ///
 ///  Example:
 ///
@@ -66,7 +66,7 @@ macro_rules! kpattern_from_json_file {
 
 /// Load a `KTransformation` from a JSON file in your source code. The file will only be
 /// loaded on the first call, and all subsequent calls will use the cached
-/// value
+/// value. Call `.to_owned()` on the result if you need an owned value.
 ///
 ///  Example:
 ///
