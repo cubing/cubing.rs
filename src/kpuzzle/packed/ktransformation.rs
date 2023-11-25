@@ -24,10 +24,11 @@ impl KTransformation {
     }
 
     // TODO: validation?
-    pub fn try_from_data(
-        kpuzzle: &KPuzzle,
+    pub fn try_from_data<T: Into<KPuzzle>>(
+        kpuzzle: T,
         ktransformation_data: &KTransformationData,
     ) -> Result<Self, ConversionError> {
+        let kpuzzle: KPuzzle = kpuzzle.into();
         let mut new_packed_ktransformation = Self::new_uninitialized(kpuzzle.clone());
         for orbit_info in kpuzzle.orbit_info_iter() {
             for i in 0..orbit_info.num_pieces {
@@ -73,6 +74,27 @@ impl KTransformation {
         data
     }
 
+    pub fn try_from_json<T: Into<KPuzzle>>(
+        kpuzzle: T,
+        json_bytes: &[u8],
+    ) -> Result<Self, ConversionError> {
+        let kpuzzle: KPuzzle = kpuzzle.into();
+        // TODO: implement this directly
+        let ktransformation_data: KTransformationData = match serde_json::from_slice(json_bytes) {
+            Ok(ktransformation_data) => ktransformation_data,
+            Err(e) => {
+                return Err(ConversionError::InvalidKPatternData(
+                    super::InvalidKPatternDataError {
+                        description: format!(
+                            "Could not parse JSON for KTransformation data: {}",
+                            e
+                        ),
+                    },
+                ))
+            }
+        };
+        Self::try_from_data(&kpuzzle, &ktransformation_data)
+    }
     pub fn kpuzzle(&self) -> &KPuzzle {
         &self.packed_orbit_data.kpuzzle
     }

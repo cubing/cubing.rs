@@ -52,7 +52,7 @@ impl PackedOrbitData {
         }
     }
 
-    /// Note: to get orientation with mod, call functions on `PackedKPattern` instead.
+    /// Note: to get orientation with mod, call functions on `PackeKPattern` instead.
     pub unsafe fn get_raw_orientation_value(&self, orbit: &KPuzzleOrbitInfo, i: u8) -> u8 {
         unsafe { self.bytes_offset(orbit.orientations_offset, i).read() }
     }
@@ -69,7 +69,7 @@ impl PackedOrbitData {
         }
     }
 
-    /// Note: to set orientation with mod, call functions on `PackedKPattern` instead.
+    /// Note: to set orientation with mod, call functions on `KPattern` instead.
     pub unsafe fn set_raw_orientation_value(&mut self, orbit: &KPuzzleOrbitInfo, i: u8, value: u8) {
         unsafe { self.bytes_offset(orbit.orientations_offset, i).write(value) }
     }
@@ -94,7 +94,7 @@ impl PackedOrbitData {
 
 impl Debug for PackedOrbitData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("PackedKPattern")
+        f.debug_struct("PackedOrbitData")
             .field("kpuzzle", &self.kpuzzle)
             .field("bytes", &unsafe { self.byte_slice() })
             .finish()

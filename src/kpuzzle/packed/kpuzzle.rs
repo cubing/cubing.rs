@@ -16,7 +16,7 @@ use super::{
     lookup_move::{lookup_move, MoveLookupResultSource},
     orientation_packer::OrientationPacker,
     packed_orbit_data::PackedOrbitData,
-    InvalidPatternDataError, KPattern, KTransformation,
+    InvalidKPatternDataError, InvalidKTransformationDataError, KPattern, KTransformation,
 };
 
 // TODO: allow certain values over 107?
@@ -138,7 +138,8 @@ pub struct KPuzzle {
 pub enum ConversionError {
     InvalidAlg(InvalidAlgError),
     InvalidDefinition(InvalidDefinitionError),
-    InvalidPatternData(InvalidPatternDataError),
+    InvalidKPatternData(InvalidKPatternDataError),
+    InvalidKTransformationData(InvalidKTransformationDataError),
 }
 
 fn transformation_from_alg(
@@ -290,6 +291,12 @@ impl KPuzzle {
     // TODO: implement this directly
     pub fn transformation_from_alg(&self, alg: &Alg) -> Result<KTransformation, InvalidAlgError> {
         transformation_from_alg(self, alg)
+    }
+}
+
+impl From<&KPuzzle> for KPuzzle {
+    fn from(value: &KPuzzle) -> Self {
+        value.clone()
     }
 }
 

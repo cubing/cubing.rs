@@ -62,7 +62,7 @@ pub struct OrientationPacker {
 ///
 /// `OrientationPacker` can translate between these representations,
 /// as well as applying a transformation to the packed representation
-/// efficiently. This replaces arithmetic with simple lookups for `PackedKPattern` logic.
+/// efficiently. This replaces arithmetic with simple lookups for `KPattern` logic.
 
 impl OrientationPacker {
     pub fn new(num_orientations: u8) -> Self {

@@ -6,7 +6,7 @@ use super::{
     kpuzzle::{InvalidAlgError, KPuzzleOrbitInfo},
     orientation_packer::{OrientationWithMod, PackedOrientationWithMod},
     packed_orbit_data::PackedOrbitData,
-    ConversionError, InvalidPatternDataError, KPuzzle, KTransformation,
+    ConversionError, InvalidKPatternDataError, KPuzzle, KTransformation,
 };
 
 use crate::{
@@ -20,18 +20,20 @@ pub struct KPattern {
 }
 
 impl KPattern {
-    pub(crate) fn new_unitialized(kpuzzle: KPuzzle) -> Self {
+    pub(crate) fn new_unitialized<T: Into<KPuzzle>>(kpuzzle: T) -> Self {
+        let kpuzzle: KPuzzle = kpuzzle.into();
         Self {
             packed_orbit_data: unsafe { PackedOrbitData::new_with_uninitialized_bytes(kpuzzle) },
         }
     }
 
     // TODO: validation?
-    pub fn try_from_data(
-        kpuzzle: &KPuzzle,
+    pub fn try_from_data<T: Into<KPuzzle>>(
+        kpuzzle: T,
         kpattern_data: &KPatternData,
     ) -> Result<Self, ConversionError> {
-        let mut new_packed_kpattern = Self::new_unitialized(kpuzzle.clone());
+        let kpuzzle: KPuzzle = kpuzzle.into();
+        let mut new_packed_kpattern = Self::new_unitialized(&kpuzzle);
         for orbit_info in kpuzzle.orbit_info_iter() {
             for i in 0..orbit_info.num_pieces {
                 let default_orbit = kpattern_data.get(&orbit_info.name);
@@ -48,7 +50,7 @@ impl KPattern {
                         None => OrientationWithMod::new_using_default_orientation_mod( default_orbit.orientation[i as usize]),
                         Some(orientation_mod) => {
                             if orientation_mod[i as usize] != 0 && orbit_info.num_orientations % orientation_mod[i as usize] != 0 {
-                                return Err(ConversionError::InvalidPatternData(InvalidPatternDataError { description: format!(
+                                return Err(ConversionError::InvalidKPatternData(InvalidKPatternDataError { description: format!(
                                     "`orientation_mod` of {} seen for piece at index {} in orbit {} in the start pattern for puzzle {}. This must be a factor of `num_orientations` for the orbit ({}). See: https://js.cubing.net/cubing/api/interfaces/kpuzzle.KPatternOrbitData.html#orientationMod",
                                     orientation_mod[i as usize],
                                     i,
@@ -105,19 +107,23 @@ impl KPattern {
         &self.packed_orbit_data
     }
 
-    pub fn try_from_json(kpuzzle: &KPuzzle, json_bytes: &[u8]) -> Result<Self, ConversionError> {
+    pub fn try_from_json<T: Into<KPuzzle>>(
+        kpuzzle: T,
+        json_bytes: &[u8],
+    ) -> Result<Self, ConversionError> {
+        let kpuzzle: KPuzzle = kpuzzle.into();
         // TODO: implement this directly
         let kpattern_data: KPatternData = match serde_json::from_slice(json_bytes) {
             Ok(kpattern_data) => kpattern_data,
             Err(e) => {
-                return Err(ConversionError::InvalidPatternData(
-                    super::InvalidPatternDataError {
+                return Err(ConversionError::InvalidKPatternData(
+                    super::InvalidKPatternDataError {
                         description: format!("Could not parse JSON for KPattern data: {}", e),
                     },
                 ))
             }
         };
-        Self::try_from_data(kpuzzle, &kpattern_data)
+        Self::try_from_data(&kpuzzle, &kpattern_data)
     }
 
     pub fn get_piece(&self, orbit: &KPuzzleOrbitInfo, i: u8) -> u8 {
@@ -300,6 +306,12 @@ impl KPattern {
     }
 }
 
+impl From<&KPattern> for KPattern {
+    fn from(value: &KPattern) -> Self {
+        value.clone()
+    }
+}
+
 struct KPuzzleDebug {
     kpuzzle: KPuzzle,
 }
@@ -312,7 +324,7 @@ impl Debug for KPuzzleDebug {
 
 impl Debug for KPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("PackedKPattern")
+        f.debug_struct("KPattern")
             .field(
                 "kpuzzle",
                 &KPuzzleDebug {
@@ -364,7 +376,7 @@ mod tests {
 }"#,
         )
         .unwrap();
-        let start_pattern = KPattern::try_from_data(&kpuzzle, &start_pattern_data).unwrap();
+        let start_pattern = KPattern::try_from_data(kpuzzle, &start_pattern_data).unwrap();
 
         let t1 = from_move("R")?;
 

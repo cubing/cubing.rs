@@ -1,15 +1,4 @@
-use crate::kpuzzle::{KPuzzle, KPuzzleDefinition};
+use crate::kpuzzle_from_json_file;
 
-// TODO: avoid re-parsing every time
-pub fn cube3x3x3_kpuzzle() -> KPuzzle {
-    let json_bytes = include_bytes!("3x3x3.kpuzzle.json");
-    let def: KPuzzleDefinition = serde_json::from_slice(json_bytes).unwrap();
-    KPuzzle::try_new(def).unwrap()
-}
-
-// TODO: avoid re-parsing every time
-pub fn cube2x2x2_kpuzzle() -> KPuzzle {
-    let json_bytes = include_bytes!("2x2x2.kpuzzle.json");
-    let def: KPuzzleDefinition = serde_json::from_slice(json_bytes).unwrap();
-    KPuzzle::try_new(def).unwrap()
-}
+kpuzzle_from_json_file!(pub, cube3x3x3, "./3x3x3.kpuzzle.json");
+kpuzzle_from_json_file!(pub, cube2x2x2, "./2x2x2.kpuzzle.json");
