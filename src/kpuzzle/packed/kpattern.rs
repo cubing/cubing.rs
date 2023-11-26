@@ -33,7 +33,7 @@ impl KPattern {
         kpattern_data: &KPatternData,
     ) -> Result<Self, ConversionError> {
         let kpuzzle: KPuzzle = kpuzzle.into();
-        let mut new_packed_kpattern = Self::new_unitialized(&kpuzzle);
+        let mut new_kpattern = Self::new_unitialized(&kpuzzle);
         for orbit_info in kpuzzle.orbit_info_iter() {
             for i in 0..orbit_info.num_pieces {
                 let default_orbit = kpattern_data.get(&orbit_info.name);
@@ -42,8 +42,8 @@ impl KPattern {
                     None => panic!("Invalid default pattern"), // TODO: catch at construction time?
                 };
 
-                new_packed_kpattern.set_piece(orbit_info, i, default_orbit.pieces[i as usize]);
-                new_packed_kpattern.set_orientation_with_mod(
+                new_kpattern.set_piece(orbit_info, i, default_orbit.pieces[i as usize]);
+                new_kpattern.set_orientation_with_mod(
                     orbit_info,
                     i,
                     &match &default_orbit.orientation_mod {
@@ -68,7 +68,7 @@ impl KPattern {
                 );
             }
         }
-        Ok(new_packed_kpattern)
+        Ok(new_kpattern)
     }
 
     pub fn to_data(&self) -> KPatternData {
@@ -240,9 +240,9 @@ impl KPattern {
     // Adapted from https://github.com/cubing/cubing.rs/blob/b737c6a36528e9984b45b29f9449a9a330c272fb/src/kpuzzle/pattern.rs#L31-L82
     // TODO: dedup the implementation (but avoid runtime overhead for the shared abstraction).
     pub fn apply_transformation(&self, transformation: &KTransformation) -> KPattern {
-        let mut new_packed_kpattern = KPattern::new_unitialized(self.kpuzzle().clone());
-        self.apply_transformation_into(transformation, &mut new_packed_kpattern);
-        new_packed_kpattern
+        let mut new_kpattern = KPattern::new_unitialized(self.kpuzzle().clone());
+        self.apply_transformation_into(transformation, &mut new_kpattern);
+        new_kpattern
     }
 
     // Adapted from https://github.com/cubing/cubing.rs/blob/b737c6a36528e9984b45b29f9449a9a330c272fb/src/kpuzzle/pattern.rs#L31-L82
@@ -251,7 +251,7 @@ impl KPattern {
     pub fn apply_transformation_into(
         &self,
         transformation: &KTransformation,
-        into_packed_kpattern: &mut KPattern,
+        into_kpattern: &mut KPattern,
     ) {
         for orbit_info in self.kpuzzle().orbit_info_iter() {
             // TODO: optimization when either value is the identity.
@@ -261,7 +261,7 @@ impl KPattern {
 
                 let new_piece_value =
                     unsafe { self.get_piece_unchecked(orbit_info, transformation_idx) };
-                unsafe { into_packed_kpattern.set_piece_unchecked(orbit_info, i, new_piece_value) };
+                unsafe { into_kpattern.set_piece_unchecked(orbit_info, i, new_piece_value) };
 
                 let previous_packed_orientation_with_mod =
                     self.get_packed_orientation_with_mod_unchecked(orbit_info, transformation_idx);
@@ -273,7 +273,7 @@ impl KPattern {
                             transformation.get_orientation_delta_unchecked(orbit_info, i)
                         })
                 };
-                into_packed_kpattern.set_packed_orientation_with_mod_unchecked(
+                into_kpattern.set_packed_orientation_with_mod_unchecked(
                     orbit_info,
                     i,
                     new_packed_orientation_with_mod,

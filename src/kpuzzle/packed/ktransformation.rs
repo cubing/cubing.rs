@@ -29,7 +29,7 @@ impl KTransformation {
         ktransformation_data: &KTransformationData,
     ) -> Result<Self, ConversionError> {
         let kpuzzle: KPuzzle = kpuzzle.into();
-        let mut new_packed_ktransformation = Self::new_uninitialized(kpuzzle.clone());
+        let mut new_ktransformation = Self::new_uninitialized(kpuzzle.clone());
         for orbit_info in kpuzzle.orbit_info_iter() {
             for i in 0..orbit_info.num_pieces {
                 let orbit = ktransformation_data.get(&orbit_info.name);
@@ -38,19 +38,19 @@ impl KTransformation {
                     None => panic!("Invalid default pattern"), // TODO: catch at construction time?
                 };
 
-                new_packed_ktransformation.set_permutation_idx(
+                new_ktransformation.set_permutation_idx(
                     orbit_info,
                     i,
                     orbit.permutation[i as usize],
                 );
-                new_packed_ktransformation.set_orientation_delta(
+                new_ktransformation.set_orientation_delta(
                     orbit_info,
                     i,
                     orbit.orientation_delta[i as usize],
                 );
             }
         }
-        Ok(new_packed_ktransformation)
+        Ok(new_ktransformation)
     }
 
     pub fn to_data(&self) -> KTransformationData {
@@ -194,10 +194,9 @@ impl KTransformation {
     // Adapted from https://github.com/cubing/cubing.rs/blob/b737c6a36528e9984b45b29f9449a9a330c272fb/src/kpuzzle/transformation.rs#L32-L61
     // TODO: dedup the implementation (but avoid runtime overhead for the shared abstraction).
     pub fn apply_transformation(&self, transformation: &KTransformation) -> KTransformation {
-        let mut new_packed_ktransformation =
-            KTransformation::new_uninitialized(self.kpuzzle().clone());
-        self.apply_transformation_into(transformation, &mut new_packed_ktransformation);
-        new_packed_ktransformation
+        let mut new_ktransformation = KTransformation::new_uninitialized(self.kpuzzle().clone());
+        self.apply_transformation_into(transformation, &mut new_ktransformation);
+        new_ktransformation
     }
 
     // Adapted from https://github.com/cubing/cubing.rs/blob/b737c6a36528e9984b45b29f9449a9a330c272fb/src/kpuzzle/transformation.rs#L32-L61
@@ -206,7 +205,7 @@ impl KTransformation {
     pub fn apply_transformation_into(
         &self,
         transformation: &KTransformation,
-        into_packed_ktransformation: &mut KTransformation,
+        into_ktransformation: &mut KTransformation,
     ) {
         for orbit_info in self.kpuzzle().orbit_info_iter() {
             // TODO: optimization when either value is the identity.
@@ -217,7 +216,7 @@ impl KTransformation {
                 let new_piece_permutation =
                     self.get_permutation_idx(orbit_info, transformation_idx);
                 unsafe {
-                    into_packed_ktransformation.set_permutation_idx_unchecked(
+                    into_ktransformation.set_permutation_idx_unchecked(
                         orbit_info,
                         i,
                         new_piece_permutation,
@@ -232,7 +231,7 @@ impl KTransformation {
                     + unsafe { transformation.get_orientation_delta_unchecked(orbit_info, i) })
                     % orbit_info.num_orientations;
                 unsafe {
-                    into_packed_ktransformation.set_orientation_delta_unchecked(
+                    into_ktransformation.set_orientation_delta_unchecked(
                         orbit_info,
                         i,
                         new_orientation_delta,
@@ -254,16 +253,15 @@ impl KTransformation {
     }
 
     pub fn invert(&self) -> KTransformation {
-        let mut new_packed_ktransformation =
-            KTransformation::new_uninitialized(self.kpuzzle().clone());
+        let mut new_ktransformation = KTransformation::new_uninitialized(self.kpuzzle().clone());
         for orbit_info in self.kpuzzle().orbit_info_iter() {
             let num_orientations = orbit_info.num_orientations;
 
             // TODO: optimization when either value is the identity.
             for i in 0..orbit_info.num_pieces {
                 let from_idx = self.get_permutation_idx(orbit_info, i);
-                new_packed_ktransformation.set_permutation_idx(orbit_info, from_idx, i);
-                new_packed_ktransformation.set_orientation_delta(
+                new_ktransformation.set_permutation_idx(orbit_info, from_idx, i);
+                new_ktransformation.set_orientation_delta(
                     orbit_info,
                     from_idx,
                     (num_orientations - self.get_orientation_delta(orbit_info, i))
@@ -271,7 +269,7 @@ impl KTransformation {
                 )
             }
         }
-        new_packed_ktransformation
+        new_ktransformation
     }
 
     pub(crate) fn self_multiply(&self, amount: Amount) -> Self {
