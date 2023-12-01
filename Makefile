@@ -19,3 +19,11 @@ publish: lint # `cargo test` is run automatically.
 	cargo publish --package cubing_core
 	cargo publish --package cubing_macros
 	cargo publish --package cubing
+
+.PHONY: bump-version-minor
+bump-version-minor:
+	cargo workspaces version --no-git-commit --exact minor
+
+.PHONY: bump-version-patch
+bump-version-patch:
+	cargo workspaces version --no-git-commit --exact patch
