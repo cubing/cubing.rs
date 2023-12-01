@@ -3,7 +3,6 @@ use std::{sync::Arc, thread::spawn};
 use cubing_core::{
     alg::{Alg, AlgBuilder, AlgNode, Move, MoveLayer, MovePrefix, MoveRange, Newline, QuantumMove},
     kpuzzle::InvalidAlgError,
-    parse_alg, parse_move,
 };
 
 #[test]
@@ -104,13 +103,13 @@ fn it_works() -> Result<(), InvalidAlgError> {
     assert_eq!("F2'", format!("{}", "F2".parse::<Move>().unwrap().invert()));
 
     assert_eq!(
-        parse_move!("2R3'")?.quantum.as_ref(),
+        ("2R3'").parse::<Move>()?.quantum.as_ref(),
         &QuantumMove {
             prefix: Some(MovePrefix::Layer(MoveLayer { layer: 2 },)),
             family: "R".into()
         }
     );
-    assert_eq!(parse_move!("2R3'")?.amount, -3);
+    assert_eq!(("2R3'").parse::<Move>()?.amount, -3);
 
     assert!("2".parse::<Move>().is_err());
     assert!("U-R".parse::<Move>().is_err());
@@ -153,8 +152,8 @@ fn it_works() -> Result<(), InvalidAlgError> {
         "  [ R  : U ]  ".parse::<Alg>()?.invert().to_string()
     );
 
-    assert_eq!("R'".parse::<Move>()?, parse_move!("R'")?);
-    assert_eq!("R U R'".parse::<Alg>()?, parse_alg!("R U R'")?);
+    assert_eq!("R'".parse::<Move>()?, ("R'").parse::<Move>()?);
+    assert_eq!("R U R'".parse::<Alg>()?, ("R U R'").parse::<Alg>()?);
     assert_eq!(
         "[R', F]3",
         format!("{}", "([R', F])3".parse::<Alg>().unwrap())

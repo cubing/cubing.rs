@@ -13,3 +13,8 @@ readme = "README.md"
 
 [dependencies]
 cubing_core = { version = "=0.11.1", path = "../cubing_core" }
+litrs = "0.4.1"
+quote = "1.0.33"
+
+[lib]
+proc-macro = true

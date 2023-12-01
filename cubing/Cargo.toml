@@ -13,6 +13,7 @@ readme = "README.md"
 
 [dependencies]
 cubing_core = { version = "=0.11.1", path = "../cubing_core" }
+cubing_macros = { version = "=0.11.1", path = "../cubing_macros" }
 
 [dev-dependencies]
 clap = { version = "4.1.8", features = ["derive"] }

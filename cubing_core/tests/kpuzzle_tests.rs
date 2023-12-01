@@ -6,7 +6,6 @@ use cubing_core::{
         InvalidAlgError, KPatternData, KPuzzle, KPuzzleOrbitName, KTransformationData,
         KTransformationOrbitData,
     },
-    parse_alg,
     puzzles::cube3x3x3_kpuzzle,
 };
 use once_cell::sync::Lazy;
@@ -95,23 +94,23 @@ fn it_works() -> Result<(), InvalidAlgError> {
 
     assert_eq!(
         t.apply_transformation(&t),
-        kpuzzle.transformation_from_alg(&parse_alg!("R2").unwrap())?
+        kpuzzle.transformation_from_alg(&("R2").parse::<Alg>().unwrap())?
     );
     assert_ne!(
         t.apply_transformation(&t),
-        kpuzzle.transformation_from_alg(&parse_alg!("L R").unwrap())?
+        kpuzzle.transformation_from_alg(&("L R".parse::<Alg>()).unwrap())?
     );
     assert_eq!(
         t.apply_transformation(&t).apply_transformation(&t),
-        kpuzzle.transformation_from_alg(&parse_alg!("R3").unwrap())?
+        kpuzzle.transformation_from_alg(&("R3").parse::<Alg>().unwrap())?
     );
     assert_eq!(
         kpuzzle.identity_transformation(),
-        kpuzzle.transformation_from_alg(&parse_alg!("R10").unwrap())?
+        kpuzzle.transformation_from_alg(&("R10".parse::<Alg>()).unwrap())?
     );
     assert_ne!(
         kpuzzle.identity_transformation(),
-        kpuzzle.transformation_from_alg(&parse_alg!("R5").unwrap())?
+        kpuzzle.transformation_from_alg(&("R5").parse::<Alg>().unwrap())?
     );
     Ok(())
 }
@@ -129,8 +128,8 @@ fn ktransformation_can_be_sent_to_and_returned_from_threads() -> Result<(), Stri
     Ok(())
 }
 
-static SUPERFLIP: Lazy<Alg> = Lazy::new(|| parse_alg!("((M' U')4 x y)3").unwrap());
-static TRIGGER: Lazy<Alg> = Lazy::new(|| parse_alg!("[R: U]").unwrap());
+static SUPERFLIP: Lazy<Alg> = Lazy::new(|| ("((M' U')4 x y)3").parse::<Alg>().unwrap());
+static TRIGGER: Lazy<Alg> = Lazy::new(|| ("[R: U]").parse::<Alg>().unwrap());
 
 #[test]
 fn static_kpattern_can_be_sent_to_and_returned_from_threads() -> Result<(), InvalidAlgError> {

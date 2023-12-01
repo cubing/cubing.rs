@@ -409,17 +409,3 @@ fn parse_node(input: &str) -> IResult<&str, AlgNode> {
         into(parse_commutator_or_conjugate),
     ))(input)
 }
-
-#[macro_export]
-macro_rules! parse_move {
-    ($s: expr) => {
-        $s.parse::<$crate::alg::Move>()
-    };
-}
-
-#[macro_export]
-macro_rules! parse_alg {
-    ($s: expr) => {
-        $s.parse::<$crate::alg::Alg>()
-    };
-}

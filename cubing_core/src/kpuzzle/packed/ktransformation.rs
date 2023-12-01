@@ -333,9 +333,9 @@ impl PartialEq<KTransformation> for KTransformation {
 #[cfg(test)]
 mod tests {
     use crate::alg::AlgParseError;
+    use crate::alg::Move;
     use crate::kpuzzle::InvalidAlgError;
     use crate::kpuzzle::KTransformation;
-    use crate::parse_move;
     use crate::puzzles::cube3x3x3_kpuzzle;
 
     #[test]
@@ -343,7 +343,9 @@ mod tests {
         let kpuzzle = cube3x3x3_kpuzzle();
 
         let from_move = |move_str: &str| -> Result<KTransformation, String> {
-            let r#move = parse_move!(move_str).map_err(|e: AlgParseError| e.description)?;
+            let r#move = (move_str)
+                .parse::<Move>()
+                .map_err(|e: AlgParseError| e.description)?;
             kpuzzle
                 .transformation_from_move(&r#move)
                 .map_err(|e: InvalidAlgError| e.to_string())

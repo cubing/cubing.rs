@@ -1,5 +1,6 @@
 pub mod alg {
     pub use cubing_core::alg::*;
+    pub use cubing_macros::parse_alg;
 }
 
 pub mod kpuzzle {

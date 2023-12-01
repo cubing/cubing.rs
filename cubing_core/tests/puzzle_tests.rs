@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 use cubing_core::{
+    alg::Alg,
     kpuzzle::{
         InvalidAlgError, InvalidDefinitionError, KPatternData, KPatternOrbitData, KPuzzle,
         KPuzzleDefinition, KPuzzleOrbitDefinition, KTransformationData, KTransformationOrbitData,
     },
-    parse_alg,
     puzzles::{cube2x2x2_kpuzzle, cube3x3x3_kpuzzle},
 };
 
@@ -13,18 +13,18 @@ use cubing_core::{
 fn it_works() -> Result<(), InvalidAlgError> {
     let kpuzzle = cube3x3x3_kpuzzle();
     assert_eq!(
-        &kpuzzle.transformation_from_alg(&parse_alg!("R U R' F' U2")?)?,
-        &kpuzzle.transformation_from_alg(&parse_alg!("(L' U' L F U2')'")?)?,
+        &kpuzzle.transformation_from_alg(&("R U R' F' U2").parse::<Alg>()?)?,
+        &kpuzzle.transformation_from_alg(&("(L' U' L F U2')'").parse::<Alg>()?)?,
     );
     assert_ne!(
-        &kpuzzle.transformation_from_alg(&parse_alg!("(R U R' U)5")?)?,
-        &kpuzzle.transformation_from_alg(&parse_alg!("")?)?
+        &kpuzzle.transformation_from_alg(&("(R U R' U)5").parse::<Alg>()?)?,
+        &kpuzzle.transformation_from_alg(&("").parse::<Alg>()?)?
     );
     assert_eq!(
         &kpuzzle
             .default_pattern()
-            .apply_alg(&parse_alg!("(R U R' U)5")?)?,
-        &kpuzzle.default_pattern().apply_alg(&parse_alg!("")?)?
+            .apply_alg(&("(R U R' U)5").parse::<Alg>()?)?,
+        &kpuzzle.default_pattern().apply_alg(&("").parse::<Alg>()?)?
     );
 
     Ok(())
@@ -34,12 +34,12 @@ fn it_works() -> Result<(), InvalidAlgError> {
 fn test_2x2x2() -> Result<(), InvalidAlgError> {
     let kpuzzle = cube2x2x2_kpuzzle();
     assert_eq!(
-        kpuzzle.transformation_from_alg(&parse_alg!("z")?)?,
-        kpuzzle.transformation_from_alg(&parse_alg!("[x: y]")?)?,
+        kpuzzle.transformation_from_alg(&("z").parse::<Alg>()?)?,
+        kpuzzle.transformation_from_alg(&("[x: y]").parse::<Alg>()?)?,
     );
     assert_eq!(
-        kpuzzle.transformation_from_alg(&parse_alg!("L")?)?,
-        kpuzzle.transformation_from_alg(&parse_alg!("x' R")?)?
+        kpuzzle.transformation_from_alg(&("L").parse::<Alg>()?)?,
+        kpuzzle.transformation_from_alg(&("x' R").parse::<Alg>()?)?
     );
     Ok(())
 }
