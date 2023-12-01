@@ -1,6 +1,6 @@
 use std::{sync::Arc, thread::spawn};
 
-use cubing::{
+use cubing_core::{
     alg::{Alg, AlgBuilder, AlgNode, Move, MoveLayer, MovePrefix, MoveRange, Newline, QuantumMove},
     kpuzzle::InvalidAlgError,
     parse_alg, parse_move,

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use cubing::{
+use cubing_core::{
     kpuzzle::{
         InvalidAlgError, InvalidDefinitionError, KPatternData, KPatternOrbitData, KPuzzle,
         KPuzzleDefinition, KPuzzleOrbitDefinition, KTransformationData, KTransformationOrbitData,
