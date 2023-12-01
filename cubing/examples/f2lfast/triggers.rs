@@ -1,7 +1,6 @@
 use cubing::{
     alg::Alg,
     kpuzzle::{KPuzzle, KTransformation},
-    parse_alg,
 };
 
 #[derive(Clone)]
@@ -23,8 +22,8 @@ pub struct TriggerInfo {
 impl TriggerInfo {
     #[allow(non_snake_case)]
     pub fn new(kpuzzle: &KPuzzle, short_alg: &str, long_alg: &str) -> TriggerInfo {
-        let short_alg = parse_alg!(short_alg).unwrap();
-        let long_alg = parse_alg!(long_alg).unwrap();
+        let short_alg = short_alg.parse::<Alg>().unwrap();
+        let long_alg = long_alg.parse::<Alg>().unwrap();
         let transformation = kpuzzle.transformation_from_alg(&long_alg).unwrap();
         TriggerInfo {
             short_alg,

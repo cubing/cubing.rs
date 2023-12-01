@@ -1,0 +1,25 @@
+[package]
+name = "cubing"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+authors = ["Lucas Garron <code@garron.net"]
+description = "Features from `cubing.js` in Rust."
+homepage = "https://github.com/cubing/cubing.rs"
+repository = "https://github.com/cubing/cubing.rs"
+documentation = "https://github.com/cubing/cubing.rs"
+keywords = ["cubing", "puzzle", "rubik", "solving", "WCA"]
+readme = "README.md"
+
+[dependencies]
+cubing_core = { version = "=0.11.1", path = "../cubing_core" }
+cubing_macros = { version = "=0.11.1", path = "../cubing_macros" }
+
+[dev-dependencies]
+clap = { version = "4.1.8", features = ["derive"] }
+once_cell = "1.18.0"
+rand = "0.8.5"
+url = "2.3.1"
+
+[[example]]
+name = "f2lfast"
