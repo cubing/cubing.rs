@@ -8,7 +8,7 @@ homepage = "https://github.com/cubing/cubing.rs"
 repository = "https://github.com/cubing/cubing.rs"
 documentation = "https://github.com/cubing/cubing.rs"
 keywords = ["cubing", "puzzle", "rubik", "solving", "WCA"]
-license = "GPL-3.0-or-later"
+license = "MPL-2.0"
 readme = "README.md"
 
 [dependencies]
