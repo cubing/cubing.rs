@@ -2,10 +2,6 @@
 test:
 	cargo test
 
-.PHONY: publish
-publish: lint test
-	cargo publish
-
 .PHONY: lint
 lint:
 	cargo clippy
@@ -19,7 +15,7 @@ clean:
 	rm -rf ./target
 
 .PHONY: publish
-publish:
+publish: lint # `cargo test` is run automatically.
 	cargo publish --package cubing_core
 	cargo publish --package cubing_macros
 	cargo publish --package cubing
