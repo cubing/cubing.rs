@@ -1,3 +1,5 @@
+// TODO: Turn these into proc macros to validate at compile time?
+
 /// Load a `KPuzzle` from a JSON file in your source code. The file will only be
 /// loaded on the first call, and all subsequent calls will use the cached
 /// value. Call `.to_owned()` on the result if you need an owned value.
