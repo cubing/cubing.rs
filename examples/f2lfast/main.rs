@@ -46,18 +46,6 @@ struct Args {
 }
 
 pub fn main() {
-    let now = Instant::now();
-    let parsed = "U' F' U F . U' R' U' R U2 F U2 F' U2 B U B' . U2 L' U2 L U L' U2 L U2 L' U' L ."
-        .parse::<Alg>()
-        .unwrap();
-    println!("Parsed: {}µs", now.elapsed().as_micros());
-    let inverse = parsed.invert();
-    println!("Inverted: {}µs", now.elapsed().as_micros());
-    let kpuzzle = cube3x3x3_kpuzzle();
-    let transformation = kpuzzle.transformation_from_alg(&inverse).unwrap();
-    println!("Transformation applied: {}µs", now.elapsed().as_micros());
-    println!("Consumed value: {}", format!("{:?}", transformation).len());
-
     let args = Args::parse();
     let kpuzzle = cube3x3x3_kpuzzle();
 
@@ -75,7 +63,7 @@ pub fn main() {
         exit(1)
     }
 
-    let triggers_by_slot = get_triggers_by_slot(&kpuzzle);
+    let triggers_by_slot = get_triggers_by_slot(kpuzzle);
     for slot_trigger_info in &triggers_by_slot {
         if is_slot_solved(&pattern, &slot_trigger_info.f2l_slot) {
             println!(
@@ -97,7 +85,7 @@ pub fn main() {
     let main_search = Search {
         scramble,
         triggers_by_slot,
-        auf_triggers: get_auf_triggers(&kpuzzle),
+        auf_triggers: get_auf_triggers(kpuzzle),
         debug: args.debug,
         randomize: !args.no_randomize,
         prefer_immediate_slots: !args.no_prefer_immediate_slots,
