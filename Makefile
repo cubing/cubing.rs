@@ -17,3 +17,9 @@ format:
 .PHONY: clean
 clean:
 	rm -rf ./target
+
+.PHONY: publish
+publish:
+	cargo publish --package cubing_core
+	cargo publish --package cubing_macros
+	cargo publish --package cubing
