@@ -12,8 +12,8 @@ keywords = ["cubing", "puzzle", "rubik", "solving", "WCA"]
 readme = "../README.md"
 
 [dependencies]
-cubing_core = { version = "=0.12.1", path = "../cubing_core" }
-cubing_macros = { version = "=0.12.1", path = "../cubing_macros" }
+cubing_core = { version = "=0.12.2", path = "../cubing_core" }
+cubing_macros = { version = "=0.12.2", path = "../cubing_macros" }
 
 [dev-dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
