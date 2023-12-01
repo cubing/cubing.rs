@@ -9,7 +9,7 @@ homepage = "https://github.com/cubing/cubing.rs"
 repository = "https://github.com/cubing/cubing.rs"
 documentation = "https://github.com/cubing/cubing.rs"
 keywords = ["cubing", "puzzle", "rubik", "solving", "WCA"]
-readme = "README.md"
+readme = "../README.md"
 
 [dependencies]
 cubing_core = { version = "=0.11.1", path = "../cubing_core" }
