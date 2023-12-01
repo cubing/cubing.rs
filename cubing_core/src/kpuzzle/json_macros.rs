@@ -7,8 +7,14 @@
 ///  Example:
 ///
 /// ```
+/// # pub mod cubing {
+/// #   pub mod kpuzzle {
+/// #     pub use cubing_core::kpuzzle::KPuzzle;
+/// #     pub use cubing_core::kpuzzle_from_json_file;
+/// #   }
+/// # }
 /// use cubing::kpuzzle::KPuzzle;
-/// use cubing::{kpuzzle_from_json_file};
+/// use cubing::kpuzzle::kpuzzle_from_json_file;
 ///
 /// kpuzzle_from_json_file!(pub(crate), example, "./example.kpuzzle.json");
 /// let kpuzzle: &KPuzzle = example_kpuzzle();
@@ -37,8 +43,14 @@ macro_rules! kpuzzle_from_json_file {
 ///  Example:
 ///
 /// ```
-/// use cubing::kpuzzle::{KPuzzle, KPattern};
-/// use cubing::{kpattern_from_json_file, kpuzzle_from_json_file};
+/// # pub mod cubing {
+/// #   pub mod kpuzzle {
+/// #     pub use cubing_core::kpuzzle::KPattern;
+/// #     pub use cubing_core::{kpattern_from_json_file, kpuzzle_from_json_file};
+/// #   }
+/// # }
+/// use cubing::kpuzzle::KPattern;
+/// use cubing::kpuzzle::{kpattern_from_json_file, kpuzzle_from_json_file};
 ///
 /// kpuzzle_from_json_file!(pub(crate), example, "./example.kpuzzle.json");
 ///
@@ -72,8 +84,14 @@ macro_rules! kpattern_from_json_file {
 ///
 ///  Example:
 ///
-/// ```
-/// use cubing::kpuzzle::{KPuzzle, KTransformation};
+/// ```ignore
+/// # pub mod cubing {
+/// #   pub mod kpuzzle {
+/// #     pub use cubing_core::kpuzzle::KTransformation;
+/// #     pub use cubing_core::{kpattern_from_json_file, ktransformation_from_json_file};
+/// #   }
+/// # }
+/// use cubing::kpuzzle::KTransformation;
 /// use cubing::{kpuzzle_from_json_file, ktransformation_from_json_file};
 ///
 /// kpuzzle_from_json_file!(pub(crate), example, "./example.kpuzzle.json");

@@ -1,6 +1,6 @@
 .PHONY: test
 test:
-	cargo test
+	cargo test --all
 
 .PHONY: lint
 lint:

@@ -1,29 +1,21 @@
+// TODO: report errors better.
+// Maybe use https://docs.rs/proc-macro-error/latest/proc_macro_error/ ?
+
 use cubing_core::alg::{Alg, Move};
-use litrs::StringLit;
-use proc_macro::{TokenStream, TokenTree};
+
+use proc_macro::TokenStream;
 use quote::quote;
-use std::convert::TryFrom;
+
+use syn::parse_macro_input;
 
 #[proc_macro]
-pub fn parse_alg(input: TokenStream) -> TokenStream {
-    // Adapted from https://stackoverflow.com/a/67678127
-    let input: Vec<TokenTree> = input.into_iter().collect();
-    if input.len() != 1 {
-        return quote! { compile_error!("The cubing::alg!(…) macro only accepts a single string.") }.into();
-    }
-
-    let string_lit = match StringLit::try_from(&input[0]) {
-        // Error if the token is not a string literal
-        Err(e) => return e.to_compile_error(),
-        Ok(lit) => lit,
-    };
-
-    let alg_string = string_lit.value();
+pub fn parse_alg(item: TokenStream) -> TokenStream {
+    let alg_string = parse_macro_input!(item as syn::LitStr).value();
     match alg_string.parse::<Alg>() {
-        Ok(_alg) => quote! { (#alg_string).parse::<cubing::alg::Alg>().unwrap() }.into(), // TODO: construct alg data structure?
+        Ok(_alg) => quote! { (#alg_string).parse::<cubing_core::alg::Alg>().unwrap() }.into(), // TODO: construct alg data structure?
         Err(e) => {
             let message = format!(
-                "Invalid alg passed to cubing::alg!(…) macro. Parse error: {}",
+                "Invalid alg passed to cubing::parse_alg!(…) macro. Parse error: {}",
                 e
             );
             quote! { compile_error!(#message) }.into()
@@ -32,25 +24,25 @@ pub fn parse_alg(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-pub fn parse_move(input: TokenStream) -> TokenStream {
-    // Adapted from https://stackoverflow.com/a/67678127
-    let input: Vec<TokenTree> = input.into_iter().collect();
-    if input.len() != 1 {
-        return quote! { compile_error!("The cubing::alg!(…) macro only accepts a single string.") }.into();
-    }
-
-    let string_lit = match StringLit::try_from(&input[0]) {
-        // Error if the token is not a string literal
-        Err(e) => return e.to_compile_error(),
-        Ok(lit) => lit,
-    };
-
-    let move_string = string_lit.value();
+pub fn parse_move(item: TokenStream) -> TokenStream {
+    let move_string = parse_macro_input!(item as syn::LitStr).value();
     match move_string.parse::<Move>() {
-        Ok(_alg) => quote! { (#move_string).parse::<cubing::alg::Move>().unwrap() }.into(), // TODO: construct alg data structure?
+        Ok(r#move) => {
+            let move_family = &r#move.quantum.family;
+            let move_amount = r#move.amount;
+            // TODO: can we avoid constructing the move from scratch every time?
+            quote! { cubing_core::alg::Move {
+                quantum: std::sync::Arc::new(cubing_core::alg::QuantumMove {
+                    family: String::from(#move_family),
+                    prefix: None,
+                }),
+                amount: #move_amount,
+            } }
+            .into()
+        }
         Err(e) => {
             let message = format!(
-                "Invalid move passed to cubing::alg!(…) macro. Parse error: {}",
+                "Invalid move passed to cubing::move!(…) macro. Parse error: {}",
                 e
             );
             quote! { compile_error!(#message) }.into()
