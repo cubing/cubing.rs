@@ -2,6 +2,7 @@
 mod tests {
     use std::sync::Arc;
 
+    use cubing_core as cubing;
     use cubing_core::alg::{Alg, Move, QuantumMove};
     use cubing_macros::{parse_alg, parse_move};
 
