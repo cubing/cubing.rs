@@ -42,7 +42,7 @@ pub fn parse_move(item: TokenStream) -> TokenStream {
         }
         Err(e) => {
             let message = format!(
-                "Invalid move passed to cubing::move!(…) macro. Parse error: {}",
+                "Invalid move passed to cubing::parse_move!(…) macro. Parse error: {}",
                 e
             );
             quote! { compile_error!(#message) }.into()
