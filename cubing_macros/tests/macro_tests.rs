@@ -1,12 +1,24 @@
 #[cfg(test)]
 mod tests {
-    use cubing_core::alg::{Alg, Move};
+    use std::sync::Arc;
+
+    use cubing_core::alg::{Alg, Move, QuantumMove};
     use cubing_macros::{parse_alg, parse_move};
 
     #[test]
     fn parse_move() {
         let r#move: Move = parse_move!("R");
         assert_eq!("R".parse::<Move>().unwrap(), r#move);
+        assert_eq!(
+            Move {
+                quantum: Arc::new(QuantumMove {
+                    family: "R".to_owned(),
+                    prefix: None
+                }),
+                amount: 1
+            },
+            r#move
+        );
     }
 
     #[test]
