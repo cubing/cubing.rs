@@ -8,16 +8,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-features
+      - uses: Swatinem/rust-cache@v2
+      - uses: cargo-bins/cargo-binstall@v1.4.9
+      - run: cargo binstall --no-confirm cargo-run-bin
+      - run: make build
+      - run: make test
+      - run: make lint

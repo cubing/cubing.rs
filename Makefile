@@ -1,6 +1,10 @@
+.PHONY: build
+build:
+	cargo build --release
+
 .PHONY: test
 test:
-	cargo test --all
+	cargo bin cargo-nextest run --all
 
 .PHONY: lint
 lint:
