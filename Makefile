@@ -5,6 +5,8 @@ build:
 .PHONY: test
 test:
 	cargo bin cargo-nextest run --all
+	@# `cargo-nextest` doesn't support doctests.
+	cargo test --doc
 
 .PHONY: lint
 lint:
