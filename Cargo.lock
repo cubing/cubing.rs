@@ -116,7 +116,7 @@ checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
 
 [[package]]
 name = "cubing"
-version = "0.12.5"
+version = "0.12.6"
 dependencies = [
  "clap",
  "cubing_core",
@@ -128,7 +128,7 @@ dependencies = [
 
 [[package]]
 name = "cubing_core"
-version = "0.12.5"
+version = "0.12.6"
 dependencies = [
  "cityhasher",
  "clap",
@@ -145,7 +145,7 @@ dependencies = [
 
 [[package]]
 name = "cubing_macros"
-version = "0.12.5"
+version = "0.12.6"
 dependencies = [
  "cubing_core",
  "quote",

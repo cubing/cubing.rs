@@ -11,7 +11,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "0.12.5"
+version = "0.12.6"
 license = "MPL-2.0"
 edition = "2021"
 
