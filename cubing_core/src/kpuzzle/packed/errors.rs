@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-/// An error due to the structure of a [`KPattern`] (such as invalid source JSON).
+/// An error due to the structure of a [`KPattern`][`super::KPattern`] (such as invalid source JSON).
 #[derive(Debug)]
 pub struct InvalidKPatternDataError {
     pub description: String,
@@ -27,7 +27,7 @@ impl Display for InvalidKPatternDataError {
     }
 }
 
-/// An error due to the structure of a [`KTransformation`] (such as invalid source JSON).
+/// An error due to the structure of a [`KTransformation`][`super::KTransformation`] (such as invalid source JSON).
 #[derive(Debug)]
 pub struct InvalidKTransformationDataError {
     pub description: String,
