@@ -10,7 +10,6 @@ pub mod alg {
     /// #     pub use cubing_core::alg::Alg;
     /// #   }
     /// # }
-    ///
     /// use cubing::alg::parse_alg;
     ///
     /// let alg = parse_alg!("F U R");
