@@ -1,5 +1,5 @@
 pub mod alg {
-    /// A representation of a cubing alg, the equivalent of https://js.cubing.net/cubing/api/classes/alg.Alg.html
+    /// A representation of a cubing alg, the equivalent of <https://js.cubing.net/cubing/api/classes/alg.Alg.html>
     ///
     /// To create a fresh alg, it is often useful to use [`parse_alg`] macro:
     ///
