@@ -14,15 +14,13 @@ A subset of the [`cubing.js` API](https://js.cubing.net/cubing/api/) is implemen
 Most applications will use `str.parse::<Alg>(…)` and `KPuzzle` as entry points into the API:
 
 ```rust
-use cubing::{alg::Alg, puzzles::cube3x3x3_kpuzzle};
+use cubing::{alg::parse_alg, puzzles::cube3x3x3_kpuzzle};
 
 pub fn main() {
     let kpuzzle = cube3x3x3_kpuzzle();
     let default_pattern = kpuzzle.default_pattern();
 
-    let input_alg = "R U R' F' U2 L' U' L F U2"
-        .parse::<Alg>()
-        .expect("Invalid alg syntax.");
+    let input_alg = parse_alg!("R U R' F' U2 L' U' L F U2");
 
     let input_pattern = default_pattern
         .apply_alg(&input_alg)
