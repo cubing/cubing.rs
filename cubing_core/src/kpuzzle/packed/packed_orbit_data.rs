@@ -1,7 +1,7 @@
 use std::{
     alloc::{alloc, dealloc},
     fmt::Debug,
-    hash::{BuildHasher, Hash},
+    hash::Hash,
 };
 
 use more_asserts::debug_assert_le;
@@ -84,11 +84,6 @@ impl PackedOrbitData {
         // yiss ☺️
         // https://stackoverflow.com/a/27150865
         unsafe { std::slice::from_raw_parts(self.bytes.add(offset), len) }
-    }
-
-    pub fn hash(&self) -> u64 {
-        let h = cityhasher::CityHasher::new();
-        h.hash_one(unsafe { self.byte_slice() })
     }
 }
 

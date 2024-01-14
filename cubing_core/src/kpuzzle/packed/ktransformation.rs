@@ -1,4 +1,4 @@
-use std::{fmt::Debug, hash::BuildHasher};
+use std::fmt::Debug;
 
 use more_asserts::assert_lt;
 
@@ -245,11 +245,6 @@ impl KTransformation {
     /// The internal structure of bytes is not yet stable.
     pub unsafe fn byte_slice(&self) -> &[u8] {
         self.packed_orbit_data.byte_slice()
-    }
-
-    pub fn hash(&self) -> u64 {
-        let h = cityhasher::CityHasher::new();
-        h.hash_one(unsafe { self.byte_slice() })
     }
 
     pub fn invert(&self) -> KTransformation {

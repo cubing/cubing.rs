@@ -300,10 +300,6 @@ impl KPattern {
     pub unsafe fn byte_slice(&self) -> &[u8] {
         self.packed_orbit_data.byte_slice()
     }
-
-    pub fn hash(&self) -> u64 {
-        self.packed_orbit_data.hash()
-    }
 }
 
 impl From<&KPattern> for KPattern {

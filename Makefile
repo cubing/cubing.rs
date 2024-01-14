@@ -3,8 +3,14 @@ build:
 	cargo build --release
 
 .PHONY: test
-test:
+test: test-nextext test-doctests
+
+.PHONY: test-nextext
+test-nextext:
 	cargo bin cargo-nextest run --all
+
+.PHONY: test-doctests
+test-doctests:
 	@# `cargo-nextest` doesn't support doctests.
 	cargo test --doc --all
 

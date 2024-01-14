@@ -57,12 +57,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "cityhasher"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ceab37c9e94f42414cccae77e930232c517f1bb190947018cffb0ab41fc40992"
-
-[[package]]
 name = "clap"
 version = "4.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -130,7 +124,6 @@ dependencies = [
 name = "cubing_core"
 version = "0.12.6"
 dependencies = [
- "cityhasher",
  "clap",
  "derive_more",
  "more-asserts",

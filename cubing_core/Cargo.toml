@@ -12,7 +12,6 @@ keywords = ["cubing", "puzzle", "rubik", "solving", "WCA"]
 readme = "README.md"
 
 [dependencies]
-cityhasher = "0.1.0"
 derive_more = "0.99.17"
 more-asserts = "0.3.1"
 nom = "7.1.3"
