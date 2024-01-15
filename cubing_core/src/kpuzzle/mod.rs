@@ -12,7 +12,6 @@ mod packed;
 pub use packed::*;
 
 mod json_macros;
-pub use json_macros::*;
 
 /// Do not use directly.
 pub mod _reexported {
