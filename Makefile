@@ -34,8 +34,8 @@ publish: lint # `cargo test` is run automatically.
 
 .PHONY: bump-version-minor
 bump-version-minor:
-	cargo workspaces version --no-git-commit --exact minor
+	cargo bin cargo-workspaces version --no-git-commit --exact minor
 
 .PHONY: bump-version-patch
 bump-version-patch:
-	cargo workspaces version --no-git-commit --exact patch
+	cargo bin cargo-workspaces version --no-git-commit --exact patch
