@@ -337,6 +337,50 @@ impl Debug for KPattern {
             .finish()
     }
 }
+pub struct KPatternBuffer {
+    a: KPattern,
+    b: KPattern,
+    // In some rough benchmarks, using a boolean to track the current pattern was just a tad faster than using `std::mem::swap(…)`.
+    // TODO: measure this properly across devices, and updated `PackedKTransformationBuffer` to match.
+    a_is_current: bool,
+}
+
+impl From<KPattern> for KPatternBuffer {
+    fn from(initial: KPattern) -> Self {
+        Self {
+            b: initial.clone(), // TODO?
+            a: initial,
+            a_is_current: true,
+        }
+    }
+}
+
+impl KPatternBuffer {
+    pub fn apply_transformation(&mut self, transformation: &KTransformation) {
+        if self.a_is_current {
+            self.a
+                .apply_transformation_into(transformation, &mut self.b);
+        } else {
+            self.b
+                .apply_transformation_into(transformation, &mut self.a);
+        }
+        self.a_is_current = !self.a_is_current
+    }
+
+    pub fn current(&self) -> &KPattern {
+        if self.a_is_current {
+            &self.a
+        } else {
+            &self.b
+        }
+    }
+}
+
+impl PartialEq for KPatternBuffer {
+    fn eq(&self, other: &Self) -> bool {
+        self.current() == other.current()
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -402,50 +446,5 @@ mod tests {
         );
 
         Ok(())
-    }
-}
-
-pub struct KPatternBuffer {
-    a: KPattern,
-    b: KPattern,
-    // In some rough benchmarks, using a boolean to track the current pattern was just a tad faster than using `std::mem::swap(…)`.
-    // TODO: measure this properly across devices, and updated `PackedKTransformationBuffer` to match.
-    a_is_current: bool,
-}
-
-impl From<KPattern> for KPatternBuffer {
-    fn from(initial: KPattern) -> Self {
-        Self {
-            b: initial.clone(), // TODO?
-            a: initial,
-            a_is_current: true,
-        }
-    }
-}
-
-impl KPatternBuffer {
-    pub fn apply_transformation(&mut self, transformation: &KTransformation) {
-        if self.a_is_current {
-            self.a
-                .apply_transformation_into(transformation, &mut self.b);
-        } else {
-            self.b
-                .apply_transformation_into(transformation, &mut self.a);
-        }
-        self.a_is_current = !self.a_is_current
-    }
-
-    pub fn current(&self) -> &KPattern {
-        if self.a_is_current {
-            &self.a
-        } else {
-            &self.b
-        }
-    }
-}
-
-impl PartialEq for KPatternBuffer {
-    fn eq(&self, other: &Self) -> bool {
-        self.current() == other.current()
     }
 }

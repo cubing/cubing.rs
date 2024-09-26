@@ -331,50 +331,6 @@ impl PartialEq<KTransformation> for KTransformation {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::alg::AlgParseError;
-    use crate::alg::Move;
-    use crate::kpuzzle::InvalidAlgError;
-    use crate::kpuzzle::KTransformation;
-    use crate::puzzles::cube3x3x3_kpuzzle;
-
-    #[test]
-    fn compose() -> Result<(), String> {
-        let kpuzzle = cube3x3x3_kpuzzle();
-
-        let from_move = |move_str: &str| -> Result<KTransformation, String> {
-            let r#move = (move_str)
-                .parse::<Move>()
-                .map_err(|e: AlgParseError| e.description)?;
-            kpuzzle
-                .transformation_from_move(&r#move)
-                .map_err(|e: InvalidAlgError| e.to_string())
-        };
-
-        let id = kpuzzle.identity_transformation();
-        let t1 = from_move("R")?;
-        let t2 = from_move("R2")?;
-        let t2prime = from_move("R2'")?;
-        let t4 = from_move("R4")?;
-        let t5 = from_move("R5")?;
-
-        assert_eq!(id, t4);
-        assert_eq!(t1, t5);
-        assert_eq!(t2, t2prime);
-
-        assert_ne!(id, t1);
-        assert_ne!(id, t2);
-        assert_ne!(t1, t2);
-
-        assert_eq!(id.apply_transformation(&t1), t1);
-        assert_eq!(t1.apply_transformation(&t1), t2);
-        assert_eq!(t2.apply_transformation(&t1).apply_transformation(&t2), t1);
-
-        Ok(())
-    }
-}
-
 pub struct KTransformationBuffer {
     a: KTransformation,
     b: KTransformation,
@@ -417,5 +373,49 @@ impl KTransformationBuffer {
 impl PartialEq for KTransformationBuffer {
     fn eq(&self, other: &Self) -> bool {
         self.current() == other.current()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::alg::AlgParseError;
+    use crate::alg::Move;
+    use crate::kpuzzle::InvalidAlgError;
+    use crate::kpuzzle::KTransformation;
+    use crate::puzzles::cube3x3x3_kpuzzle;
+
+    #[test]
+    fn compose() -> Result<(), String> {
+        let kpuzzle = cube3x3x3_kpuzzle();
+
+        let from_move = |move_str: &str| -> Result<KTransformation, String> {
+            let r#move = (move_str)
+                .parse::<Move>()
+                .map_err(|e: AlgParseError| e.description)?;
+            kpuzzle
+                .transformation_from_move(&r#move)
+                .map_err(|e: InvalidAlgError| e.to_string())
+        };
+
+        let id = kpuzzle.identity_transformation();
+        let t1 = from_move("R")?;
+        let t2 = from_move("R2")?;
+        let t2prime = from_move("R2'")?;
+        let t4 = from_move("R4")?;
+        let t5 = from_move("R5")?;
+
+        assert_eq!(id, t4);
+        assert_eq!(t1, t5);
+        assert_eq!(t2, t2prime);
+
+        assert_ne!(id, t1);
+        assert_ne!(id, t2);
+        assert_ne!(t1, t2);
+
+        assert_eq!(id.apply_transformation(&t1), t1);
+        assert_eq!(t1.apply_transformation(&t1), t2);
+        assert_eq!(t2.apply_transformation(&t1).apply_transformation(&t2), t1);
+
+        Ok(())
     }
 }
