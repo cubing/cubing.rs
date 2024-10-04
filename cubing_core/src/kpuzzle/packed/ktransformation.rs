@@ -289,7 +289,6 @@ impl KTransformation {
             // https://github.com/rust-lang/rust/issues/54663
             self.apply_transformation(self)
         } else {
-            println!("--{}--", amount / 2);
             let halfish = self.self_multiply(amount / 2);
             halfish.apply_transformation(&halfish)
         };
