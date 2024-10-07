@@ -95,6 +95,7 @@ impl KTransformation {
         };
         Self::try_from_data(&kpuzzle, &ktransformation_data)
     }
+
     pub fn kpuzzle(&self) -> &KPuzzle {
         &self.packed_orbit_data.kpuzzle
     }
