@@ -37,3 +37,5 @@ pub use alg_builder::AlgBuilder;
 
 mod parse;
 pub use parse::AlgParseError;
+
+mod special_notation;

@@ -13,6 +13,7 @@ use nom::{
 use super::{
     alg_node::AlgNode,
     r#move::{_PLUSPLUS_, _PLUS_},
+    special_notation::{D_SQ_quantum, U_SQ_quantum},
     Alg, Commutator, Conjugate, Grouping, LineComment, Move, MovePrefix, Newline, Pause,
     QuantumMove,
 };
@@ -62,6 +63,17 @@ fn parse_decimal_unsigned(input: &str) -> IResult<&str, u32> {
 
 fn parse_natural_number_signed(input: &str) -> IResult<&str, i32> {
     map_res(take_while1(is_decimal_digit), from_natural_number_signed)(input)
+}
+
+fn parse_negative_decimal_signed(input: &str) -> IResult<&str, i32> {
+    let (input, _) = tag("-")(input)?;
+    let (input, n) = parse_natural_number_signed(input)?;
+    // TODO: check cast?
+    Ok((input, -n))
+}
+
+fn decimal_signed(input: &str) -> IResult<&str, i32> {
+    alt((parse_natural_number_signed, parse_negative_decimal_signed))(input)
 }
 
 fn parse_move_prefix(input: &str) -> IResult<&str, MovePrefix> {
@@ -352,8 +364,7 @@ fn parse_line_comment(input: &str) -> IResult<&str, LineComment> {
     Ok((input, line_comment))
 }
 
-fn parse_grouping(input: &str) -> IResult<&str, Grouping> {
-    let (input, _) = tag("(")(input)?;
+fn parse_grouping_rest(input: &str) -> IResult<&str, Grouping> {
     let (input, alg) = parse_alg(input)?;
     let (input, _) = tag(")")(input)?;
     let (input, amount) = parse_optional_amount_suffix(input)?;
@@ -364,6 +375,37 @@ fn parse_grouping(input: &str) -> IResult<&str, Grouping> {
             amount,
         },
     ))
+}
+
+fn parse_square1_tuple_rest(input: &str) -> IResult<&str, Grouping> {
+    let (input, top_amount) = decimal_signed(input)?;
+    let (input, _) = tag(", ")(input)?;
+    let (input, bottom_amount) = decimal_signed(input)?;
+    let (input, _) = tag(")")(input)?;
+    let alg = Alg {
+        nodes: vec![
+            AlgNode::MoveNode(Move {
+                quantum: U_SQ_quantum(),
+                amount: top_amount,
+            }),
+            AlgNode::MoveNode(Move {
+                quantum: D_SQ_quantum(),
+                amount: bottom_amount,
+            }),
+        ],
+    };
+    Ok((
+        input,
+        Grouping {
+            alg: alg.into(),
+            amount: 1,
+        },
+    ))
+}
+
+fn parse_grouping(input: &str) -> IResult<&str, Grouping> {
+    let (input, _) = tag("(")(input)?;
+    alt((into(parse_grouping_rest), into(parse_square1_tuple_rest)))(input)
 }
 
 fn parse_commutator_or_conjugate(input: &str) -> IResult<&str, AlgNode> {

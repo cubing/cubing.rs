@@ -2,7 +2,8 @@ use std::fmt;
 use std::sync::Arc;
 
 use super::amount::fmt_amount;
-use super::Alg;
+use super::special_notation::{D_SQ_quantum, U_SQ_quantum};
+use super::{Alg, AlgNode};
 
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq)]
@@ -30,6 +31,17 @@ impl fmt::Display for Grouping {
                 self.alg.nodes[0],
                 super::AlgNode::CommutatorNode(_) | super::AlgNode::ConjugateNode(_)
             )
+        } else if self.alg.nodes.len() == 2 {
+            // Square-1 notation
+            if let AlgNode::MoveNode(move_0) = &self.alg.nodes[0] {
+                if move_0.quantum == U_SQ_quantum() {
+                    if let AlgNode::MoveNode(move_1) = &self.alg.nodes[1] {
+                        if move_1.quantum == D_SQ_quantum() {
+                            return write!(f, "({}, {})", move_0.amount, move_1.amount);
+                        }
+                    }
+                }
+            }
         }
         if include_parentheses {
             write!(f, "(")?;

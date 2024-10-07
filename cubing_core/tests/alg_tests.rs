@@ -43,6 +43,15 @@ fn it_works() -> Result<(), InvalidAlgError> {
     assert!("DR++1".parse::<Move>().is_err());
     assert!("DR++3".parse::<Move>().is_err());
 
+    assert_eq!("(3, 4)", format!("{}", "(3, 4)".parse::<Alg>().unwrap()));
+    assert_eq!("(-3, 4)", format!("{}", "(-3, 4)".parse::<Alg>().unwrap()));
+    assert_eq!("(3, -4)", format!("{}", "(3, -4)".parse::<Alg>().unwrap()));
+    assert_eq!(
+        "(-3, -4)",
+        format!("{}", "(-3, -4)".parse::<Alg>().unwrap())
+    );
+    assert_eq!("(1, 0)", format!("{}", "(1, 0)".parse::<Alg>().unwrap()));
+
     assert_eq!("\n", Newline {}.to_string());
 
     assert_eq!(
