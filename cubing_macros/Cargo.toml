@@ -12,7 +12,7 @@ keywords = ["cubing", "puzzle", "rubik", "solving", "WCA"]
 readme = "README.md"
 
 [dependencies]
-cubing_core = { version = "=0.13.3", path = "../cubing_core" }
+cubing_core = { version = "=0.13.4", path = "../cubing_core" }
 quote = "1.0.33"
 syn = "2.0.39"
 
