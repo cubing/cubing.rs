@@ -333,7 +333,7 @@ impl Debug for KPattern {
                     kpuzzle: self.kpuzzle().clone(),
                 },
             )
-            .field("bytes", &unsafe { self.byte_slice() })
+            .field("kpattern_data", &self.to_data())
             .finish()
     }
 }

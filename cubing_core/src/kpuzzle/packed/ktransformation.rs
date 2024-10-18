@@ -320,7 +320,7 @@ impl Debug for KTransformation {
                     kpuzzle: self.kpuzzle().clone(),
                 },
             )
-            .field("bytes", &unsafe { self.byte_slice() })
+            .field("ktransformation_data", &self.to_data())
             .finish()
     }
 }
