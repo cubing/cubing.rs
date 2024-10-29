@@ -119,9 +119,8 @@ pub struct QuantumMove {
 
 impl fmt::Display for QuantumMove {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.prefix {
-            Some(layers) => layers.fmt(f)?,
-            None => (),
+        if let Some(layers) = &self.prefix {
+            layers.fmt(f)?
         };
         write!(f, "{}", self.family)
     }
