@@ -6,7 +6,7 @@ use std::{
 
 use more_asserts::debug_assert_le;
 
-use super::{kpuzzle::KPuzzleOrbitInfo, KPuzzle, KTransformation};
+use super::{kpuzzle::KPuzzleOrbitInfo, KPuzzle};
 
 pub struct PackedOrbitData {
     /// Use `.kpuzzle()` directly on `KPattern` or `KTransformation` instead, when possible.
@@ -18,17 +18,6 @@ impl Drop for PackedOrbitData {
     fn drop(&mut self) {
         unsafe { dealloc(self.bytes, self.kpuzzle.data.layout) }
     }
-}
-
-trait KPatternOrKTransformation {
-    fn apply_transformation(&self, transformation: &Self) -> Self;
-    fn apply_transformation_into(&self, transformation: &KTransformation, into_other: &mut Self);
-
-    fn byte_slice(&self) -> &[u8];
-
-    fn hash(&self);
-
-    // pub fn unpack(&self) -> KPattern | KTransformation; // TODO
 }
 
 impl PackedOrbitData {
