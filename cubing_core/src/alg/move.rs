@@ -9,6 +9,7 @@ use super::QuantumMove;
 
 pub const _PLUSPLUS_: &str = "_PLUSPLUS_";
 pub const _PLUS_: &str = "_PLUS_";
+pub const _SLASH_: &str = "_SLASH_";
 
 // TODO: Remove `PartialEq` if we add any metadata (e.g. parsing info, or memoizations).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -19,6 +20,9 @@ pub struct Move {
 
 impl Move {
     pub fn invert(&self) -> Move {
+        if self.quantum.family == _SLASH_ && self.quantum.prefix.is_none() {
+            return self.clone();
+        }
         Self {
             quantum: Arc::clone(&self.quantum),
             amount: -self.amount,
