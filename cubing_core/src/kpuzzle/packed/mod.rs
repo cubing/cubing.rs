@@ -3,7 +3,8 @@ pub use errors::*;
 
 mod kpuzzle;
 pub use kpuzzle::{
-    ConversionError, InvalidAlgError, InvalidDefinitionError, KPuzzle, KPuzzleOrbitInfo,
+    ConversionError, InvalidAlgError, InvalidDefinitionError, InvalidMoveError, KPuzzle,
+    KPuzzleOrbitInfo,
 };
 
 mod packed_orbit_data;
