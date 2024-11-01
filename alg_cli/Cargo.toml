@@ -18,5 +18,5 @@ cubing_core = { version = "=0.13.7", path = "../cubing_core" }
 cubing_macros = { version = "=0.13.7", path = "../cubing_macros" }
 
 [[bin]]
-name = "alg-cli"
+name = "alg"
 path = "./main.rs"
