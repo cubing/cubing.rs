@@ -5,6 +5,7 @@ members = [
   "cubing",
   "cubing_core",
   "cubing_macros",
+  "alg_cli",
 ]
 default-members = [
   "cubing"
