@@ -5,7 +5,7 @@ use std::str::FromStr;
 use clap::{Args, Command, CommandFactory, Parser, Subcommand};
 use clap_complete::generator::generate;
 use clap_complete::{Generator, Shell};
-use cubing_core::alg::Alg;
+use cubing::alg::Alg;
 
 /// Alg tool
 #[derive(Parser, Debug)]

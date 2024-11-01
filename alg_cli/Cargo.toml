@@ -14,8 +14,7 @@ readme = "../README.md"
 [dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
 clap_complete = "4.3.2"
-cubing_core = { version = "=0.13.7", path = "../cubing_core" }
-cubing_macros = { version = "=0.13.7", path = "../cubing_macros" }
+cubing = { version = "=0.13.8", path = "../cubing" }
 
 [[bin]]
 name = "alg"
