@@ -1,4 +1,4 @@
-use std::io::stdout;
+use std::io::{read_to_string, stdin, stdout};
 use std::process::exit;
 use std::str::FromStr;
 
@@ -18,17 +18,24 @@ pub struct AlgCLIArgs {
 
 #[derive(Subcommand, Debug)]
 pub enum AlgCLICommand {
+    /// Parse the provided alg (i.e. validate syntax)
+    Parse(AlgSource),
+
     /// Invert the provided alg
-    Invert(InvertArgs),
+    Invert(AlgSource),
 
     /// Print completions for the given shell.
     Completions(CompletionsArgs),
 }
 
-#[derive(Args, Debug)]
-pub struct InvertArgs {
-    #[clap()]
-    alg: String,
+#[derive(Debug, Args)]
+#[group(required = true, multiple = false)]
+pub struct AlgSource {
+    #[clap(group = "alg_source")]
+    alg: Option<String>,
+
+    #[clap(long, group = "alg_source")]
+    stdin: bool,
 }
 
 #[derive(Args, Debug)]
@@ -62,8 +69,35 @@ fn main() {
     let args = get_options();
 
     match args.command {
+        AlgCLICommand::Parse(parse_args) => {
+            let alg = match parse_args.alg {
+                Some(alg) => alg,
+                None => {
+                    assert!(parse_args.stdin);
+                    read_to_string(stdin()).unwrap()
+                }
+            };
+            let exit_code = match Alg::from_str(&alg) {
+                Ok(_alg) => {
+                    eprintln!("Alg parsed successfully.");
+                    0
+                }
+                Err(e) => {
+                    eprintln!("Invalid alg: {}", e);
+                    1
+                }
+            };
+            exit(exit_code)
+        }
         AlgCLICommand::Invert(invert_args) => {
-            let alg = match Alg::from_str(&invert_args.alg) {
+            let alg = match invert_args.alg {
+                Some(alg) => alg,
+                None => {
+                    assert!(invert_args.stdin);
+                    read_to_string(stdin()).unwrap()
+                }
+            };
+            let alg = match Alg::from_str(&alg) {
                 Ok(alg) => alg,
                 Err(e) => {
                     eprintln!("Invalid alg: {}", e);
