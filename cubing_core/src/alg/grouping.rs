@@ -66,3 +66,14 @@ impl fmt::Display for Grouping {
         fmt_amount(f, self.amount)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::alg::Alg;
+
+    #[test]
+    fn square1_tuple_inversion() {
+        let alg = "(3, -4)".parse::<Alg>().unwrap();
+        assert_eq!(alg.invert(), "(-3, 4)".parse::<Alg>().unwrap());
+    }
+}
