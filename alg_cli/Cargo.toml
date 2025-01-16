@@ -12,8 +12,8 @@ keywords = ["cubing", "puzzle", "rubik", "solving", "WCA"]
 readme = "../README.md"
 
 [dependencies]
-clap = { version = "4.1.8", features = ["derive"] }
-clap_complete = "4.3.2"
+clap = { version = "4.5.26", features = ["derive"] }
+clap_complete = "4.5.42"
 cubing = { version = "=0.13.10", path = "../cubing" }
 
 [[bin]]
