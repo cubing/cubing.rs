@@ -13,7 +13,7 @@ pub mod alg {
     /// use cubing::alg::parse_alg;
     ///
     /// let alg = parse_alg!("F U R");
-    /// assert_eq!(alg.invert(), parse_alg!("R' U' F'"));
+    /// assert_eq!(&alg.invert(), parse_alg!("R' U' F'"));
     /// ```
     pub use cubing_core::alg::Alg;
     pub use cubing_core::alg::*;
