@@ -14,8 +14,8 @@ pub fn parse_alg(item: TokenStream) -> TokenStream {
     match alg_string.parse::<Alg>() {
         Ok(_alg) => quote! {
             {
-                static PARSED_ALG: std::sync::OnceLock<cubing::alg::Alg> = std::sync::OnceLock::new();
-                PARSED_ALG.get_or_init(|| (#alg_string).parse::<cubing::alg::Alg>().unwrap())
+                static PARSED_ALG: std::sync::LazyLock<cubing::alg::Alg> = std::sync::LazyLock::new(|| (#alg_string).parse::<cubing::alg::Alg>().unwrap());
+                &*PARSED_ALG
             }
         }
         .into(), // TODO: construct alg data structure instead of parsing at runtime?
@@ -38,8 +38,7 @@ pub fn parse_move(item: TokenStream) -> TokenStream {
             let move_amount = r#move.amount;
             quote! {
                 {
-                    static PARSED_MOVE: std::sync::OnceLock<cubing::alg::Move> = std::sync::OnceLock::new();
-                    PARSED_MOVE.get_or_init(|| {
+                    static PARSED_MOVE: std::sync::LazyLock<cubing::alg::Move> = std::sync::LazyLock::new(|| {
                         cubing::alg::Move {
                             quantum: std::sync::Arc::new(cubing::alg::QuantumMove {
                                 family: String::from(#move_family),
@@ -47,7 +46,8 @@ pub fn parse_move(item: TokenStream) -> TokenStream {
                             }),
                             amount: #move_amount,
                         }
-                    })
+                    });
+                    &*PARSED_MOVE
                 }
              }
             .into()
