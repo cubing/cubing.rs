@@ -17,6 +17,7 @@ pub mod alg {
     /// ```
     pub use cubing_core::alg::Alg;
     pub use cubing_core::alg::*;
+    pub use cubing_core::experimental_twizzle_link;
     pub use cubing_macros::{parse_alg, parse_move};
 }
 

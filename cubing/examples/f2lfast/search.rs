@@ -3,9 +3,11 @@
 use crate::{
     patterns::{is_3x3x3_solved, is_slot_solved, SlotMask},
     triggers::{SlotTriggerInfo, TriggerInfo},
-    twizzle_link::twizzle_link,
 };
 
+use cubing_core::experimental_twizzle_link::{
+    experimental_twizzle_link, ExperimentalTwizzleLinkParameters,
+};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
@@ -96,7 +98,14 @@ impl Search {
                     println!("Full Solution!");
                     println!("Short: {}", short_solution);
                     println!("Long: {}", long_solution);
-                    println!("{}", twizzle_link(&self.scramble, &long_solution));
+                    println!(
+                        "{}",
+                        experimental_twizzle_link(ExperimentalTwizzleLinkParameters {
+                            setup: Some(&self.scramble),
+                            alg: Some(&long_solution),
+                            ..Default::default()
+                        })
+                    );
                     search_status.num_solutions += 1;
                     if search_status.num_solutions == self.max_num_solutions {
                         return; // TODO: halt the search

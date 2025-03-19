@@ -18,6 +18,7 @@ nom = "7.1.3"
 paste = "1.0.15"
 serde = { version = "1.0.217", features = ["derive", "rc"] }
 serde_json = "1.0.135"
+url = "2.5.4"
 
 [dev-dependencies]
 clap = { version = "4.5.26", features = ["derive"] }

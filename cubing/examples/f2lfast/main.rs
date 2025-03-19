@@ -1,9 +1,5 @@
-pub mod twizzle_link;
-
 mod patterns;
-
 mod search;
-
 mod triggers;
 
 use std::{
