@@ -2,8 +2,7 @@
 mod tests {
     use std::sync::Arc;
 
-    use cubing_core as cubing;
-    use cubing_core::alg::{Alg, Move, QuantumMove};
+    use cubing::alg::{Alg, Move, MoveLayer, MovePrefix, MoveRange, QuantumMove};
     use cubing_macros::{parse_alg, parse_move};
 
     #[test]
@@ -19,6 +18,28 @@ mod tests {
                 amount: 1
             },
             r#move
+        );
+
+        assert_eq!(
+            &"2R".parse::<Move>().unwrap(),
+            &Move {
+                quantum: Arc::new(QuantumMove {
+                    family: "R".to_owned(),
+                    prefix: Some(MovePrefix::Layer(MoveLayer::new(2)))
+                }),
+                amount: 1
+            },
+        );
+
+        assert_eq!(
+            &"2-7R".parse::<Move>().unwrap(),
+            &Move {
+                quantum: Arc::new(QuantumMove {
+                    family: "R".to_owned(),
+                    prefix: Some(MovePrefix::Range(MoveRange::new(2, 7)))
+                }),
+                amount: 1
+            },
         );
     }
 

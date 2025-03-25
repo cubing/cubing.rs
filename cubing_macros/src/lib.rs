@@ -1,7 +1,7 @@
 // TODO: report errors better.
 // Maybe use https://docs.rs/proc-macro-error/latest/proc_macro_error/ ?
 
-use cubing_core::alg::{Alg, Move};
+use cubing_core::alg::{Alg, Move, MoveLayer, MovePrefix, MoveRange};
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -36,20 +36,63 @@ pub fn parse_move(item: TokenStream) -> TokenStream {
         Ok(r#move) => {
             let move_family = &r#move.quantum.family;
             let move_amount = r#move.amount;
-            quote! {
-                {
-                    static PARSED_MOVE: std::sync::LazyLock<cubing::alg::Move> = std::sync::LazyLock::new(|| {
-                        cubing::alg::Move {
-                            quantum: std::sync::Arc::new(cubing::alg::QuantumMove {
-                                family: String::from(#move_family),
-                                prefix: None,
-                            }),
-                            amount: #move_amount,
-                        }
-                    });
-                    &*PARSED_MOVE
-                }
-             }
+            // TODO: figure out a better way to invoke the quote! macro in different ways.
+            match r#move.quantum.prefix {
+                Some(MovePrefix::Layer(MoveLayer { layer })) => quote! {
+                    {
+                        static PARSED_MOVE: std::sync::LazyLock<cubing::alg::Move> = std::sync::LazyLock::new(|| {
+                            cubing::alg::Move {
+                                quantum: std::sync::Arc::new(cubing::alg::QuantumMove {
+                                    family: String::from(#move_family),
+                                    prefix: Some(cubing::alg::MovePrefix::Layer(
+                                        cubing::alg::MoveLayer {
+                                            layer: #layer
+                                        }
+                                    )),
+                                }),
+                                amount: #move_amount,
+                            }
+                        });
+                        &*PARSED_MOVE
+                    }
+                },
+                Some(MovePrefix::Range(MoveRange {
+                    outer_layer,
+                    inner_layer,
+                })) => quote! {
+                    {
+                        static PARSED_MOVE: std::sync::LazyLock<cubing::alg::Move> = std::sync::LazyLock::new(|| {
+                            cubing::alg::Move {
+                                quantum: std::sync::Arc::new(cubing::alg::QuantumMove {
+                                    family: String::from(#move_family),
+                                    prefix: Some(cubing::alg::MovePrefix::Range(
+                                        cubing::alg::MoveRange {
+                                            outer_layer: #outer_layer
+                                            inner_layer: #inner_layer
+                                        }
+                                    )),
+                                }),
+                                amount: #move_amount,
+                            }
+                        });
+                        &*PARSED_MOVE
+                    }
+                },
+                None => quote! {
+                    {
+                        static PARSED_MOVE: std::sync::LazyLock<cubing::alg::Move> = std::sync::LazyLock::new(|| {
+                            cubing::alg::Move {
+                                quantum: std::sync::Arc::new(cubing::alg::QuantumMove {
+                                    family: String::from(#move_family),
+                                    prefix: None,
+                                }),
+                                amount: #move_amount,
+                            }
+                        });
+                        &*PARSED_MOVE
+                    }
+                },
+            }
             .into()
         }
         Err(e) => {
