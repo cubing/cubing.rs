@@ -1,3 +1,7 @@
+use std::num::NonZero;
+
+use super::KPuzzleOrbitInfo;
+
 pub type PackedOrientationWithMod = u8;
 
 const NUM_BYTE_VALUES: usize = 0x100;
@@ -13,21 +17,35 @@ const MAX_NUM_ORIENTATIONS: usize = 107;
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct OrientationWithMod {
     pub orientation: u8,
-    pub orientation_mod: u8,
+    pub orientation_mod: Option<NonZero<u8>>,
 }
 
 impl OrientationWithMod {
     pub fn new_using_default_orientation_mod(orientation: u8) -> Self {
         Self {
             orientation,
-            orientation_mod: 0,
+            orientation_mod: None,
+        }
+    }
+
+    fn packing_table_orientation_mod_index(&self) -> usize {
+        (match self.orientation_mod {
+            Some(modulus) => u8::from(modulus),
+            None => 0,
+        }) as usize
+    }
+
+    pub fn orientation_modulus_for_orbit(&self, orbit_info: &KPuzzleOrbitInfo) -> u8 {
+        match self.orientation_mod {
+            Some(modulus) => u8::from(modulus),
+            None => orbit_info.num_orientations,
         }
     }
 }
 
 const BOGUS_ORIENTATION_WITH_MOD: OrientationWithMod = OrientationWithMod {
     orientation: 0xFE,
-    orientation_mod: 0xFD,
+    orientation_mod: NonZero::new(0xFD),
 };
 
 #[derive(Debug)]
@@ -47,18 +65,18 @@ pub struct OrientationPacker {
 /// (orientation_mod, orientation pairs). For example, an orbit with 6
 /// orientations has:
 ///
-/// - (1, 0) ↔️ 0
-/// - (2, 0) ↔️ 1
-/// - (2, 1) ↔️ 2
-/// - (3, 0) ↔️ 3
-/// - (3, 1) ↔️ 4
-/// - (3, 2) ↔️ 5
-/// - (0, 0) ↔️ 6
-/// - (0, 1) ↔️ 7
-/// - (0, 2) ↔️ 8
-/// - (0, 3) ↔️ 9
-/// - (0, 4) ↔️ 10
-/// - (0, 5) ↔️ 11
+/// - (Some(1), 0) ↔️ 0
+/// - (Some(2), 0) ↔️ 1
+/// - (Some(2), 1) ↔️ 2
+/// - (Some(3), 0) ↔️ 3
+/// - (Some(3), 1) ↔️ 4
+/// - (Some(3), 2) ↔️ 5
+/// - (   None, 0) ↔️ 6
+/// - (   None, 1) ↔️ 7
+/// - (   None, 2) ↔️ 8
+/// - (   None, 3) ↔️ 9
+/// - (   None, 4) ↔️ 10
+/// - (   None, 5) ↔️ 11
 ///
 /// `OrientationPacker` can translate between these representations,
 /// as well as applying a transformation to the packed representation
@@ -72,8 +90,6 @@ impl OrientationPacker {
 
         let mut num_packed_values_sofar: u8 = 0;
 
-        // Ignore an idiom suggestion by Clippy that doesn't work here (because we use `orientation_mod` as a value, not just as an index into `packing_table`).
-        #[allow(clippy::needless_range_loop)]
         for orientation_mod in 0..=(u8::MAX) {
             let factor = if orientation_mod == 0 {
                 num_orientations
@@ -87,7 +103,7 @@ impl OrientationPacker {
             for orientation in 0..factor {
                 unpacking_table[num_packed_values_sofar as usize] = OrientationWithMod {
                     orientation,
-                    orientation_mod,
+                    orientation_mod: NonZero::new(orientation_mod),
                 };
                 num_packed_values_sofar += 1;
             }
@@ -100,14 +116,15 @@ impl OrientationPacker {
         for orientation_delta in 0..num_orientations {
             for packed_value in 0..num_packed_values_sofar {
                 let orientation_with_mod = &unpacking_table[packed_value as usize];
-                let new_orientation = (orientation_with_mod.orientation + orientation_delta)
-                    % if orientation_with_mod.orientation_mod == 0 {
-                        num_orientations
-                    } else {
-                        orientation_with_mod.orientation_mod
-                    };
+                let modulus = match orientation_with_mod.orientation_mod {
+                    Some(modulus) => u8::from(modulus),
+                    None => num_orientations,
+                };
+                let new_orientation =
+                    (orientation_with_mod.orientation + orientation_delta) % modulus;
                 transformation_lookup[orientation_delta as usize][packed_value as usize] =
-                    packing_table[orientation_with_mod.orientation_mod as usize] + new_orientation
+                    packing_table[orientation_with_mod.packing_table_orientation_mod_index()]
+                        + new_orientation
             }
         }
 
@@ -132,13 +149,15 @@ impl OrientationPacker {
     }
 
     pub fn pack(&self, orientation_with_mod: &OrientationWithMod) -> PackedOrientationWithMod {
-        self.packing_table[orientation_with_mod.orientation_mod as usize]
+        self.packing_table[orientation_with_mod.packing_table_orientation_mod_index()]
             + orientation_with_mod.orientation
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::num::NonZero;
+
     use crate::kpuzzle::{
         KPattern, KPatternData, KPatternOrbitData, KPuzzle, KPuzzleDefinition, KPuzzleOrbitName,
     };
@@ -194,7 +213,7 @@ mod tests {
                 KPatternOrbitData {
                     pieces: vec![1, 0],
                     orientation: vec![3, 1],
-                    orientation_mod: Some(vec![4, 3]),
+                    orientation_mod: Some(vec![NonZero::new(4), NonZero::new(3)]),
                 },
             )]),
         )

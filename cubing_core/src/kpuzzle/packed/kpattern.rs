@@ -49,16 +49,18 @@ impl KPattern {
                     &match &default_orbit.orientation_mod {
                         None => OrientationWithMod::new_using_default_orientation_mod( default_orbit.orientation[i as usize]),
                         Some(orientation_mod) => {
-                            if orientation_mod[i as usize] != 0 && orbit_info.num_orientations % orientation_mod[i as usize] != 0 {
-                                return Err(ConversionError::InvalidKPatternData(InvalidKPatternDataError { description: format!(
-                                    "`orientation_mod` of {} seen for piece at index {} in orbit {} in the start pattern for puzzle {}. This must be a factor of `num_orientations` for the orbit ({}). See: https://js.cubing.net/cubing/api/interfaces/kpuzzle.KPatternOrbitData.html#orientationMod",
-                                    orientation_mod[i as usize],
-                                    i,
-                                    orbit_info.name,
-                                    kpuzzle.definition().name,
-                                    orbit_info.num_orientations
-                                )}));
-                            };
+                            if let Some(orientation_mod) = orientation_mod[i as usize] {
+                                if orbit_info.num_orientations % orientation_mod != 0 {
+                                    return Err(ConversionError::InvalidKPatternData(InvalidKPatternDataError { description: format!(
+                                        "`orientation_mod` of {} seen for piece at index {} in orbit {} in the start pattern for puzzle {}. This must be a factor of `num_orientations` for the orbit ({}). See: https://js.cubing.net/cubing/api/interfaces/kpuzzle.KPatternOrbitData.html#orientationMod",
+                                        orientation_mod,
+                                        i,
+                                        orbit_info.name,
+                                        kpuzzle.definition().name,
+                                        orbit_info.num_orientations
+                                    )}));
+                                };
+                            }
                             OrientationWithMod {
                                 orientation: default_orbit.orientation[i as usize],
                                 orientation_mod: orientation_mod[i as usize],
@@ -199,17 +201,11 @@ impl KPattern {
         orientation_with_mod: &OrientationWithMod,
     ) {
         assert_lt!(i, orbit.num_pieces);
-        if orientation_with_mod.orientation_mod == 0 {
-            assert_lt!(orientation_with_mod.orientation, orbit.num_orientations)
+        if let Some(v) = orientation_with_mod.orientation_mod {
+            assert_lt!(orientation_with_mod.orientation, v.get());
+            assert_eq!(orbit.num_orientations % v, 0);
         } else {
-            assert_lt!(
-                orientation_with_mod.orientation,
-                orientation_with_mod.orientation_mod
-            );
-            assert_eq!(
-                orbit.num_orientations % orientation_with_mod.orientation_mod,
-                0
-            );
+            assert_lt!(orientation_with_mod.orientation, orbit.num_orientations)
         }
         unsafe { self.set_orientation_with_mod_unchecked(orbit, i, orientation_with_mod) }
     }

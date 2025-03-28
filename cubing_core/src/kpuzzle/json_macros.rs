@@ -119,3 +119,17 @@ macro_rules! ktransformation_from_json_file {
           }
     };
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::kpuzzle::KPattern;
+
+    #[test]
+    fn my_test() -> Result<(), String> {
+        kpuzzle_from_json_file!(pub(crate), example, "./example.kpuzzle.json");
+
+        kpattern_from_json_file!(pub(crate), example, "./example.kpattern.mixed-orientationMod.json", example_kpuzzle());
+        let _: &KPattern = example_kpattern();
+        Ok(())
+    }
+}

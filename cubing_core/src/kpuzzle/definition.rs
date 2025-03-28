@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use std::fmt::Debug;
 pub(crate) use std::{collections::HashMap, fmt::Display};
+use std::{fmt::Debug, num::NonZero};
 
 use crate::alg::{Alg, Move};
 
@@ -50,7 +50,7 @@ pub struct KPuzzleDefinition {
 pub struct KPatternOrbitData {
     pub pieces: Vec<u8>,
     pub orientation: Vec<u8>,
-    pub orientation_mod: Option<Vec<u8>>,
+    pub orientation_mod: Option<Vec<Option<NonZero<u8>>>>,
 }
 
 struct SameLineDebugVecU8<'a>(&'a Vec<u8>);
@@ -69,6 +69,26 @@ impl Debug for SameLineDebugVecU8<'_> {
     }
 }
 
+struct SameLineDebugVecOptionNonzeroU8<'a>(&'a Vec<Option<NonZero<u8>>>);
+
+impl Debug for SameLineDebugVecOptionNonzeroU8<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[{}]",
+            self.0
+                .iter()
+                .map(|n| match n {
+                    Some(n) => n.get(),
+                    None => 0,
+                }
+                .to_string())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
 impl Debug for KPatternOrbitData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("KPatternOrbitData")
@@ -76,7 +96,10 @@ impl Debug for KPatternOrbitData {
             .field("orientation", &SameLineDebugVecU8(&self.orientation))
             .field(
                 "orientation_mod",
-                &self.orientation_mod.as_ref().map(SameLineDebugVecU8),
+                &self
+                    .orientation_mod
+                    .as_ref()
+                    .map(SameLineDebugVecOptionNonzeroU8),
             )
             .finish()
     }
