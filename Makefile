@@ -7,7 +7,7 @@ test: test-nextext test-doctests
 
 .PHONY: test-nextext
 test-nextext:
-	cargo bin cargo-nextest run --all
+	cargo tool-run-bin cargo-nextest run --all
 
 .PHONY: test-doctests
 test-doctests:
@@ -35,8 +35,8 @@ publish: lint # `cargo test` is run automatically.
 
 .PHONY: bump-version-minor
 bump-version-minor:
-	cargo bin cargo-workspaces version --no-git-commit --exact minor
+	cargo tool-run-bin cargo-workspaces version --no-git-commit --exact minor
 
 .PHONY: bump-version-patch
 bump-version-patch:
-	cargo bin cargo-workspaces version --no-git-commit --exact patch
+	cargo tool-run-bin cargo-workspaces version --no-git-commit --exact patch

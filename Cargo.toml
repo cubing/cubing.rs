@@ -6,6 +6,7 @@ members = [
   "cubing_core",
   "cubing_macros",
   "alg_cli",
+  "script/cargo-run-bin"
 ]
 default-members = [
   "cubing"

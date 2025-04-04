@@ -1,3 +1,4 @@
 /Cargo.lock
 /target
+# `cargo-run-bin`
 /.bin

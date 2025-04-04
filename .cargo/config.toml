@@ -1,0 +1,2 @@
+[alias]
+tool-run-bin = ["run", "--quiet", "--package", "cargo-bin", "--"]
