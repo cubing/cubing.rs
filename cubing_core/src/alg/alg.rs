@@ -56,7 +56,7 @@ impl<'de> Deserialize<'de> for Alg {
 
 struct AlgVisitor;
 
-impl<'de> Visitor<'de> for AlgVisitor {
+impl Visitor<'_> for AlgVisitor {
     type Value = Alg;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

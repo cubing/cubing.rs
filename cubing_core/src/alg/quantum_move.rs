@@ -137,7 +137,7 @@ impl QuantumMove {
 
 struct QuantumMoveVisitor;
 
-impl<'de> Visitor<'de> for QuantumMoveVisitor {
+impl Visitor<'_> for QuantumMoveVisitor {
     type Value = QuantumMove;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

@@ -51,7 +51,7 @@ impl<'de> Deserialize<'de> for Move {
 
 struct MoveVisitor;
 
-impl<'de> Visitor<'de> for MoveVisitor {
+impl Visitor<'_> for MoveVisitor {
     type Value = Move;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
