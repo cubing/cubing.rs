@@ -36,10 +36,16 @@ impl KPattern {
         let mut new_kpattern = Self::new_unitialized(&kpuzzle);
         for orbit_info in kpuzzle.orbit_info_iter() {
             for i in 0..orbit_info.num_pieces {
-                let default_orbit = kpattern_data.get(&orbit_info.name);
-                let default_orbit = match default_orbit {
-                    Some(default_orbit) => default_orbit,
-                    None => panic!("Invalid default pattern"), // TODO: catch at construction time?
+                let Some(default_orbit) = kpattern_data.get(&orbit_info.name) else {
+                    return Err(ConversionError::InvalidKPatternData(
+                        format!(
+                            // TODO: validate the orbit name and puzzle name?
+                            "Missing orbit (`{}`) while trying to initialize KPattern from data for KPuzzle (named `{}`).",
+                            orbit_info.name,
+                            kpuzzle.data.definition.name
+                        )
+                        .into(),
+                    ));
                 };
 
                 new_kpattern.set_piece(orbit_info, i, default_orbit.pieces[i as usize]);
