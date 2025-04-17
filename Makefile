@@ -26,6 +26,10 @@ format:
 clean:
 	rm -rf ./target
 
+.PHONY: reset
+reset: clean
+	rm -rf ./.bin
+
 .PHONY: publish
 publish: lint # `cargo test` is run automatically.
 	cargo publish --package cubing_core
