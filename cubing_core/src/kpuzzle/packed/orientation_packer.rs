@@ -2,6 +2,8 @@ pub type PackedOrientationWithMod = u8;
 
 const NUM_BYTE_VALUES: usize = 0x100;
 const BOGUS_PACKED_VALUE: PackedOrientationWithMod = 0xFF;
+// { orientation: 0, orientation_mod: 0 }
+pub(crate) const ZERO_ZERO_PACKED_VALUE: PackedOrientationWithMod = 0x00;
 // TODO: Avoid using this to hardcode the outer size of `transformation_lookup`.
 // Setting `MAX_NUM_ORIENTATIONS` is usually way larger than necessary, although
 // the wasted space is only ≈25KB per orbit. Ideally, we should allow

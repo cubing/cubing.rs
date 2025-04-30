@@ -6,7 +6,7 @@ use std::{
 
 use more_asserts::debug_assert_le;
 
-use super::{kpuzzle::KPuzzleOrbitInfo, KPuzzle};
+use super::{kpuzzle::KPuzzleOrbitInfo, orientation_packer::ZERO_ZERO_PACKED_VALUE, KPuzzle};
 
 pub struct PackedOrbitData {
     /// Use `.kpuzzle()` directly on `KPattern` or `KTransformation` instead, when possible.
@@ -41,9 +41,12 @@ impl PackedOrbitData {
         }
     }
 
-    /// Note: to get orientation with mod, call functions on `PackeKPattern` instead.
-    pub unsafe fn get_raw_orientation_value(&self, orbit: &KPuzzleOrbitInfo, i: u8) -> u8 {
-        unsafe { self.bytes_offset(orbit.orientations_offset, i).read() }
+    /// Note: to get orientation with mod, call functions on `PackedKPattern` instead.
+    pub unsafe fn get_raw_orientation_value(&self, orbit_info: &KPuzzleOrbitInfo, i: u8) -> u8 {
+        let Some(orientations_offset) = orbit_info.orientations_offset else {
+            return ZERO_ZERO_PACKED_VALUE;
+        };
+        unsafe { self.bytes_offset(orientations_offset, i).read() }
     }
 
     pub unsafe fn set_raw_piece_or_permutation_value(
@@ -59,8 +62,16 @@ impl PackedOrbitData {
     }
 
     /// Note: to set orientation with mod, call functions on `KPattern` instead.
-    pub unsafe fn set_raw_orientation_value(&mut self, orbit: &KPuzzleOrbitInfo, i: u8, value: u8) {
-        unsafe { self.bytes_offset(orbit.orientations_offset, i).write(value) }
+    pub unsafe fn set_raw_orientation_value(
+        &mut self,
+        orbit_info: &KPuzzleOrbitInfo,
+        i: u8,
+        value: u8,
+    ) {
+        let Some(orientations_offset) = orbit_info.orientations_offset else {
+            return;
+        };
+        unsafe { self.bytes_offset(orientations_offset, i).write(value) }
     }
 
     pub unsafe fn byte_slice(&self) -> &[u8] {

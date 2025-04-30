@@ -140,10 +140,13 @@ impl KTransformation {
         orbit_info: &KPuzzleOrbitInfo,
         i: u8,
     ) -> u8 {
+        let Some(orientations_offset) = orbit_info.orientations_offset else {
+            return 0;
+        };
         // TODO: dedup with PackedKTransformation, or at least implement as a trait?
         unsafe {
             self.packed_orbit_data
-                .bytes_offset(orbit_info.orientations_offset, i)
+                .bytes_offset(orientations_offset, i)
                 .read()
         }
     }
@@ -190,10 +193,13 @@ impl KTransformation {
         i: u8,
         orientation_delta: u8,
     ) {
+        let Some(orientations_offset) = orbit_info.orientations_offset else {
+            return;
+        };
         // TODO: dedup with PackedKTransformation, or at least implement as a trait?
         unsafe {
             self.packed_orbit_data
-                .bytes_offset(orbit_info.orientations_offset, i)
+                .bytes_offset(orientations_offset, i)
                 .write(orientation_delta)
         }
     }
@@ -215,6 +221,7 @@ impl KTransformation {
         into_ktransformation: &mut KTransformation,
     ) {
         for orbit_info in self.kpuzzle().orbit_info_iter() {
+            let has_orientation_data = orbit_info.pieces_or_permutations_offset != 1;
             // TODO: optimization when either value is the identity.
             for i in 0..orbit_info.num_pieces {
                 let transformation_idx =
@@ -230,20 +237,23 @@ impl KTransformation {
                     )
                 };
 
-                let previous_orientation_delta =
-                    unsafe { self.get_orientation_delta_unchecked(orbit_info, transformation_idx) };
+                if has_orientation_data {
+                    let previous_orientation_delta = unsafe {
+                        self.get_orientation_delta_unchecked(orbit_info, transformation_idx)
+                    };
 
-                // TODO: lookup table?
-                let new_orientation_delta = (previous_orientation_delta
-                    + unsafe { transformation.get_orientation_delta_unchecked(orbit_info, i) })
-                    % orbit_info.num_orientations;
-                unsafe {
-                    into_ktransformation.set_orientation_delta_unchecked(
-                        orbit_info,
-                        i,
-                        new_orientation_delta,
-                    )
-                };
+                    // TODO: lookup table?
+                    let new_orientation_delta = (previous_orientation_delta
+                        + unsafe { transformation.get_orientation_delta_unchecked(orbit_info, i) })
+                        % orbit_info.num_orientations;
+                    unsafe {
+                        into_ktransformation.set_orientation_delta_unchecked(
+                            orbit_info,
+                            i,
+                            new_orientation_delta,
+                        )
+                    };
+                }
             }
         }
     }

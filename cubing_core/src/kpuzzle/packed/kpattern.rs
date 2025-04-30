@@ -4,7 +4,7 @@ use more_asserts::assert_lt;
 
 use super::{
     kpuzzle::{InvalidAlgError, KPuzzleOrbitInfo},
-    orientation_packer::{OrientationWithMod, PackedOrientationWithMod},
+    orientation_packer::{OrientationWithMod, PackedOrientationWithMod, ZERO_ZERO_PACKED_VALUE},
     packed_orbit_data::PackedOrbitData,
     ConversionError, InvalidKPatternDataError, KPuzzle, KTransformation,
 };
@@ -173,12 +173,18 @@ impl KPattern {
 
     fn get_packed_orientation_with_mod_unchecked(
         &self,
-        orbit: &KPuzzleOrbitInfo,
+        orbit_info: &KPuzzleOrbitInfo,
         i: u8,
     ) -> PackedOrientationWithMod {
+        let Some(orientations_offset) = orbit_info.orientations_offset else {
+            // TODO: do we need to distinguish between an `orientationMod` of
+            // `0` vs. `1`? Maybe some applications expect to be able to set an
+            // `orientationMod` of `1` even on orbits with a single orientation.
+            return ZERO_ZERO_PACKED_VALUE;
+        };
         unsafe {
             self.packed_orbit_data
-                .bytes_offset(orbit.orientations_offset, i)
+                .bytes_offset(orientations_offset, i)
                 .read()
         }
     }
@@ -224,27 +230,36 @@ impl KPattern {
     /// This version does not check whether `i` or `orientation_with_mod` are in the correct ranges.
     pub unsafe fn set_orientation_with_mod_unchecked(
         &mut self,
-        orbit: &KPuzzleOrbitInfo,
+        orbit_info: &KPuzzleOrbitInfo,
         i: u8,
         orientation_with_mod: &OrientationWithMod,
     ) {
-        let packed_orientation_with_mod = orbit.orientation_packer.pack(orientation_with_mod);
+        // We run this even if `num_orientations == 1`, to validate the input values using a common code path.
+        let packed_orientation_with_mod = orbit_info.orientation_packer.pack(orientation_with_mod);
+        let Some(orientations_offset) = orbit_info.orientations_offset else {
+            debug_assert_eq!(orbit_info.num_orientations, 1);
+            return;
+        };
         unsafe {
             self.packed_orbit_data
-                .bytes_offset(orbit.orientations_offset, i)
+                .bytes_offset(orientations_offset, i)
                 .write(packed_orientation_with_mod)
         }
     }
 
     pub(crate) fn set_packed_orientation_with_mod_unchecked(
         &mut self,
-        orbit: &KPuzzleOrbitInfo,
+        orbit_info: &KPuzzleOrbitInfo,
         i: u8,
         value: PackedOrientationWithMod,
     ) {
+        let Some(orientations_offset) = orbit_info.orientations_offset else {
+            debug_assert_eq!(orbit_info.num_orientations, 1);
+            return;
+        };
         unsafe {
             self.packed_orbit_data
-                .bytes_offset(orbit.orientations_offset, i)
+                .bytes_offset(orientations_offset, i)
                 .write(value)
         }
     }
@@ -266,6 +281,7 @@ impl KPattern {
         into_kpattern: &mut KPattern,
     ) {
         for orbit_info in self.kpuzzle().orbit_info_iter() {
+            let has_orientation_data = orbit_info.pieces_or_permutations_offset != 1;
             // TODO: optimization when either value is the identity.
             for i in 0..orbit_info.num_pieces {
                 let transformation_idx =
@@ -275,21 +291,24 @@ impl KPattern {
                     unsafe { self.get_piece_unchecked(orbit_info, transformation_idx) };
                 unsafe { into_kpattern.set_piece_unchecked(orbit_info, i, new_piece_value) };
 
-                let previous_packed_orientation_with_mod =
-                    self.get_packed_orientation_with_mod_unchecked(orbit_info, transformation_idx);
+                if has_orientation_data {
+                    let previous_packed_orientation_with_mod = self
+                        .get_packed_orientation_with_mod_unchecked(orbit_info, transformation_idx);
 
-                let new_packed_orientation_with_mod = {
-                    orbit_info
-                        .orientation_packer
-                        .transform(previous_packed_orientation_with_mod, unsafe {
-                            transformation.get_orientation_delta_unchecked(orbit_info, i)
-                        })
-                };
-                into_kpattern.set_packed_orientation_with_mod_unchecked(
-                    orbit_info,
-                    i,
-                    new_packed_orientation_with_mod,
-                );
+                    let new_packed_orientation_with_mod = {
+                        orbit_info.orientation_packer.transform(
+                            previous_packed_orientation_with_mod,
+                            unsafe {
+                                transformation.get_orientation_delta_unchecked(orbit_info, i)
+                            },
+                        )
+                    };
+                    into_kpattern.set_packed_orientation_with_mod_unchecked(
+                        orbit_info,
+                        i,
+                        new_packed_orientation_with_mod,
+                    );
+                }
             }
         }
     }

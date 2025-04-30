@@ -61,6 +61,17 @@ fn it_works() -> Result<(), InvalidAlgError> {
     let items_orbit_name = &KPuzzleOrbitName("items".to_owned());
     let items_orbit = kpuzzle.lookup_orbit(items_orbit_name).unwrap();
 
+    assert_eq!(kpuzzle.definition().orbits.len(), 1);
+    assert_eq!(kpuzzle.orbit_info_iter().len(), 1);
+    assert_eq!(
+        kpuzzle
+            .orbit_info_iter()
+            .next()
+            .unwrap()
+            .orientations_offset,
+        None
+    );
+
     assert_eq!(kpuzzle.definition().name, "topsy_turvy");
     assert_eq!(
         kpuzzle.definition().default_pattern[items_orbit_name]

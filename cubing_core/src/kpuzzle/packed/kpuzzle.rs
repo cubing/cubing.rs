@@ -107,7 +107,7 @@ fn identity_transformation(kpuzzle: &KPuzzle) -> KTransformation {
 pub struct KPuzzleOrbitInfo {
     pub name: KPuzzleOrbitName,
     pub pieces_or_permutations_offset: usize,
-    pub orientations_offset: usize,
+    pub orientations_offset: Option<usize>,
     pub num_pieces: u8,
     pub num_orientations: u8,
     pub orientation_packer: OrientationPacker,
@@ -193,7 +193,7 @@ impl KPuzzle {
 
         DerivedMovesValidator::check(&definition)?;
 
-        let mut bytes_offset = 0;
+        let mut bytes_offset: usize = 0;
         let mut ordered_orbit_info: Vec<KPuzzleOrbitInfo> = vec![];
 
         for orbit_definition in &definition.orbits {
@@ -201,17 +201,26 @@ impl KPuzzle {
             if num_orientations > MAX_NUM_ORIENTATIONS_INCLUSIVE {
                 return Err(InvalidDefinitionError { description: format!("`num_orientations` for orbit {} is too large ({}). Maximum is {} for the current build." , orbit_definition.orbit_name, num_orientations, MAX_NUM_ORIENTATIONS_INCLUSIVE)});
             }
+            let pieces_or_permutations_offset = bytes_offset;
+            bytes_offset += orbit_definition.num_pieces as usize;
+            let orientations_offset = if num_orientations == 1 {
+                None
+            } else {
+                let orientations_offset = Some(bytes_offset);
+                bytes_offset += orbit_definition.num_pieces as usize;
+                orientations_offset
+            };
             ordered_orbit_info.push({
                 KPuzzleOrbitInfo {
                     name: orbit_definition.orbit_name.clone(),
                     num_pieces: orbit_definition.num_pieces,
                     num_orientations,
-                    pieces_or_permutations_offset: bytes_offset,
-                    orientations_offset: bytes_offset + (orbit_definition.num_pieces as usize),
+                    pieces_or_permutations_offset,
+                    orientations_offset,
+                    // TODO: combine this with `orientations_offset` into a single optional field?
                     orientation_packer: OrientationPacker::new(orbit_definition.num_orientations),
                 }
             });
-            bytes_offset += (orbit_definition.num_pieces as usize) * 2;
         }
 
         Ok(Self {
