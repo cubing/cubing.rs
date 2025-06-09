@@ -41,7 +41,7 @@ impl PackedOrbitData {
         }
     }
 
-    /// Note: to get orientation with mod, call functions on `PackeKPattern` instead.
+    /// Note: to get orientation with mod, call functions on `PackedKPattern` instead.
     pub unsafe fn get_raw_orientation_value(&self, orbit: &KPuzzleOrbitInfo, i: u8) -> u8 {
         unsafe { self.bytes_offset(orbit.orientations_offset, i).read() }
     }
