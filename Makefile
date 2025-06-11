@@ -16,10 +16,12 @@ test-doctests:
 
 .PHONY: lint
 lint:
-	cargo clippy
+	cargo clippy -- --deny warnings
+	cargo fmt --check
 
 .PHONY: format
 format:
+	cargo clippy --fix --allow-no-vcs
 	cargo fmt
 
 .PHONY: clean
