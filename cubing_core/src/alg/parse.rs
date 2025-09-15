@@ -1,4 +1,4 @@
-use std::{fmt::Display, str::FromStr, sync::Arc};
+use std::{error::Error, fmt::Display, str::FromStr, sync::Arc};
 
 use nom::{
     branch::alt,
@@ -44,6 +44,8 @@ impl Display for AlgParseError {
         write!(f, "{}", self.description)
     }
 }
+
+impl Error for AlgParseError {}
 
 fn from_decimal_unsigned(input: &str) -> Result<u32, std::num::ParseIntError> {
     input.parse::<u32>()
