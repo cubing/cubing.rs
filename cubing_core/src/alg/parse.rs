@@ -325,6 +325,7 @@ impl TryFrom<&str> for Alg {
         input.parse()
     }
 }
+
 impl FromStr for Alg {
     type Err = AlgParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
