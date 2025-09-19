@@ -34,10 +34,7 @@ reset: clean
 
 .PHONY: publish
 publish: lint # `cargo test` is run automatically.
-	cargo publish --package cubing_core
-	cargo publish --package cubing_macros
-	cargo publish --package cubing
-	cargo publish --package alg-cli
+	cargo publish --workspace
 
 .PHONY: bump-version-minor
 bump-version-minor:
