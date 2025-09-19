@@ -79,7 +79,7 @@ impl OrientationPacker {
             } else {
                 orientation_mod
             };
-            if num_orientations % factor != 0 {
+            if !num_orientations.is_multiple_of(factor) {
                 continue;
             }
             packing_table[orientation_mod as usize] = num_packed_values_sofar; // Note: this is sparse, so we only assign once per `orientation_mod`, not once per packed value.
