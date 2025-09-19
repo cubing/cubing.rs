@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "alg-cli"
-version = "0.14.5"
+version = "0.14.6-pre.1"
 dependencies = [
  "clap",
  "clap_complete",
@@ -81,7 +81,7 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "cargo-bin"
-version = "0.14.5"
+version = "0.14.6-pre.1"
 dependencies = [
  "cargo-run-bin",
 ]
@@ -172,7 +172,7 @@ checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
 
 [[package]]
 name = "cubing"
-version = "0.14.5"
+version = "0.14.6-pre.1"
 dependencies = [
  "clap",
  "cubing_core",
@@ -184,7 +184,7 @@ dependencies = [
 
 [[package]]
 name = "cubing_core"
-version = "0.14.5"
+version = "0.14.6-pre.1"
 dependencies = [
  "clap",
  "derive_more",
@@ -200,7 +200,7 @@ dependencies = [
 
 [[package]]
 name = "cubing_macros"
-version = "0.14.5"
+version = "0.14.6-pre.1"
 dependencies = [
  "cubing_core",
  "quote",
