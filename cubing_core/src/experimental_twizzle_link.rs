@@ -2,15 +2,11 @@ use url::Url;
 
 use crate::alg::Alg;
 
+#[derive(Default)]
 pub enum ExperimentalSetupAnchor {
+    #[default]
     Start,
     End,
-}
-
-impl Default for ExperimentalSetupAnchor {
-    fn default() -> Self {
-        Self::Start
-    }
 }
 
 #[derive(Default)]

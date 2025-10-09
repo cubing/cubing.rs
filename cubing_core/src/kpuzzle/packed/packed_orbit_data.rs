@@ -10,7 +10,7 @@ use super::{kpuzzle::KPuzzleOrbitInfo, KPuzzle};
 
 pub struct PackedOrbitData {
     /// Use `.kpuzzle()` directly on `KPattern` or `KTransformation` instead, when possible.
-    pub kpuzzle: KPuzzle,
+    pub(crate) kpuzzle: KPuzzle,
     pub bytes: *mut u8,
 }
 
@@ -67,12 +67,24 @@ impl PackedOrbitData {
         self.byte_slice_offset(0, self.kpuzzle.data.num_bytes)
     }
 
+    pub unsafe fn byte_slice_mut(&mut self) -> &mut [u8] {
+        self.byte_slice_offset_mut(0, self.kpuzzle.data.num_bytes)
+    }
+
     pub(crate) unsafe fn byte_slice_offset(&self, offset: usize, len: usize) -> &[u8] {
         debug_assert_le!(offset, self.kpuzzle.data.num_bytes);
         debug_assert_le!(offset + len, self.kpuzzle.data.num_bytes);
         // yiss ☺️
         // https://stackoverflow.com/a/27150865
         unsafe { std::slice::from_raw_parts(self.bytes.add(offset), len) }
+    }
+
+    pub(crate) unsafe fn byte_slice_offset_mut(&mut self, offset: usize, len: usize) -> &mut [u8] {
+        debug_assert_le!(offset, self.kpuzzle.data.num_bytes);
+        debug_assert_le!(offset + len, self.kpuzzle.data.num_bytes);
+        // yiss ☺️
+        // https://stackoverflow.com/a/27150865
+        unsafe { std::slice::from_raw_parts_mut(self.bytes.add(offset), len) }
     }
 }
 
