@@ -1,5 +1,6 @@
 [package]
 name = "cargo-bin"
+edition = "2024"
 
 [dependencies]
 cargo-run-bin = { version = "1.7.4", features = ["cli"] }
