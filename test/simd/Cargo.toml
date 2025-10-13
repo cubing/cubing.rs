@@ -1,0 +1,8 @@
+[package]
+name = "simd-test"
+edition = "2024"
+
+[workspace]
+
+[dependencies]
+cubing = { path = "../../cubing", features = ["simd"] }

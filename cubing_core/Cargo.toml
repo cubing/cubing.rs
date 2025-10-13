@@ -11,6 +11,11 @@ documentation = "https://github.com/cubing/cubing.rs"
 keywords = ["cubing", "puzzle", "rubik", "solving", "WCA"]
 readme = "README.md"
 
+[features]
+default = []
+# Uses `portable_simd`, an unstable nightly feature: https://github.com/rust-lang/rust/issues/86656
+simd = []
+
 [dependencies]
 derive_more = "0.99.18"
 more-asserts = "0.3.1"

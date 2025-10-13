@@ -2,3 +2,5 @@
 /target
 # `cargo-run-bin`
 /.bin
+
+/test/simd/target

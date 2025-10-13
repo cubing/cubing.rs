@@ -1,6 +1,6 @@
+use std::{fmt::Debug, hash::Hash};
+#[cfg(feature = "simd")]
 use std::{
-    fmt::Debug,
-    hash::Hash,
     ops::Range,
     simd::{LaneCount, Simd, SupportedLaneCount},
 };
@@ -24,14 +24,26 @@ pub struct KPattern {
     pub(crate) packed_orbit_data: PackedOrbitData,
 }
 
+#[cfg(feature = "simd")]
+const FOUR: usize = 4;
+#[cfg(feature = "simd")]
 const SIX: usize = 6;
+#[cfg(feature = "simd")]
 const EIGHT: usize = 8;
+#[cfg(feature = "simd")]
 const TWELVE: usize = 12;
+#[cfg(feature = "simd")]
+const FOURTEEN: usize = 14; // clock
+#[cfg(feature = "simd")]
+const TWENTY: usize = 20;
+#[cfg(feature = "simd")]
+const TWENTY_FOUR: usize = 24;
 // const mod3_12: Simd<u8, TEST_N> =
 //     Simd::<u8, TEST_N>::from_array([0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2]);
 // const mod2_12: Simd<u8, TEST_N> =
 //     Simd::<u8, TEST_N>::from_array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]);
 
+#[cfg(feature = "simd")]
 fn simdify<const N: usize>(slice: &[u8], range: &Range<usize>) -> Simd<u8, N>
 where
     LaneCount<N>: SupportedLaneCount,
@@ -287,14 +299,63 @@ impl KPattern {
     ) {
         for orbit_info in self.kpuzzle().orbit_info_iter() {
             match orbit_info.num_pieces as usize {
+                // For now, we use dynamic dispatch for common orbit sizes.
+                // TODO: push this dispatch into orbit info stored inside the `KPuzzle`.
+                #[cfg(feature = "simd")]
+                4 => {
+                    self.simd_apply_transformation_into::<FOUR>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
                 6 => {
-                    self.helper::<SIX>(orbit_info, transformation, into_kpattern);
+                    self.simd_apply_transformation_into::<SIX>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
                 }
+                #[cfg(feature = "simd")]
                 8 => {
-                    self.helper::<EIGHT>(orbit_info, transformation, into_kpattern);
+                    self.simd_apply_transformation_into::<EIGHT>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
                 }
+                #[cfg(feature = "simd")]
                 12 => {
-                    self.helper::<TWELVE>(orbit_info, transformation, into_kpattern);
+                    self.simd_apply_transformation_into::<TWELVE>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
+                14 => {
+                    self.simd_apply_transformation_into::<FOURTEEN>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
+                20 => {
+                    self.simd_apply_transformation_into::<TWENTY>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
+                24 => {
+                    self.simd_apply_transformation_into::<TWENTY_FOUR>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
                 }
                 _ => {
                     // TODO: optimization when either value is the identity.
@@ -333,7 +394,8 @@ impl KPattern {
         }
     }
 
-    fn helper<const N: usize>(
+    #[cfg(feature = "simd")]
+    fn simd_apply_transformation_into<const N: usize>(
         &self,
         orbit_info: &KPuzzleOrbitInfo,
         transformation: &KTransformation,
