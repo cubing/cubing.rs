@@ -1,4 +1,9 @@
 use std::{fmt::Debug, hash::Hash};
+#[cfg(feature = "simd")]
+use std::{
+    ops::Range,
+    simd::{LaneCount, Simd, SupportedLaneCount},
+};
 
 use more_asserts::assert_lt;
 
@@ -17,6 +22,33 @@ use crate::{
 #[derive(Hash, PartialEq, Eq, Clone)]
 pub struct KPattern {
     pub(crate) packed_orbit_data: PackedOrbitData,
+}
+
+#[cfg(feature = "simd")]
+const FOUR: usize = 4;
+#[cfg(feature = "simd")]
+const SIX: usize = 6;
+#[cfg(feature = "simd")]
+const EIGHT: usize = 8;
+#[cfg(feature = "simd")]
+const TWELVE: usize = 12;
+#[cfg(feature = "simd")]
+const FOURTEEN: usize = 14; // clock
+#[cfg(feature = "simd")]
+const TWENTY: usize = 20;
+#[cfg(feature = "simd")]
+const TWENTY_FOUR: usize = 24;
+// const mod3_12: Simd<u8, TEST_N> =
+//     Simd::<u8, TEST_N>::from_array([0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2]);
+// const mod2_12: Simd<u8, TEST_N> =
+//     Simd::<u8, TEST_N>::from_array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]);
+
+#[cfg(feature = "simd")]
+fn simdify<const N: usize>(slice: &[u8], range: &Range<usize>) -> Simd<u8, N>
+where
+    LaneCount<N>: SupportedLaneCount,
+{
+    Simd::<u8, N>::from_array(slice[range.clone()].try_into().unwrap())
 }
 
 impl KPattern {
@@ -266,31 +298,149 @@ impl KPattern {
         into_kpattern: &mut KPattern,
     ) {
         for orbit_info in self.kpuzzle().orbit_info_iter() {
-            // TODO: optimization when either value is the identity.
-            for i in 0..orbit_info.num_pieces {
-                let transformation_idx =
-                    unsafe { transformation.get_permutation_idx_unchecked(orbit_info, i) };
+            match orbit_info.num_pieces as usize {
+                // For now, we use dynamic dispatch for common orbit sizes.
+                // TODO: push this dispatch into orbit info stored inside the `KPuzzle`.
+                #[cfg(feature = "simd")]
+                4 => {
+                    self.simd_apply_transformation_into::<FOUR>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
+                6 => {
+                    self.simd_apply_transformation_into::<SIX>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
+                8 => {
+                    self.simd_apply_transformation_into::<EIGHT>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
+                12 => {
+                    self.simd_apply_transformation_into::<TWELVE>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
+                14 => {
+                    self.simd_apply_transformation_into::<FOURTEEN>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
+                20 => {
+                    self.simd_apply_transformation_into::<TWENTY>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                #[cfg(feature = "simd")]
+                24 => {
+                    self.simd_apply_transformation_into::<TWENTY_FOUR>(
+                        orbit_info,
+                        transformation,
+                        into_kpattern,
+                    );
+                }
+                _ => {
+                    // TODO: optimization when either value is the identity.
+                    for i in 0..orbit_info.num_pieces {
+                        let transformation_idx =
+                            unsafe { transformation.get_permutation_idx_unchecked(orbit_info, i) };
 
-                let new_piece_value =
-                    unsafe { self.get_piece_unchecked(orbit_info, transformation_idx) };
-                unsafe { into_kpattern.set_piece_unchecked(orbit_info, i, new_piece_value) };
+                        let new_piece_value =
+                            unsafe { self.get_piece_unchecked(orbit_info, transformation_idx) };
+                        unsafe {
+                            into_kpattern.set_piece_unchecked(orbit_info, i, new_piece_value)
+                        };
 
-                let previous_packed_orientation_with_mod =
-                    self.get_packed_orientation_with_mod_unchecked(orbit_info, transformation_idx);
+                        let previous_packed_orientation_with_mod = self
+                            .get_packed_orientation_with_mod_unchecked(
+                                orbit_info,
+                                transformation_idx,
+                            );
 
-                let new_packed_orientation_with_mod = {
-                    orbit_info
-                        .orientation_packer
-                        .transform(previous_packed_orientation_with_mod, unsafe {
-                            transformation.get_orientation_delta_unchecked(orbit_info, i)
-                        })
-                };
-                into_kpattern.set_packed_orientation_with_mod_unchecked(
-                    orbit_info,
-                    i,
-                    new_packed_orientation_with_mod,
-                );
+                        let new_packed_orientation_with_mod = {
+                            orbit_info.orientation_packer.transform(
+                                previous_packed_orientation_with_mod,
+                                unsafe {
+                                    transformation.get_orientation_delta_unchecked(orbit_info, i)
+                                },
+                            )
+                        };
+                        into_kpattern.set_packed_orientation_with_mod_unchecked(
+                            orbit_info,
+                            i,
+                            new_packed_orientation_with_mod,
+                        );
+                    }
+                }
             }
+        }
+    }
+
+    #[cfg(feature = "simd")]
+    fn simd_apply_transformation_into<const N: usize>(
+        &self,
+        orbit_info: &KPuzzleOrbitInfo,
+        transformation: &KTransformation,
+        into_kpattern: &mut KPattern,
+    ) where
+        LaneCount<N>: SupportedLaneCount,
+    {
+        let s = unsafe { self.byte_slice() };
+        let t = unsafe { transformation.byte_slice() };
+        let into = unsafe { into_kpattern.byte_slice_mut() };
+
+        let p_range = &(orbit_info.pieces_or_permutations_offset
+            ..(orbit_info.pieces_or_permutations_offset + (orbit_info.num_pieces as usize)));
+        let permutation: Simd<u8, N> = simdify::<N>(t, p_range);
+
+        // TODO: interleave and operate on pieces and orientations at the same time?
+        {
+            let pieces: Simd<u8, N> = simdify::<N>(s, p_range);
+            pieces
+                .swizzle_dyn(permutation)
+                .copy_to_slice(&mut into[p_range.clone()]);
+        }
+
+        let orientations_with_mod = {
+            let o_range = &(orbit_info.orientations_offset
+                ..(orbit_info.orientations_offset + (orbit_info.num_pieces as usize)));
+            let previous_orientations_with_mod: Simd<u8, N> = simdify(s, o_range);
+            previous_orientations_with_mod.swizzle_dyn(permutation)
+        };
+
+        for i in 0..orbit_info.num_pieces {
+            let previous_packed_orientation_with_mod = orientations_with_mod[i as usize];
+
+            let new_packed_orientation_with_mod = {
+                orbit_info
+                    .orientation_packer
+                    .transform(previous_packed_orientation_with_mod, unsafe {
+                        transformation.get_orientation_delta_unchecked(orbit_info, i)
+                    })
+            };
+            into_kpattern.set_packed_orientation_with_mod_unchecked(
+                orbit_info,
+                i,
+                new_packed_orientation_with_mod,
+            );
         }
     }
 
@@ -311,6 +461,12 @@ impl KPattern {
     /// The internal structure of bytes is not yet stable.
     pub unsafe fn byte_slice(&self) -> &[u8] {
         self.packed_orbit_data.byte_slice()
+    }
+
+    /// # Safety
+    /// The internal structure of bytes is not yet stable.
+    pub unsafe fn byte_slice_mut(&mut self) -> &mut [u8] {
+        self.packed_orbit_data.byte_slice_mut()
     }
 }
 
