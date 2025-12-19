@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "postVersion": ["cargo", "generate-lockfile", "--manifest-path", "./test/simd/Cargo.toml"]
+  }
+}
