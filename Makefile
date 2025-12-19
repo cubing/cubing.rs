@@ -22,16 +22,16 @@ test-simd:
 
 .PHONY: lint
 lint:
-	cargo clippy -- --deny warnings
+	cargo clippy --workspace --all-targets -- --deny warnings
 	cargo fmt --check
-	${TEST_SIMD} && cargo clippy -- --deny warnings
+	${TEST_SIMD} && cargo clippy --workspace --all-targets -- --deny warnings
 	${TEST_SIMD} && cargo fmt --check
 
 .PHONY: format
 format:
-	cargo clippy --fix --allow-no-vcs
+	cargo clippy --workspace --all-targets --fix --allow-dirty -- --deny warnings
 	cargo fmt
-	${TEST_SIMD} && cargo clippy --fix --allow-no-vcs
+	${TEST_SIMD} && cargo clippy --workspace --all-targets --fix --allow-dirty -- --deny warnings
 	${TEST_SIMD} && cargo fmt
 
 .PHONY: clean
