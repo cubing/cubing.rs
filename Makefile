@@ -1,4 +1,4 @@
-TEST_SIMD = cd ./test/simd/
+CD_TEST_SIMD = cd ./test/simd/
 
 .PHONY: build
 build:
@@ -18,21 +18,21 @@ test-doctests:
 
 .PHONY: test-simd
 test-simd:
-	${TEST_SIMD} && cargo test
+	${CD_TEST_SIMD} && cargo test
 
 .PHONY: lint
 lint:
 	cargo clippy --workspace --all-targets -- --deny warnings
 	cargo fmt --check
-	${TEST_SIMD} && cargo clippy --workspace --all-targets -- --deny warnings
-	${TEST_SIMD} && cargo fmt --check
+	${CD_TEST_SIMD} && cargo clippy --workspace --all-targets -- --deny warnings
+	${CD_TEST_SIMD} && cargo fmt --check
 
 .PHONY: format
 format:
 	cargo clippy --workspace --all-targets --fix --allow-dirty -- --deny warnings
 	cargo fmt
-	${TEST_SIMD} && cargo clippy --workspace --all-targets --fix --allow-dirty -- --deny warnings
-	${TEST_SIMD} && cargo fmt
+	${CD_TEST_SIMD} && cargo clippy --workspace --all-targets --fix --allow-dirty -- --deny warnings
+	${CD_TEST_SIMD} && cargo fmt
 
 .PHONY: clean
 clean:
