@@ -34,13 +34,15 @@ format:
 	${CD_TEST_SIMD} && cargo clippy --workspace --all-targets --fix --allow-dirty -- --deny warnings
 	${CD_TEST_SIMD} && cargo fmt
 
+RM_RF = bun -e 'process.argv.slice(1).map(p => process.getBuiltinModule("node:fs").rmSync(p, {recursive: true, force: true, maxRetries: 5}))' --
+
 .PHONY: clean
 clean:
-	rm -rf ./target
+	# no-op for now
 
 .PHONY: reset
 reset: clean
-	rm -rf ./.bin
+	${RM_RF} ./.bin/ ./target/
 
 .PHONY: publish
 publish: lint # `cargo test` is run automatically.
