@@ -1,5 +1,8 @@
 CD_TEST_SIMD = cd ./test/simd/
 
+.PHONY: check
+check: lint test build 
+
 .PHONY: build
 build:
 	cargo build --release
