@@ -1,9 +1,6 @@
 use std::{fmt::Debug, hash::Hash};
 #[cfg(feature = "simd")]
-use std::{
-    ops::Range,
-    simd::{LaneCount, Simd, SupportedLaneCount},
-};
+use std::{ops::Range, simd::Simd};
 
 use more_asserts::assert_lt;
 
@@ -44,10 +41,7 @@ const TWENTY_FOUR: usize = 24;
 //     Simd::<u8, TEST_N>::from_array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]);
 
 #[cfg(feature = "simd")]
-fn simdify<const N: usize>(slice: &[u8], range: &Range<usize>) -> Simd<u8, N>
-where
-    LaneCount<N>: SupportedLaneCount,
-{
+fn simdify<const N: usize>(slice: &[u8], range: &Range<usize>) -> Simd<u8, N> {
     Simd::<u8, N>::from_array(slice[range.clone()].try_into().unwrap())
 }
 
@@ -400,9 +394,7 @@ impl KPattern {
         orbit_info: &KPuzzleOrbitInfo,
         transformation: &KTransformation,
         into_kpattern: &mut KPattern,
-    ) where
-        LaneCount<N>: SupportedLaneCount,
-    {
+    ) {
         let s = unsafe { self.byte_slice() };
         let t = unsafe { transformation.byte_slice() };
         let into = unsafe { into_kpattern.byte_slice_mut() };
