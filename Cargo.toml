@@ -6,16 +6,19 @@ members = [
   "cubing_core",
   "cubing_macros",
   "alg_cli",
-  "script/cargo-run-bin"
+  "script/cargo-run-bin",
 ]
-default-members = [
-  "cubing"
-]
+default-members = ["cubing"]
 
 [workspace.package]
-version = "0.15.2-dev"
+version = "0.15.2-pre1"
 license = "MPL-2.0"
 edition = "2021"
+
+[workspace.dependencies]
+cubing = { path = "./cubing" }
+cubing_macros = { path = "./cubing_macros" }
+cubing_core = { path = "./cubing_core" }
 
 [workspace.metadata.bin]
 cargo-binstall = { version = "1.4.4" }
