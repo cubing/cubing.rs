@@ -3,7 +3,7 @@ mod tests {
     use cubing::{alg::parse_alg, puzzles::cube3x3x3_kpuzzle};
 
     #[test]
-    fn my_test() -> Result<(), String> {
+    fn apply_transformation() -> Result<(), String> {
         let kpuzzle = cube3x3x3_kpuzzle();
         let transformation = kpuzzle
             .transformation_from_alg(parse_alg!("R U2 R'"))
