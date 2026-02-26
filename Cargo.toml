@@ -11,14 +11,14 @@ members = [
 default-members = ["cubing"]
 
 [workspace.package]
-version = "0.15.2-pre1"
+version = "0.15.2"
 license = "MPL-2.0"
 edition = "2021"
 
 [workspace.dependencies]
-cubing = { path = "./cubing" }
-cubing_macros = { path = "./cubing_macros" }
-cubing_core = { path = "./cubing_core" }
+cubing = { version = "0.15.2", path = "./cubing" }
+cubing_macros = { version = "0.15.2", path = "./cubing_macros" }
+cubing_core = { version = "0.15.2", path = "./cubing_core" }
 
 [workspace.metadata.bin]
 cargo-binstall = { version = "1.4.4" }
