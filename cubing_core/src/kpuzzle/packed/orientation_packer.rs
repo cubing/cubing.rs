@@ -44,7 +44,7 @@ pub struct OrientationPacker {
 }
 
 /// For a given `num_orientations`, an orbit has a limited set of valid
-/// (orientation_mod, orientation pairs). For example, an orbit with 6
+/// `(orientation_mod, orientation)` pairs. For example, an orbit with 6
 /// orientations has:
 ///
 /// - (1, 0) ↔️ 0
