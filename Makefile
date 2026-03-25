@@ -8,10 +8,10 @@ build:
 	cargo build --release
 
 .PHONY: test
-test: test-nextext test-doctests test-simd
+test: test-nextest test-doctests test-simd
 
-.PHONY: test-nextext
-test-nextext:
+.PHONY: test-nextest
+test-nextest:
 	cargo tool-run-bin cargo-nextest run --all
 
 .PHONY: test-doctests
