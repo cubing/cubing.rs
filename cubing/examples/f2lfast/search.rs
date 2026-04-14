@@ -8,8 +8,8 @@ use crate::{
 use cubing_core::experimental_twizzle_link::{
     experimental_twizzle_link, ExperimentalTwizzleLinkParameters,
 };
+use rand::rng;
 use rand::seq::SliceRandom;
-use rand::thread_rng;
 
 use cubing::{
     alg::{Alg, AlgBuilder, AlgNode, Pause},
@@ -177,8 +177,8 @@ impl Search {
         }
 
         if self.randomize {
-            next_frames_preferred.shuffle(&mut thread_rng());
-            next_frames_non_preferred.shuffle(&mut thread_rng());
+            next_frames_preferred.shuffle(&mut rng());
+            next_frames_non_preferred.shuffle(&mut rng());
         }
         for next_frames in [next_frames_preferred, next_frames_non_preferred] {
             for next_frame in next_frames {
