@@ -49,7 +49,7 @@ clean:
 
 .PHONY: reset
 reset: clean
-	${RM_RF} ./.bin/ ./target/
+	${RM_RF} ./.bin/ ./target/ ./test/simd/target/
 
 .PHONY: publish
 publish: lint # `cargo test` is run automatically.
